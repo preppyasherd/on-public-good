@@ -1,9 +1,11 @@
 {
   "ui": {
-    "accent": "#ffd814",
-    "accentInk": "#1d1d1d",
-    "panelBg": "#161616",
-    "panelInk": "#ffffff",
+    "background": "#FFFFFF",
+    "text": "#140080",
+    "primary": "#0000EE",
+    "accent": "#0B00D9",
+    "surface": "#FFFFFF",
+    "border": "#E2E8F0",
     "serif": "Inter",
     "sans": "Inter",
     "mono": "Inter",

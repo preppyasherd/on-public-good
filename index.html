@@ -11,10 +11,10 @@
 
   OTHER FILES NEXT TO THIS ONE
     map.json    all the map data (blocks, towns, sites, amenities) — made from the QGIS project
-    style.json  colours, fonts, sizes — easiest edited with the 🎨 Style button on the map
+    style.json  colours, fonts, sizes — easiest edited with the Style button on the map
 
   WHERE TO EDIT …
-    Colours, fonts, line weights, ring sizes  → 🎨 Style button (or style.json). No code needed.
+    Colours, fonts, line weights, ring sizes  → Style button (or style.json). No code needed.
     Wording in the side panel                 → search for:  function panelCity / panelPrecinct / panelProject
     Wording in the RTO form                   → search for:  function renderForm
     Tooltip text on hover                     → search for:  function describe
@@ -38,29 +38,35 @@
     />
     <style>
       /* ============================================================
-         GLOBAL SETTINGS
-         Fonts and the accent colour are overridden at runtime by the
-         style editor / style.json. Edit them there, not here.
+         DESIGN SYSTEM
+         The six colours from the design sheet + Inter.
+         These are defaults: the Style editor / style.json can
+         override them (Interface section). Everything below uses
+         these variables, so change a colour here once.
          ============================================================ */
       :root {
-        --verm: #ff3c02;
-        --orange: #fe9f4d;
-        --orange-ink: #1d1d1d;
-        /* Map colours are NOT set here — see STYLE_DEFAULTS in the script and style.json. */
-        --serif: "Inter", system-ui, sans-serif; /* headings  */
+        --bg: #ffffff; /* Background — page and panel */
+        --text: #140080; /* Text — all text and icons */
+        --primary: #0000ee; /* Primary — buttons, selected states, links */
+        --accent: #0b00d9; /* Accent — hover / pressed */
+        --surface: #ffffff; /* Surface — cards, map overlays, form */
+        --border: #e2e8f0; /* Border — lines, card edges, empty bars */
+
+        /* made from the colours above */
+        --muted: color-mix(in srgb, var(--text) 60%, var(--bg)); /* secondary text */
+        --soft: color-mix(in srgb, var(--primary) 7%, var(--bg)); /* light tint for hover / selected */
+        --on-primary: #ffffff; /* text on blue buttons */
+
+        --radius: 12px; /* cards */
+        --radius-sm: 8px; /* buttons, inputs */
+        --shadow: 0 4px 16px rgba(20, 0, 128, 0.1);
+
+        --serif: "Inter", system-ui, sans-serif; /* headings */
         --sans: "Inter", system-ui, sans-serif; /* interface */
-        --mono: "Inter", system-ui, sans-serif; /* numbers   */
+        --mono: "Inter", system-ui, sans-serif; /* numbers */
       }
       * {
         box-sizing: border-box;
-      }
-      /* form controls don't inherit the page font by default — make them use Inter too */
-      input,
-      select,
-      textarea,
-      button,
-      output {
-        font-family: inherit;
       }
       html,
       body {
@@ -68,16 +74,28 @@
         margin: 0;
       }
       body {
-        background: #111;
-        color: #eee;
+        background: var(--bg);
+        color: var(--text);
         font-family: var(--sans);
         font-variant-numeric: tabular-nums;
       }
-      button {
-        font: inherit;
+      /* form controls don't inherit the page font by default */
+      input,
+      select,
+      textarea,
+      button,
+      output {
+        font-family: inherit;
         color: inherit;
       }
-      /* ---------- map app ---------- */
+      button {
+        font: inherit;
+      }
+      .ico {
+        display: inline-block;
+        vertical-align: -3px;
+        flex: none;
+      }
 
       /* ============================================================
          LAYOUT
@@ -88,96 +106,231 @@
         display: grid;
         grid-template-columns: 400px 1fr;
         position: relative;
-        border-top: 1px solid var(--ink);
-        font-family: var(--sans);
         font-size: 14px;
         line-height: 1.45;
-        background: #111;
+        background: var(--bg);
       }
 
       /* ============================================================
          SIDE PANEL
-         The dark column: headings, buttons, lists, cards.
          ============================================================ */
       .panel {
-        background: var(--panel-bg, #161616);
-        color: var(--panel-ink, #e9e9e9);
+        background: var(--bg);
+        color: var(--text);
         zoom: var(--ui-scale, 1);
         overflow-y: auto;
         display: flex;
         flex-direction: column;
         min-width: 0;
-        border-right: 1px solid #2a2a2a;
+        border-right: 1px solid var(--border);
       }
       .panel-inner {
-        padding: 18px 20px 40px;
+        padding: 20px 22px 44px;
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 22px;
       }
+
+      /* top line: "ON PUBLIC GOOD · PART 3 … RETROFIT-TO-ORDER" */
+      .kick {
+        font-size: 10.5px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 12px;
+      }
+      .kick b {
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      /* scale name + subtitle ("Singapore Scale" / "Site Finder") */
       .scalehead {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 4px;
         align-items: flex-start;
       }
       .btn-o {
-        background: var(--orange);
-        color: var(--orange-ink);
-        border: 0;
-        border-radius: 3px;
-        padding: 8px 16px;
-        font-family: var(--sans);
+        background: var(--primary);
+        color: var(--on-primary);
+        border-radius: 999px;
+        padding: 6px 14px;
         font-weight: 600;
-        font-size: 17px;
-        box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+        font-size: 13px;
+        letter-spacing: 0.01em;
       }
       .btn-o.sub {
-        font-weight: 400;
-        font-size: 16px;
-        padding: 6px 16px;
+        background: none;
+        color: var(--text);
+        padding: 2px 0 0;
+        font-weight: 700;
+        font-size: 28px;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        border-radius: 0;
       }
+      /* section headings inside the panel ("History and Maturity…") */
+      .panel section > .btn-o.sub {
+        font-size: 17px;
+        letter-spacing: -0.01em;
+        margin-bottom: 10px !important;
+      }
+
       .panel h3 {
         margin: 0;
         font-family: var(--serif);
-        font-weight: 500;
-        font-size: 24px;
-        line-height: 1.15;
+        font-weight: 700;
+        font-size: 22px;
+        line-height: 1.2;
+        letter-spacing: -0.015em;
       }
       .panel .dek {
-        color: #a9a9a9;
+        color: var(--muted);
         margin: 0;
         font-size: 13.5px;
       }
+      .muted {
+        color: var(--muted);
+      }
+      .accent-txt {
+        color: var(--primary);
+      }
+
+      /* small capital labels ("RTO SITES", "BLOCK TYPE") */
       .lbl {
-        font-family: var(--mono);
         font-size: 10.5px;
+        font-weight: 600;
         letter-spacing: 0.1em;
         text-transform: uppercase;
-        color: #9a9a9a;
+        color: var(--muted);
         margin: 0 0 8px;
         display: flex;
         justify-content: space-between;
       }
+
+      /* cards */
+      .box {
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        background: var(--surface);
+      }
+      .box dl {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 6px 14px;
+        margin: 8px 0 0;
+        font-size: 13px;
+      }
+      .box dt {
+        color: var(--muted);
+      }
+      .box dd {
+        margin: 0;
+        font-weight: 500;
+      }
+      /* dashed "add your content here" boxes */
+      .ph {
+        border: 1px dashed color-mix(in srgb, var(--text) 25%, var(--bg));
+        border-radius: var(--radius);
+        color: var(--muted);
+        font-size: 12.5px;
+        padding: 12px 14px;
+        font-style: italic;
+      }
+      .ph b {
+        font-style: normal;
+        color: var(--text);
+      }
+      .tag {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        padding: 1px 7px;
+        border-radius: 999px;
+        margin-left: 6px;
+        vertical-align: middle;
+      }
+      .nodata {
+        color: var(--muted);
+        font-size: 12.5px;
+        font-style: italic;
+      }
+
+      /* RTO site cards */
+      .sites {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .sitebtn {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 12px;
+        align-items: center;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 10px 14px;
+        cursor: pointer;
+        text-align: left;
+      }
+      .sitebtn:hover {
+        border-color: var(--primary);
+        background: var(--soft);
+      }
+      .sitebtn b {
+        font-weight: 700;
+        font-size: 15px;
+      }
+      .sitebtn small {
+        color: var(--muted);
+        font-size: 12px;
+        display: block;
+      }
+      .sitebtn .n:first-child {
+        color: var(--primary);
+        font-weight: 700;
+      }
+      .sitebtn .n {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      /* "When possible RTO" pills */
       .chips {
         display: flex;
         gap: 8px;
         flex-wrap: wrap;
       }
       .chip {
-        background: #fff;
-        color: #111;
-        border: 2px solid transparent;
-        border-radius: 3px;
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 999px;
         padding: 6px 14px;
         font-weight: 600;
         font-size: 13px;
         cursor: pointer;
       }
-      .chip[aria-pressed="true"] {
-        border-color: var(--orange);
-        background: var(--orange);
+      .chip:hover {
+        border-color: var(--primary);
       }
+      .chip[aria-pressed="true"] {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: var(--on-primary);
+      }
+
+      /* checkbox lists (VERS bands, block types) */
       .legend {
         display: flex;
         flex-direction: column;
@@ -188,54 +341,63 @@
         grid-template-columns: 16px 14px 1fr 54px 72px;
         gap: 8px;
         align-items: center;
-        padding: 4px;
-        border-radius: 3px;
+        padding: 5px 6px;
+        border-radius: var(--radius-sm);
         cursor: pointer;
-        font-variant-numeric: tabular-nums;
       }
       .lg:hover {
-        background: #222;
+        background: var(--soft);
       }
       .lg input {
         margin: 0;
-        accent-color: var(--orange);
+        accent-color: var(--primary);
       }
       .sw {
         width: 14px;
         height: 14px;
-        border-radius: 2px;
+        border-radius: 4px;
+        box-shadow: inset 0 0 0 1px rgba(20, 0, 128, 0.12);
       }
       .n {
-        font-family: var(--mono);
         font-size: 12px;
         text-align: right;
       }
       .n.u {
-        color: #9a9a9a;
+        color: var(--muted);
       }
       .tot {
         display: flex;
         justify-content: space-between;
-        border-top: 1px solid #2c2c2c;
+        border-top: 1px solid var(--border);
         margin-top: 6px;
-        padding: 8px 4px 0;
-        font-family: var(--mono);
+        padding: 10px 6px 0;
         font-size: 12px;
-        color: #9a9a9a;
+        color: var(--muted);
       }
+
       select {
         font: inherit;
         width: 100%;
-        padding: 8px;
-        border: 1px solid #333;
-        border-radius: 3px;
-        background: #1f1f1f;
-        color: #eee;
+        padding: 9px 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
+        color: var(--text);
       }
       .row {
         display: flex;
         gap: 10px;
         align-items: center;
+      }
+      .row input {
+        accent-color: var(--primary);
+      }
+
+      /* ranked bars (towns, precincts) */
+      .towns {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
       }
       .tw {
         display: grid;
@@ -246,18 +408,19 @@
         cursor: pointer;
         background: none;
         border: 0;
-        color: #ddd;
+        color: var(--text);
         padding: 2px 0;
         text-align: left;
         width: 100%;
       }
       .tw:hover span:first-child {
-        color: var(--orange);
+        color: var(--primary);
+        text-decoration: underline;
       }
       .tw .bar {
-        height: 9px;
-        background: #2a2a2a;
-        border-radius: 2px;
+        height: 8px;
+        background: var(--border);
+        border-radius: 999px;
         overflow: hidden;
         display: flex;
       }
@@ -266,40 +429,15 @@
         height: 100%;
       }
       .tw .pct {
-        font-family: var(--mono);
         font-size: 12px;
         text-align: right;
       }
-      .towns {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-      .box {
-        border: 1px solid #2e2e2e;
-        border-radius: 4px;
-        padding: 12px 14px;
-        background: #1c1c1c;
-      }
-      .box dl {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 4px 14px;
-        margin: 8px 0 0;
-        font-size: 13px;
-      }
-      .box dt {
-        color: #9a9a9a;
-      }
-      .box dd {
-        margin: 0;
-        font-family: var(--mono);
-        font-size: 12.5px;
-      }
+
+      /* lease clock bar */
       .clock {
         height: 8px;
-        border-radius: 4px;
-        background: #2a2a2a;
+        border-radius: 999px;
+        background: var(--border);
         margin-top: 10px;
         position: relative;
         overflow: hidden;
@@ -307,33 +445,10 @@
       .clock i {
         position: absolute;
         inset: 0 auto 0 0;
-        border-radius: 4px;
+        border-radius: 999px;
       }
-      .ph {
-        border: 1px dashed #555;
-        border-radius: 4px;
-        color: #8d8d8d;
-        font-size: 12.5px;
-        padding: 10px 12px;
-        font-style: italic;
-      }
-      .ph b {
-        font-style: normal;
-        color: #bbb;
-      }
-      .tag {
-        display: inline-block;
-        font-family: var(--mono);
-        font-size: 10px;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        border: 1px solid #666;
-        color: #aaa;
-        padding: 1px 6px;
-        border-radius: 2px;
-        margin-left: 6px;
-        vertical-align: middle;
-      }
+
+      /* community facility toggles */
       .facgrid {
         display: flex;
         flex-direction: column;
@@ -343,28 +458,61 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: var(--orange);
-        color: var(--orange-ink);
-        border: 2px solid var(--orange);
-        border-radius: 3px;
-        padding: 8px 12px;
+        background: var(--primary);
+        color: var(--on-primary);
+        border: 1px solid var(--primary);
+        border-radius: var(--radius-sm);
+        padding: 9px 14px;
         font-weight: 600;
         font-size: 13px;
         cursor: pointer;
         text-align: left;
       }
+      .fac:hover {
+        background: var(--accent);
+      }
       .fac[aria-pressed="false"] {
-        background: transparent;
-        color: var(--orange);
+        background: var(--surface);
+        color: var(--text);
+        border-color: var(--border);
       }
       .fac span {
-        font-family: var(--mono);
         font-weight: 500;
       }
+
+      /* "Nearest" list */
+      .near {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 6px;
+        font-size: 12.5px;
+      }
+      .near div {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .near span:last-child {
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .amk {
+        display: inline-grid;
+        place-items: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        margin-right: 8px;
+        vertical-align: -6px;
+        color: var(--text);
+      }
+
+      /* block typology bar */
       .typbar {
         display: flex;
-        height: 14px;
-        border-radius: 2px;
+        height: 10px;
+        border-radius: 999px;
         overflow: hidden;
         margin-top: 6px;
       }
@@ -377,7 +525,7 @@
         flex-wrap: wrap;
         gap: 4px 12px;
         font-size: 12px;
-        color: #bbb;
+        color: var(--muted);
         margin-top: 8px;
       }
       .typkey span::before {
@@ -385,38 +533,42 @@
         display: inline-block;
         width: 10px;
         height: 10px;
-        border-radius: 2px;
+        border-radius: 3px;
         margin-right: 5px;
         vertical-align: -1px;
         background: var(--c);
       }
+
+      /* two-way switch ("Typology | Years till VERS") */
       .seg {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        border: 1px solid #3a3a3a;
-        border-radius: 3px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
         overflow: hidden;
+        padding: 3px;
+        gap: 3px;
       }
       .seg button {
         background: transparent;
         border: 0;
+        border-radius: 6px;
         padding: 7px 8px;
         cursor: pointer;
         font-size: 12.5px;
-        color: #ccc;
-      }
-      .seg button + button {
-        border-left: 1px solid #3a3a3a;
+        color: var(--text);
       }
       .seg button[aria-pressed="true"] {
-        background: #eee;
-        color: #111;
+        background: var(--primary);
+        color: var(--on-primary);
         font-weight: 600;
       }
+
+      /* project scale numbers */
       .price {
-        font-family: var(--serif);
         font-size: 26px;
-        color: #fff;
+        font-weight: 700;
+        letter-spacing: -0.02em;
       }
       .carbon {
         display: grid;
@@ -424,20 +576,48 @@
         gap: 8px;
       }
       .carbon div {
-        background: #202020;
-        border-radius: 3px;
-        padding: 8px 10px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 10px 12px;
       }
       .carbon b {
         display: block;
-        font-family: var(--mono);
         font-size: 18px;
-        color: #fff;
-        font-weight: 500;
+        font-weight: 700;
       }
       .carbon small {
-        color: #9a9a9a;
+        color: var(--muted);
         font-size: 11.5px;
+      }
+      .big-num {
+        font-size: 34px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      /* main call-to-action ("Apply for RTO") */
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--primary);
+        color: var(--on-primary);
+        border: 0;
+        border-radius: var(--radius-sm);
+        padding: 12px 18px;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .cta:hover {
+        background: var(--accent);
+      }
+      .cta:focus-visible,
+      button:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
       }
       .apply {
         width: 100%;
@@ -445,26 +625,28 @@
         font-size: 16px;
         padding: 14px;
       }
+
+      /* block number buttons */
       .blklist {
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
       }
       .blklist button {
-        background: #222;
-        border: 1px solid #333;
-        border-radius: 3px;
-        color: #ddd;
-        font-family: var(--mono);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
         font-size: 12px;
-        padding: 4px 8px;
+        padding: 4px 9px;
         cursor: pointer;
         display: flex;
         gap: 6px;
         align-items: center;
       }
       .blklist button:hover {
-        border-color: var(--orange);
+        border-color: var(--primary);
+        background: var(--soft);
       }
       .blklist i {
         width: 8px;
@@ -472,33 +654,23 @@
         border-radius: 2px;
         display: inline-block;
       }
+
       details.method summary {
         cursor: pointer;
-        color: #bbb;
+        color: var(--primary);
         font-size: 13px;
+        font-weight: 600;
       }
       details.method p {
-        color: #999;
+        color: var(--muted);
         font-size: 12.5px;
         margin: 8px 0 0;
       }
-      .hero-badge {
-        display: inline-block;
-        background: var(--verm);
-        color: #fff;
-        font-size: 10.5px;
-        font-weight: 600;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        padding: 2px 7px;
-        border-radius: 2px;
-      }
-
 
       /* ============================================================
          MAP AREA
-         The map and what floats on it: breadcrumb (.crumbs), scale tabs,
-         hint bubble, legend (.maplegend), locator map, tooltip (.tip).
+         The map and what floats on it: breadcrumb (.crumbs), hint
+         bubble, legend (.maplegend), minimap (.locator), tooltip (.tip).
          ============================================================ */
       .mapwrap {
         position: relative;
@@ -511,6 +683,21 @@
         inset: 0;
         background: #141414;
       }
+
+      /* white floating cards on the map share this look */
+      .crumbs,
+      .hint,
+      .maplegend,
+      .locator,
+      .tip,
+      .stylebtn,
+      .ringlbl {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+      }
+
       .crumbs {
         position: absolute;
         top: 14px;
@@ -518,160 +705,161 @@
         z-index: 900;
         display: flex;
         align-items: center;
-        gap: 6px;
-        background: rgba(22, 22, 22, 0.92);
-        color: #eee;
-        border-radius: 4px;
-        padding: 6px 8px 6px 6px;
+        gap: 4px;
+        border-radius: var(--radius);
+        padding: 6px 10px 6px 6px;
         font-size: 13px;
-        max-width: calc(100% - 120px);
+        max-width: calc(100% - 140px);
         flex-wrap: wrap;
       }
       .crumbs button {
         background: none;
         border: 0;
-        color: #eee;
+        color: var(--text);
         cursor: pointer;
-        padding: 2px 4px;
-        border-radius: 2px;
+        padding: 3px 6px;
+        border-radius: 6px;
       }
       .crumbs button:hover {
-        background: #333;
+        background: var(--soft);
       }
       .crumbs .sep {
-        color: #666;
+        color: var(--muted);
       }
       .crumbs .cur {
-        color: var(--orange);
-        font-weight: 600;
+        color: var(--primary);
+        font-weight: 700;
+        padding: 0 4px;
       }
       .crumbs .back {
-        background: #2a2a2a;
-        border: 1px solid #444;
-        padding: 2px 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        background: var(--primary);
+        color: var(--on-primary);
+        padding: 4px 10px 4px 6px;
         margin-right: 4px;
+        font-weight: 600;
       }
+      .crumbs .back:hover {
+        background: var(--accent);
+      }
+
+      /* "500 m · 6 min" labels on the walking bands */
       .ringlbl {
         position: absolute;
         transform: translate(-50%, -50%);
         white-space: nowrap;
-        background: rgba(255, 255, 255, 0.92);
-        color: #111;
-        border: 1px solid #555;
         border-radius: 999px;
-        padding: 1px 7px;
-        font-family: var(--mono);
+        padding: 1px 8px;
         font-size: 10.5px;
+        font-weight: 600;
+        box-shadow: none;
       }
+
       .hint {
         position: absolute;
         left: 50%;
         bottom: 26px;
         transform: translateX(-50%);
         z-index: 900;
-        background: #fff;
-        color: #111;
         border-radius: 999px;
         padding: 8px 16px;
         font-size: 13px;
         font-weight: 500;
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
         transition: opacity 0.4s;
         pointer-events: none;
         white-space: nowrap;
       }
       .hint b {
-        color: var(--verm);
+        color: var(--primary);
       }
+
       .maplegend {
         position: absolute;
         right: 14px;
         bottom: 26px;
-        width: 204px;
+        width: 210px;
         transition: bottom 0.3s;
         z-index: 900;
-        background: rgba(255, 255, 255, 0.96);
-        color: #111;
-        border-radius: 3px;
-        padding: 10px 12px;
+        border-radius: var(--radius);
+        padding: 12px 14px;
         font-size: 12.5px;
-        min-width: 180px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
       }
       /* when the minimap is showing, the legend sits just above it */
       .with-locator .maplegend {
-        bottom: 156px;
+        bottom: 160px;
       }
       .maplegend .ttl {
-        font-family: var(--serif);
-        font-size: 14px;
-        margin-bottom: 6px;
+        font-weight: 700;
+        font-size: 13.5px;
+        margin-bottom: 8px;
       }
       .maplegend .it {
         display: flex;
         align-items: center;
         gap: 8px;
-        margin: 3px 0;
+        margin: 4px 0;
       }
       .maplegend .it i {
         width: 22px;
         height: 12px;
-        border: 1px solid rgba(0, 0, 0, 0.25);
+        border-radius: 3px;
+        box-shadow: inset 0 0 0 1px rgba(20, 0, 128, 0.15);
       }
+
       .locator {
         position: absolute;
         right: 14px;
         bottom: 26px;
         z-index: 900;
-        width: 204px;
-        height: 120px;
-        background: rgba(22, 22, 22, 0.9);
-        border-radius: 4px;
+        width: 210px;
+        height: 124px;
+        border-radius: var(--radius);
         transition: opacity 0.4s;
-        padding: 4px;
+        padding: 6px;
       }
       .locator canvas {
         width: 100%;
         height: 100%;
       }
+
       .tip {
         position: absolute;
         z-index: 950;
         pointer-events: none;
-        background: #fff;
-        color: #111;
-        border-radius: 3px;
-        padding: 7px 10px;
+        border-radius: var(--radius-sm);
+        padding: 8px 12px;
         font-size: 12.5px;
-        line-height: 1.35;
-        box-shadow: 0 3px 14px rgba(0, 0, 0, 0.35);
-        max-width: 260px;
+        line-height: 1.4;
+        max-width: 270px;
         display: none;
       }
       .tip b {
-        font-family: var(--serif);
-        font-size: 15px;
-        font-weight: 600;
+        font-size: 14.5px;
+        font-weight: 700;
         display: block;
       }
       .tip .m {
-        font-family: var(--mono);
         font-size: 11.5px;
-        color: #444;
-      }
-      .lbl-ring {
-        position: absolute;
-        color: #fff;
-        font-family: var(--mono);
-        font-size: 10.5px;
-        opacity: 0.8;
+        color: var(--muted);
       }
 
-      /* drawer / form */
+      /* amenity icons on the map */
+      .pin {
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        border: 2px solid var(--surface);
+        box-shadow: 0 1px 5px rgba(20, 0, 128, 0.35);
+        color: var(--text);
+        width: 26px;
+        height: 26px;
+      }
 
       /* ============================================================
          RTO FORM
-         The white drawer that slides in from the right (.drawer).
+         The drawer that slides in from the right (.drawer).
          ============================================================ */
       .drawer {
         position: absolute;
@@ -679,21 +867,22 @@
         right: 0;
         bottom: 0;
         width: min(460px, 100%);
-        background: #fff;
-        color: #111;
+        background: var(--surface);
+        color: var(--text);
         z-index: 1000;
         transform: translateX(102%);
         transition: transform 0.35s ease;
         display: flex;
         flex-direction: column;
-        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.35);
+        border-left: 1px solid var(--border);
+        box-shadow: -10px 0 30px rgba(20, 0, 128, 0.12);
       }
       .drawer.open {
         transform: none;
       }
       .drawer header {
         padding: 16px 20px;
-        border-bottom: 1px solid #e5e5e5;
+        border-bottom: 1px solid var(--border);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -701,30 +890,38 @@
       }
       .drawer header h4 {
         margin: 0;
-        font-family: var(--serif);
-        font-weight: 500;
-        font-size: 20px;
+        font-weight: 700;
+        font-size: 18px;
       }
-      .drawer header button {
-        background: none;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-        padding: 4px 10px;
+      .iconbtn {
+        display: inline-grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text);
         cursor: pointer;
+        padding: 0;
+      }
+      .iconbtn:hover {
+        border-color: var(--primary);
+        background: var(--soft);
       }
       .dots {
         display: flex;
         gap: 6px;
-        padding: 12px 20px 0;
+        padding: 14px 20px 0;
       }
       .dots i {
         flex: 1;
         height: 4px;
-        border-radius: 2px;
-        background: #e5e5e5;
+        border-radius: 999px;
+        background: var(--border);
       }
       .dots i.on {
-        background: var(--orange);
+        background: var(--primary);
       }
       .fbody {
         padding: 18px 20px;
@@ -732,33 +929,39 @@
         flex: 1;
       }
       .fbody h5 {
-        font-family: var(--serif);
         font-size: 24px;
-        font-weight: 500;
+        font-weight: 700;
+        letter-spacing: -0.02em;
         margin: 0 0 6px;
         line-height: 1.2;
       }
       .fbody p {
-        color: #555;
+        color: var(--muted);
         margin: 0 0 14px;
       }
+      .fbody p b {
+        color: var(--text);
+      }
+      /* answer cards */
       .opt {
         display: block;
         width: 100%;
         text-align: left;
-        border: 1.5px solid #ddd;
-        border-radius: 4px;
-        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: var(--text);
         padding: 14px 16px;
         margin-bottom: 10px;
         cursor: pointer;
       }
       .opt:hover {
-        border-color: var(--orange);
+        border-color: var(--primary);
       }
       .opt[aria-pressed="true"] {
-        border-color: var(--orange);
-        background: #fff6ee;
+        border-color: var(--primary);
+        background: var(--soft);
+        box-shadow: inset 0 0 0 1px var(--primary);
       }
       .opt b {
         display: block;
@@ -766,68 +969,72 @@
         margin-bottom: 2px;
       }
       .opt small {
-        color: #666;
+        color: var(--muted);
         font-size: 13px;
       }
       .opt .fig {
         float: right;
-        font-family: var(--mono);
         font-size: 13px;
-        color: #111;
+        font-weight: 600;
+        color: var(--primary);
         margin-left: 10px;
       }
       .fld {
         display: block;
         margin-bottom: 12px;
         font-size: 13px;
-        color: #444;
+        color: var(--muted);
       }
       .fld input,
       .fld select {
         display: block;
         width: 100%;
         margin-top: 4px;
-        padding: 9px;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-        background: #fff;
-        color: #111;
+        padding: 9px 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
+        color: var(--text);
         font: inherit;
       }
       .ffoot {
         padding: 14px 20px;
-        border-top: 1px solid #e5e5e5;
+        border-top: 1px solid var(--border);
         display: flex;
         justify-content: space-between;
         gap: 10px;
       }
       .ffoot button {
-        border-radius: 3px;
-        padding: 10px 16px;
+        border-radius: var(--radius-sm);
+        padding: 10px 18px;
         font-weight: 600;
         cursor: pointer;
-        font-family: var(--sans);
       }
       .ffoot .bk {
-        background: #fff;
-        border: 1px solid #bbb;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
       }
       .ffoot .nx {
-        background: var(--orange);
+        background: var(--primary);
         border: 0;
-        color: var(--orange-ink);
+        color: var(--on-primary);
+      }
+      .ffoot .nx:hover {
+        background: var(--accent);
       }
       .ffoot .nx:disabled {
-        opacity: 0.4;
+        opacity: 0.35;
         cursor: not-allowed;
       }
+      /* vote results bar */
       .tally {
         margin-top: 8px;
       }
       .tally .tb {
         display: flex;
-        height: 26px;
-        border-radius: 3px;
+        height: 28px;
+        border-radius: var(--radius-sm);
         overflow: hidden;
         margin: 6px 0;
       }
@@ -837,14 +1044,14 @@
         justify-content: center;
         color: #fff;
         font-size: 11px;
-        font-family: var(--mono);
+        font-weight: 600;
         font-style: normal;
       }
       .tally .k {
         display: flex;
         gap: 14px;
         font-size: 12.5px;
-        color: #444;
+        color: var(--muted);
         flex-wrap: wrap;
       }
       .tally .k span::before {
@@ -853,24 +1060,28 @@
         width: 10px;
         height: 10px;
         margin-right: 5px;
+        border-radius: 3px;
         background: var(--c);
         vertical-align: -1px;
       }
       .mindmap {
-        font-family: var(--mono);
+        font-family: ui-monospace, Menlo, Consolas, monospace; /* needs fixed-width letters to line up */
         font-size: 11.5px;
-        color: #666;
-        background: #fafafa;
-        border: 1px solid #eee;
-        border-radius: 3px;
-        padding: 10px;
+        color: var(--muted);
+        background: var(--soft);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 12px;
         white-space: pre;
         line-height: 1.35;
         overflow-x: auto;
         margin-top: 12px;
       }
 
-      /* Leaflet core */
+      /* ============================================================
+         LEAFLET BASICS
+         Minimal styles the map library needs. No need to edit.
+         ============================================================ */
       .leaflet-pane,
       .leaflet-map-pane canvas,
       .leaflet-layer {
@@ -885,11 +1096,6 @@
         touch-action: none;
         font-family: var(--sans);
       }
-
-      /* ============================================================
-         LEAFLET BASICS
-         Minimal styles the map library needs. No need to edit.
-         ============================================================ */
       .leaflet-pane {
         z-index: 400;
       }
@@ -944,152 +1150,35 @@
       }
       .leaflet-control-attribution {
         font-size: 10px;
-        color: #999;
-        background: rgba(0, 0, 0, 0.4);
+        color: var(--muted);
+        background: color-mix(in srgb, var(--surface) 80%, transparent);
         padding: 1px 6px;
-      }
-      .leaflet-control-attribution a {
-        color: #bbb;
-      }
-      .amen {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: #bfeee9;
-        border: 2px solid #fff;
-        display: grid;
-        place-items: center;
-        font-size: 15px;
-        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
-      }
-
-
-      /* ============================================================
-         MORE PANEL + MAP PIECES
-         Top line (.kick), RTO site cards (.sitebtn), "Nearest" list, amenity pins (.pin).
-         ============================================================ */
-      .app {
-        height: 100vh;
-        border-top: 0;
-      }
-      .kick {
-        font-family: var(--mono);
-        font-size: 10.5px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: #8d8d8d;
-        display: flex;
-        justify-content: space-between;
-        border-bottom: 1px dashed #333;
-        padding-bottom: 10px;
-      }
-      .kick b {
-        color: #ddd;
-        font-weight: 500;
-      }
-      .sites {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-      .sitebtn {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 10px;
-        align-items: center;
-        background: #1f1f1f;
-        border: 1px solid #333;
-        border-left: 3px solid #ff0000;
-        border-radius: 3px;
-        padding: 8px 10px;
-        cursor: pointer;
-        text-align: left;
-      }
-      .sitebtn:hover {
-        border-color: var(--orange);
-        border-left-color: #ff0000;
-      }
-      .sitebtn b {
-        font-family: var(--serif);
-        font-weight: 500;
-        font-size: 16px;
-      }
-      .sitebtn small {
-        color: #9a9a9a;
-        font-size: 12px;
-        display: block;
-      }
-      .sitebtn .n {
-        font-family: var(--mono);
-        font-size: 12px;
-        color: #ccc;
-      }
-      .near {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        margin-top: 6px;
-        font-size: 12.5px;
-      }
-      .near div {
-        display: flex;
-        justify-content: space-between;
-        gap: 8px;
-        color: #ccc;
-      }
-      .near span:last-child {
-        font-family: var(--mono);
-        color: #9a9a9a;
-        white-space: nowrap;
-      }
-      .amk {
-        display: inline-grid;
-        place-items: center;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        font-size: 11px;
-        margin-right: 6px;
-        vertical-align: -4px;
-      }
-      .pin {
-        display: grid;
-        place-items: center;
-        border-radius: 50%;
-        border: 2px solid #fff;
-        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.45);
-        font-size: 13px;
-        width: 26px;
-        height: 26px;
-      }
-      .nodata {
-        color: #9a9a9a;
-        font-size: 12.5px;
-        font-style: italic;
+        border-radius: 4px;
       }
 
       /* ============================================================
          STYLE EDITOR
-         The 🎨 Style button and the white editor panel on the left of the map.
+         The Style button and the editor panel on the left of the map.
          ============================================================ */
       .stylebtn {
         position: absolute;
         top: 14px;
         right: 14px;
         z-index: 950;
-        background: rgba(22, 22, 22, 0.92);
-        color: #eee;
-        border: 1px solid #444;
-        border-radius: 4px;
-        padding: 6px 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: var(--radius-sm);
+        padding: 7px 12px;
         font-size: 12.5px;
+        font-weight: 600;
         cursor: pointer;
       }
       .stylebtn:hover,
       .stylebtn[aria-pressed="true"] {
-        background: var(--orange);
-        color: var(--orange-ink);
-        border-color: var(--orange);
+        background: var(--primary);
+        color: var(--on-primary);
+        border-color: var(--primary);
       }
       .styleed {
         position: absolute;
@@ -1097,15 +1186,15 @@
         left: 0;
         bottom: 0;
         width: min(340px, 100%);
-        background: #fff;
-        color: #111;
+        background: var(--surface);
+        color: var(--text);
         z-index: 1100;
         transform: translateX(-102%);
         transition: transform 0.3s ease;
         display: flex;
         flex-direction: column;
-        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.35);
-        font-family: var(--sans);
+        border-right: 1px solid var(--border);
+        box-shadow: 10px 0 30px rgba(20, 0, 128, 0.12);
         font-size: 13px;
       }
       .styleed.open {
@@ -1116,19 +1205,11 @@
         justify-content: space-between;
         align-items: center;
         padding: 12px 14px;
-        border-bottom: 1px solid #e5e5e5;
+        border-bottom: 1px solid var(--border);
       }
       .styleed header b {
-        font-family: var(--serif);
-        font-size: 18px;
-        font-weight: 500;
-      }
-      .styleed header button {
-        background: none;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-        padding: 2px 8px;
-        cursor: pointer;
+        font-size: 17px;
+        font-weight: 700;
       }
       .etools {
         display: flex;
@@ -1138,25 +1219,26 @@
       }
       .etools button,
       .eimp {
-        background: #f2f2f2;
-        border: 1px solid #d5d5d5;
-        border-radius: 3px;
-        padding: 5px 9px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 5px 10px;
         cursor: pointer;
         font-size: 12px;
-        font-weight: 500;
-        color: #111;
+        font-weight: 600;
+        color: var(--text);
       }
       .etools button:hover,
       .eimp:hover {
-        border-color: var(--orange);
+        border-color: var(--primary);
+        background: var(--soft);
       }
       .eimp input {
         display: none;
       }
       .enote {
         margin: 8px 14px 6px;
-        color: #666;
+        color: var(--muted);
         font-size: 11.5px;
         line-height: 1.4;
       }
@@ -1166,12 +1248,12 @@
         padding: 0 14px 30px;
       }
       .ebody details {
-        border-top: 1px solid #eee;
+        border-top: 1px solid var(--border);
         padding: 8px 0;
       }
       .ebody summary {
         cursor: pointer;
-        font-weight: 600;
+        font-weight: 700;
         font-size: 13px;
         padding: 2px 0;
       }
@@ -1181,7 +1263,6 @@
         align-items: center;
         gap: 10px;
         padding: 5px 0;
-        color: #333;
       }
       .er > span:first-child {
         flex: 1;
@@ -1194,40 +1275,37 @@
       .ec input[type="color"] {
         width: 30px;
         height: 24px;
-        border: 1px solid #ccc;
-        border-radius: 3px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
         padding: 0;
         background: none;
         cursor: pointer;
       }
       .ec input[type="text"] {
-        width: 74px;
-        font-family: var(--mono);
+        width: 76px;
         font-size: 11.5px;
-        padding: 3px 5px;
-        border: 1px solid #ccc;
-        border-radius: 3px;
+        padding: 3px 6px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
       }
       .ec input[type="range"] {
         width: 110px;
-        accent-color: var(--orange);
+        accent-color: var(--primary);
       }
       .ec output {
-        font-family: var(--mono);
         font-size: 11px;
         width: 34px;
         text-align: right;
-        color: #666;
+        color: var(--muted);
       }
       .er select {
         font-size: 12px;
-        padding: 3px;
-        border: 1px solid #ccc;
-        border-radius: 3px;
+        padding: 3px 6px;
         max-width: 150px;
+        width: auto;
       }
       .er input[type="checkbox"] {
-        accent-color: var(--orange);
+        accent-color: var(--primary);
         width: 16px;
         height: 16px;
       }
@@ -1247,6 +1325,7 @@
         }
         .panel {
           overflow: visible;
+          border-right: 0;
         }
         .maplegend,
         .locator {
@@ -1258,7 +1337,8 @@
         }
       }
       @media (prefers-reduced-motion: reduce) {
-        .drawer {
+        .drawer,
+        .styleed {
           transition: none;
         }
       }
@@ -1286,7 +1366,7 @@
         </div>
         <div class="tip" id="tip"></div>                                  <!-- hover tooltip -->
 
-        <button class="stylebtn" id="styleBtn" aria-pressed="false" title="Edit map styling (S)">🎨 Style</button>
+        <button class="stylebtn" id="styleBtn" aria-pressed="false" title="Edit map styling (S)"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>Style</button>
         <aside class="styleed" id="styleEd" aria-label="Style editor" aria-hidden="true"></aside>       <!-- style editor -->
         <aside class="drawer" id="drawer" aria-label="Retrofit-To-Order application" aria-hidden="true"></aside>  <!-- RTO form -->
       </div>
@@ -1309,7 +1389,7 @@
              crumbs / legend ..... breadcrumb, map key, locator map
              SIDE PANEL .......... panelCity / panelPrecinct / panelProject
              RTO FORM ............ the voting form (renderForm)
-             style editor ........ the 🎨 Style panel
+             style editor ........ the Style panel
              deep links .......... #town-…, #site-1, #precinct-…, #block-… in the address bar
            S = what the visitor is looking at right now (S.state = zoom level,
                S.town / S.prec / S.blk = what is selected, plus filter settings)
@@ -1341,25 +1421,47 @@
         // group they belong to (t transport · s schools · c food · h clinics · p parks).
         // dot: true = drawn as a small dot instead of an icon.
         const AM = {
-          mrt: { ic: "🚇", name: "MRT / LRT station", bg: "#bfeee9", grp: "t" },
-          bus: { ic: "", name: "Bus stop", bg: "#7fd3ff", grp: "t", dot: true },
-          school: { ic: "🏫", name: "School", bg: "#ffe08a", grp: "s" },
-          pre: { ic: "🧸", name: "Pre-school", bg: "#ffd0e0", grp: "s", dot: true },
-          hawker: { ic: "🍜", name: "Hawker / food centre", bg: "#ffc59a", grp: "c" },
-          clinic: { ic: "✚", name: "CHAS clinic", bg: "#e2d4ff", grp: "h", dot: true },
-          park: { ic: "🌳", name: "Park", bg: "#c8f0b4", grp: "p" },
+          mrt: { name: "MRT / LRT station", bg: "#bfeee9", grp: "t" },
+          bus: { name: "Bus stop", bg: "#7fd3ff", grp: "t", dot: true },
+          school: { name: "School", bg: "#ffe08a", grp: "s" },
+          pre: { name: "Pre-school", bg: "#ffd0e0", grp: "s", dot: true },
+          hawker: { name: "Hawker / food centre", bg: "#ffc59a", grp: "c" },
+          clinic: { name: "CHAS clinic", bg: "#e2d4ff", grp: "h", dot: true },
+          park: { name: "Park", bg: "#c8f0b4", grp: "p" },
         };
+        /* ---------- ICONS ----------
+           Line icons from Lucide (lucide.dev, ISC licence), drawn in the current text colour.
+           icon("bus") returns an <svg>. To add one: copy the inner <path …/> code of any
+           Lucide icon into this list. */
+        const ICONS = {
+          mrt: '<path d="M8 3.1V7a4 4 0 0 0 8 0V3.1"/> <path d="m9 15-1-1"/> <path d="m15 15 1-1"/> <path d="M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z"/> <path d="m8 19-2 3"/> <path d="m16 19 2 3"/>', // train-front
+          bus: '<path d="M8 6v6"/> <path d="M15 6v6"/> <path d="M2 12h19.6"/> <path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/> <circle cx="7" cy="18" r="2"/> <path d="M9 18h5"/> <circle cx="16" cy="18" r="2"/>', // bus
+          school: '<path d="M14 21v-3a2 2 0 0 0-4 0v3"/> <path d="M18 4.933V21"/> <path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6"/> <path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11"/> <path d="M6 4.933V21"/> <circle cx="12" cy="9" r="2"/>', // school
+          pre: '<path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/> <path d="M15 12h.01"/> <path d="M19.38 6.813A9 9 0 0 1 20.8 10.2a2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/> <path d="M9 12h.01"/>', // baby
+          hawker: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/> <path d="M7 2v20"/> <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>', // utensils
+          clinic: '<path d="M11 2v2"/> <path d="M5 2v2"/> <path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/> <path d="M8 15a6 6 0 0 0 12 0v-3"/> <circle cx="20" cy="10" r="2"/>', // stethoscope
+          park: '<path d="M10 10v.2A3 3 0 0 1 8.9 16H5a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z"/> <path d="M7 16v6"/> <path d="M13 19v3"/> <path d="M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5"/>', // trees
+          back: '<path d="m15 18-6-6 6-6"/>', // chevron-left
+          close: '<path d="M18 6 6 18"/> <path d="m6 6 12 12"/>', // x
+          settings: '<path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/> <circle cx="12" cy="12" r="3"/>', // settings
+          arrow: '<path d="M5 12h14"/> <path d="m12 5 7 7-7 7"/>', // arrow-right
+        };
+        const icon = (name, size = 16) =>
+          `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
+
         /* ==================================================================
            STYLE — every colour, size and font lives here.
-           The 🎨 Style editor changes it live. Which one wins:
+           The Style editor changes it live. Which one wins:
              STYLE_DEFAULTS below  <  style.json  <  edits saved in this browser
            ================================================================== */
         const STYLE_DEFAULTS = {
           ui: {
-            accent: "#FE9F4D",
-            accentInk: "#1d1d1d",
-            panelBg: "#161616",
-            panelInk: "#e9e9e9",
+            background: "#FFFFFF", // page and panel
+            text: "#140080", // all text and icons
+            primary: "#0000EE", // buttons, selected states
+            accent: "#0B00D9", // hover / pressed
+            surface: "#FFFFFF", // cards, map overlays, form
+            border: "#E2E8F0", // lines and card edges
             serif: "Inter",
             sans: "Inter",
             mono: "Inter",
@@ -1418,7 +1520,7 @@
             styleButton: true,
           },
         };
-        const STYLE_KEY = "opg-style-v2"; // bump the number to make every browser forget old saved edits
+        const STYLE_KEY = "opg-style-v3"; // bump the number to make every browser forget old saved edits
         const clone = (o) => JSON.parse(JSON.stringify(o));
         function merge(a, b) {
           if (!b || typeof b !== "object") return a;
@@ -1465,10 +1567,13 @@
           TYP.forEach((t) => (CT[t.k] = ST.typ[t.k]));
           Object.keys(AM).forEach((k) => (AM[k].bg = ST.amen[k].color));
           const r = document.documentElement.style;
-          r.setProperty("--orange", ST.ui.accent);
-          r.setProperty("--orange-ink", ST.ui.accentInk);
-          r.setProperty("--panel-bg", ST.ui.panelBg);
-          r.setProperty("--panel-ink", ST.ui.panelInk);
+          // design-system colours → CSS variables used by the stylesheet
+          r.setProperty("--bg", ST.ui.background);
+          r.setProperty("--text", ST.ui.text);
+          r.setProperty("--primary", ST.ui.primary);
+          r.setProperty("--accent", ST.ui.accent);
+          r.setProperty("--surface", ST.ui.surface);
+          r.setProperty("--border", ST.ui.border);
           r.setProperty("--serif", fontStack(ST.ui.serif, "serif"));
           r.setProperty("--sans", fontStack(ST.ui.sans, "sans"));
           r.setProperty("--mono", fontStack(ST.ui.mono, "mono"));
@@ -2020,7 +2125,7 @@
                     html: `<div class="pin" style="
                       background:${m.bg};
                       width:${ST.amenSize.pin}px; height:${ST.amenSize.pin}px;
-                      font-size:${Math.round(ST.amenSize.pin * 0.5)}px">${m.ic}</div>`,
+                      ">${icon(k, Math.round(ST.amenSize.pin * 0.6))}</div>`,
                     iconSize: [ST.amenSize.pin, ST.amenSize.pin],
                     iconAnchor: [ST.amenSize.pin / 2, ST.amenSize.pin / 2],
                   }),
@@ -2196,7 +2301,7 @@
         function renderCrumbs() {
           const c = document.getElementById("crumbs");
           const parts = [];
-          if (S.state > 0) parts.push(`<button class="back" data-go="up">← Back</button>`);
+          if (S.state > 0) parts.push(`<button class="back" data-go="up">${icon("back", 15)}Back</button>`);
           const items = [["Singapore", 0]];
           if (S.state >= 1) items.push([S.town.name, 1]);
           if (S.state >= 2) {
@@ -2233,7 +2338,7 @@
           } else {
             el.innerHTML = `
               <div class="ttl">Years till VERS-eligible</div>
-              ${BANDS.map((b) => row(CB[b.k], `${bandLabel(b)} <span style="color:#888">(${bandYears(b)})</span>`)).join("")}
+              ${BANDS.map((b) => row(CB[b.k], `${bandLabel(b)} <span class="muted">(${bandYears(b)})</span>`)).join("")}
               ${row(CB.unk, "HDB owned (rental)")}`;
           }
         }
@@ -2255,7 +2360,7 @@
           );
           const P = (ll) => [pad + (ll[1] - b.getWest()) * s, H - pad - (ll[0] - b.getSouth()) * s];
           g.clearRect(0, 0, W, H);
-          g.fillStyle = "#444";
+          g.fillStyle = "#cbd2e1"; // land
           D.sub.forEach(([n, pa, r]) =>
             decode(r).forEach((ring) => {
               g.beginPath();
@@ -2267,7 +2372,7 @@
             }),
           );
           const [x, y] = P(precs[S.prec].c);
-          g.fillStyle = "#FF3C02";
+          g.fillStyle = ST.ui.primary; // the precinct
           g.beginPath();
           g.arc(x, y, 6, 0, 7);
           g.fill();
@@ -2414,7 +2519,7 @@
                   <label class="lg">
                     <input type="checkbox" data-b="${b.k}" ${when(S.on.has(b.k), "checked")}>
                     <span class="sw" style="background:${CB[b.k]}"></span>
-                    <span>${bandLabel(b)} <span style="color:#888;font-size:12px">${bandYears(b)}</span></span>
+                    <span>${bandLabel(b)} <span class="muted" style="font-size:12px">${bandYears(b)}</span></span>
                     <span class="n">${fmt(bandBlocks[b.k])}</span>
                     <span class="n u">${fmt(bandFlats[b.k])}</span>
                   </label>`)}
@@ -2473,7 +2578,7 @@
                     .slice(0, 12),
                   (p) => `
                   <button class="tw" data-prec="${p.id}">
-                    <span>${p.site ? `<b style="color:#ff5a5a">${p.name}</b>` : tc(p.name)}</span>
+                    <span>${p.site ? `<b class="accent-txt">${p.name}</b>` : tc(p.name)}</span>
                     <span class="bar"><i style="width:${Math.max(4, 100 - ((p.early ?? 60) / 60) * 100)}%;background:${CB[bandOf(p.early)]}"></i></span>
                     <span class="pct">${yearOrDash(p.early)}</span>
                   </button>`)}
@@ -2554,10 +2659,10 @@
           // one "Nearest …" row
           const nearestRow = (k, label) => {
             const x = nearOuter[k][0];
-            const icon = `<span class="amk" style="background:${AM[k].bg}">${AM[k].ic || "•"}</span>`;
+            const ico = `<span class="amk" style="background:${AM[k].bg}">${icon(k, 13)}</span>`;
             return x
-              ? `<div><span>${icon}${x.a[2] || label}</span><span>${Math.round(x.d)} m · ${Math.max(1, Math.round(x.d / 80))} min</span></div>`
-              : `<div><span>${icon}${label}</span><span>none within ${R2} m</span></div>`;
+              ? `<div><span>${ico}${x.a[2] || label}</span><span>${Math.round(x.d)} m · ${Math.max(1, Math.round(x.d / 80))} min</span></div>`
+              : `<div><span>${ico}${label}</span><span>none within ${R2} m</span></div>`;
           };
 
           // --- HTML ---
@@ -2566,7 +2671,7 @@
             `
             <div>
               <h3>${title}</h3>
-              <p class="dek">${pr.town} · ${pr.n} blocks · ${fmt(flats)} flats${when(pr.site, ' · <b style="color:#ff5a5a">RTO site</b>')}</p>
+              <p class="dek">${pr.town} · ${pr.n} blocks · ${fmt(flats)} flats${when(pr.site, ' · <b class="accent-txt">RTO site</b>')}</p>
             </div>
 
             <div class="ph"><b>Precinct photo</b> — ${pr.site ? "add an aerial or street photo of this site" : "add a photo for this precinct"}</div>
@@ -2683,7 +2788,7 @@
 
           const leaseText = p.ls == null
             ? "HDB-owned rental — no lease sold"
-            : `Lease ${p.ls}–${p.ls + 99} · ${NOW - p.ls} of 99 years used · VERS-eligible <b style="color:#fff">${p.ls + 70}</b>`;
+            : `Lease ${p.ls}–${p.ls + 99} · ${NOW - p.ls} of 99 years used · VERS-eligible <b style="color:var(--text)">${p.ls + 70}</b>`;
 
           const carbonHtml = p.ec != null
             ? `
@@ -2731,11 +2836,11 @@
 
             <section class="box" style="text-align:center">
               <p class="lbl" style="justify-content:center"><span>RTO applicants</span></p>
-              <div style="font-family:var(--mono);font-size:34px;color:#fff">${fmt(tally.n + (myVote ? 1 : 0))}</div>
-              ${when(myVote, `<p class="dek" style="font-size:12px">You voted: <b style="color:var(--orange)">${myVote?.choice}</b></p>`)}
+              <div class="big-num">${fmt(tally.n + (myVote ? 1 : 0))}</div>
+              ${when(myVote, `<p class="dek" style="font-size:12px">You voted: <b class="accent-txt">${myVote?.choice}</b></p>`)}
             </section>
 
-            <button class="cta apply" id="applyBtn">${myVote ? "Review your RTO application" : "Apply for RTO"} →</button>
+            <button class="cta apply" id="applyBtn">${myVote ? "Review your RTO application" : "Apply for RTO"} ${icon("arrow", 18)}</button>
 
             <section>
               <p class="lbl"><span>Other blocks here</span></p>
@@ -2900,21 +3005,21 @@
               <h5>Thank you — your vote is in.</h5>
               <p>You chose <b>${choice}</b>. Here is how Blk ${p.b} is voting (${fmt(total)} applicants):</p>
               <div class="tally">
-                <div class="tb">${bar("cash", "#8a8a8a")}${bar("adapt", "#FE9F4D")}${bar("harvest", "#FF3C02")}</div>
+                <div class="tb">${bar("cash", "#94a3b8")}${bar("adapt", "var(--primary)")}${bar("harvest", "var(--text)")}</div>
                 <div class="k">
-                  <span style="--c:#8a8a8a">Cash out ${T.cash}</span>
-                  <span style="--c:#FE9F4D">Adapt ${T.adapt}</span>
-                  <span style="--c:#FF3C02">Harvest ${T.harvest}</span>
+                  <span style="--c:#94a3b8">Cash out ${T.cash}</span>
+                  <span style="--c:var(--primary)">Adapt ${T.adapt}</span>
+                  <span style="--c:var(--text)">Harvest ${T.harvest}</span>
                 </div>
               </div>
-              <p style="margin-top:16px;font-size:13px;color:#888">Simulated: the starting numbers are made up for the demonstration; your vote is stored only in this browser.</p>`;
+              <p style="margin-top:16px;font-size:13px">Simulated: the starting numbers are made up for the demonstration; your vote is stored only in this browser.</p>`;
           }
 
           const nextLabel = step === "result" ? "Done" : step === "intro" ? "Start" : "Next →";
           drawer.innerHTML = `
             <header>
               <h4>Apply for RTO · Blk ${p.b}</h4>
-              <button id="fClose">Close</button>
+              <button class="iconbtn" id="fClose" aria-label="Close">${icon("close", 16)}</button>
             </header>
             <div class="dots">${list(steps, (_, i) => `<i class="${i <= F.step ? "on" : ""}"></i>`)}</div>
             <div class="fbody">${body}</div>
@@ -2993,10 +3098,12 @@
           [
             "Interface",
             [
-              ["Accent (buttons)", "ui.accent", "color"],
-              ["Text on accent", "ui.accentInk", "color"],
-              ["Panel background", "ui.panelBg", "color"],
-              ["Panel text", "ui.panelInk", "color"],
+              ["Background", "ui.background", "color"],
+              ["Text", "ui.text", "color"],
+              ["Primary (buttons)", "ui.primary", "color"],
+              ["Accent (hover)", "ui.accent", "color"],
+              ["Surface (cards)", "ui.surface", "color"],
+              ["Border", "ui.border", "color"],
               ["Heading font", "ui.serif", "select", FONTS_SERIF],
               ["Interface font", "ui.sans", "select", FONTS_SANS],
               ["Numbers font", "ui.mono", "select", FONTS_MONO],
@@ -3106,7 +3213,7 @@
               ["Hint bubble", "overlays.hint", "check"],
               ["Locator map", "overlays.locator", "check"],
               ["Breadcrumb", "overlays.crumbs", "check"],
-              ["🎨 Style button (press S to bring back)", "overlays.styleButton", "check"],
+              ["Style button (press S to bring back)", "overlays.styleButton", "check"],
             ],
           ],
         ];
@@ -3195,7 +3302,7 @@
           ed.innerHTML = `
             <header>
               <b>Style editor</b>
-              <button id="edClose" aria-label="Close style editor">✕</button>
+              <button class="iconbtn" id="edClose" aria-label="Close style editor">${icon("close", 16)}</button>
             </header>
             <div class="etools">
               <button id="edCopy">Copy JSON</button>
