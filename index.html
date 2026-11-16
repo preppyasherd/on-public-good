@@ -19,7 +19,7 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{background:#111;color:#eee;font-family:var(--sans)}
+body{background:#111;color:#eee;font-family:var(--sans);font-variant-numeric:tabular-nums}
 button{font:inherit;color:inherit}
 /* ---------- map app ---------- */
 .app{height:100vh;display:grid;grid-template-columns:400px 1fr;position:relative;border-top:1px solid var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;background:#111}
@@ -275,6 +275,7 @@ function saveStyle(){try{localStorage.setItem(STYLE_KEY,JSON.stringify(ST));retu
 // Helvetica can't be loaded as a web font: use it where installed, else Arial
 function fontStack(f,kind){
   if(f==='Helvetica')return '"Helvetica Neue",Helvetica,Arial,sans-serif';
+  if(['Inter','IBM Plex Sans','Space Grotesk','Arial'].includes(f))return `"${f}",system-ui,sans-serif`;
   if(kind==='mono')return `"${f}",ui-monospace,Menlo,Consolas,monospace`;
   return kind==='serif'?`"${f}","Times New Roman",Times,serif`:`"${f}",system-ui,sans-serif`}
 let CB={},CT={};
@@ -637,9 +638,9 @@ function renderForm(){
 
 /* ---------- style editor ---------- */
 const AMN={mrt:'MRT / LRT',bus:'Bus stops',school:'Schools',pre:'Pre-schools',hawker:'Hawker / food centres',clinic:'CHAS clinics',park:'Parks (points)'};
-const FONTS_SERIF=['Helvetica','Newsreader','Source Serif 4','Playfair Display','Times New Roman'];
-const FONTS_SANS=['Helvetica','IBM Plex Sans','Inter','Space Grotesk','Arial'];
-const FONTS_MONO=['Helvetica','IBM Plex Mono'];
+const FONTS_SERIF=['Inter','Helvetica','Newsreader','Source Serif 4','Playfair Display','Times New Roman'];
+const FONTS_SANS=['Inter','Helvetica','IBM Plex Sans','Space Grotesk','Arial'];
+const FONTS_MONO=['Inter','Helvetica','IBM Plex Mono'];
 const ED=[
  ['Interface',[
   ['Accent (buttons)','ui.accent','color'],['Text on accent','ui.accentInk','color'],

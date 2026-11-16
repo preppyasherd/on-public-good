@@ -4,9 +4,9 @@
     "accentInk": "#1d1d1d",
     "panelBg": "#161616",
     "panelInk": "#ffffff",
-    "serif": "Helvetica",
-    "sans": "Helvetica",
-    "mono": "Helvetica",
+    "serif": "Inter",
+    "sans": "Inter",
+    "mono": "Inter",
     "scale": 1
   },
   "base": {
