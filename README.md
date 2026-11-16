@@ -29,6 +29,10 @@ Changes show live and are saved in your browser only.
 
 To make a style permanent for every visitor: click **Download** (or **Copy JSON**) in the editor, replace `style.json` in this repo with the new file, and commit it. The page loads its colours in this order: built-in defaults, then `style.json`, then any edits saved in the visitor's browser. **Reset** in the editor returns to the `style.json` version. You can hide the Style button for a crit from the editor ("Show on map"); press **S** to bring it back.
 
+## Editing the code
+
+`index.html` opens with a short guide (an HTML comment at the very top) that says what is where and which function to search for. For example, `panelCity` holds the side-panel wording at city scale, `renderForm` the RTO form, and `describe` the hover tooltips. Colours, fonts and sizes don't need code: use the 🎨 Style editor or `style.json`.
+
 ## Data sources
 
 - HDB, URA, LTA, MOE, ECDA, NEA, MOH and NParks datasets via [data.gov.sg](https://data.gov.sg), used under the [Singapore Open Data Licence](https://data.gov.sg/open-data-licence).
