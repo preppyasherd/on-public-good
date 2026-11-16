@@ -293,7 +293,7 @@ function setBasemap(light){
 }
 
 /* ---------- state machine ---------- */
-const HINTS=['Hover a town or a <b style="color:#e00">red site</b> · <b>click</b> to zoom in','Hover a precinct · <b>click</b> to zoom in','Hover a block · <b>click</b> to see its future','<b>Apply for RTO</b> in the panel · Esc to go back'];
+const HINTS=['Hover a town or an RTO site · <b>click</b> to zoom in','Hover a precinct · <b>click</b> to zoom in','Hover a block · <b>click</b> to see its future','<b>Apply for RTO</b> in the panel · Esc to go back'];
 const seen=new Set();
 function showHint(){const h=document.getElementById('hint');if(seen.has(S.state)){h.style.opacity=0;return}h.innerHTML=matchMedia('(hover:none)').matches?HINTS[S.state].replace('Hover','Tap').replace('<b>click</b>','<b>tap again</b>'):HINTS[S.state];h.style.opacity=1}
 let flying=false;
@@ -324,7 +324,6 @@ function openBlk(p){S.town=towns.find(t=>t.name===p.t);S.prec=p.pid;S.blk=p;go(3
 function drawHighlights(hover){
   hiLayer.clearLayers();overlayLayer.clearLayers();amenLayer.clearLayers();
   // sites: always outlined in red (QGIS "261030 5 Sites")
-  sites.forEach(s=>hiLayer.addLayer(L.polygon(s.ll,{renderer,interactive:false,color:'#ff0000',weight:S.state>=2?2:1.6,fill:false})));
   if(S.state===1&&S.town)precs.filter(p=>p&&p.town===S.town.name&&!p.site).forEach(pr=>hiLayer.addLayer(L.polygon(pr.ll,{renderer,interactive:false,color:'#fff',weight:1,dashArray:'3 4',opacity:.5,fill:false})));
   if(S.state>=2&&S.prec!=null){
     const pr=precs[S.prec];
@@ -336,6 +335,8 @@ function drawHighlights(hover){
   if(hover)hiLayer.addLayer(hover);
 }
 function hoverShape(ll,light){return L.polygon(ll,{renderer,interactive:false,color:light?'#111':'#fff',weight:2,fillColor:'#fff',fillOpacity:light?0:.08})}
+// sites: outline their blocks, not the site rectangle
+function hoverFor(o,light){if(o.kind==='prec'&&o.site){const g=L.featureGroup();o.blocks.forEach(b=>g.addLayer(L.polygon(b.ll,{renderer,interactive:false,color:light?'#111':'#fff',weight:1.5,fill:false})));return g}return hoverShape(o.ll,light)}
 
 /* ---------- amenities (real data) ---------- */
 function near(pr,r){const out={};Object.keys(AM).forEach(k=>out[k]=D.amen[k].map(a=>({a,d:dist(pr.c,[a[1],a[0]])})).filter(x=>x.d<=r).sort((x,y)=>x.d-y.d));return out}
@@ -383,11 +384,11 @@ function tipShow(ev,html){const r=document.getElementById('mapwrap').getBounding
 function tipHide(){tip.style.display='none'}
 function wire(){
   map.on('mousemove',e=>{const o=hitTest(e.latlng);document.getElementById('mapHome').style.cursor=o?'pointer':'';
-    if(o!==hoverObj){hoverObj=o;drawHighlights(o?hoverShape(o.ll,S.state>=2):null)}
+    if(o!==hoverObj){hoverObj=o;drawHighlights(o?hoverFor(o,S.state>=2):null)}
     o?tipShow(e.originalEvent,describe(o)):tipHide()});
   map.on('mouseout',()=>{tipHide();hoverObj=null;drawHighlights()});
   map.on('click',e=>{const o=hitTest(e.latlng);if(!o)return;
-    if(matchMedia('(hover:none)').matches&&lastTap!==o){lastTap=o;tipShow(e.originalEvent,describe(o));drawHighlights(hoverShape(o.ll,S.state>=2));return}
+    if(matchMedia('(hover:none)').matches&&lastTap!==o){lastTap=o;tipShow(e.originalEvent,describe(o));drawHighlights(hoverFor(o,S.state>=2));return}
     lastTap=null;tipHide();seen.add(S.state);
     if(o.kind==='town')openTown(o);else if(o.kind==='prec')openPrec(o);else openBlk(o)});
   map.on('zoomend',()=>{if(flying){return}const z=map.getZoom();
@@ -407,7 +408,7 @@ function renderCrumbs(){
 }
 function renderLegend(){
   const el=document.getElementById('maplegend');
-  const site=`<div class="it"><i style="background:transparent;border:2px solid #ff0000"></i>RTO site (5 Sites)</div>`;
+  const site='';
   if(S.colorBy==='typ')el.innerHTML=`<div class="ttl">Block typology</div>`+TYP.map(t=>`<div class="it"><i style="background:${CT[t.k]}"></i>${t.name}</div>`).join('')+site+(S.state===2?`<div class="it"><i style="background:#9fd18b;border-color:#9fd18b"></i>Park / park connector</div>`:'');
   else el.innerHTML=`<div class="ttl">Years till VERS-eligible</div>`+BANDS.map(b=>`<div class="it"><i style="background:${CB[b.k]}"></i>${bandLabel(b)} <span style="color:#888">(${bandYears(b)})</span></div>`).join('')+`<div class="it"><i style="background:${CB.unk}"></i>HDB owned (rental)</div>`+site;
 }
