@@ -670,7 +670,7 @@ const ED=[
 ];
 const getP=(o,p)=>p.split('.').reduce((a,k)=>a==null?a:a[k],o);
 function setP(o,p,v){const ks=p.split('.');const last=ks.pop();const t=ks.reduce((a,k)=>a[k],o);t[last]=v}
-let edOpen=false,pend=false;
+let edOpen=false,pend=false;let framed=false;try{framed=window.self!==window.top}catch(e){framed=true}
 function applyStyle(){if(pend)return;pend=true;requestAnimationFrame(()=>{pend=false;recolor();if(!map)return;
   setBasemap(S.state>=2);restyleParks();restyle();drawHighlights();renderLegend();renderPanel();renderLocator()})}
 function restyleParks(){parkPolys.forEach(l=>l.setStyle({fillColor:ST.parks.fill,fillOpacity:ST.parks.opacity}));pcnLines.forEach(l=>l.setStyle({color:ST.parks.connector,weight:ST.parks.connectorWeight,opacity:ST.parks.connectorWeight?.8:0}))}
@@ -682,8 +682,8 @@ function renderEditor(){
     if(type==='check')return `<label class="er" for="${id}"><span>${label}</span><input type="checkbox" id="${id}" data-p="${path}" data-t="check" ${v?'checked':''}></label>`;
     if(type==='select')return `<label class="er" for="${id}"><span>${label}</span><select id="${id}" data-p="${path}" data-t="select">${opt.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select></label>`};
   ed.innerHTML=`<header><b>Style editor</b><button id="edClose" aria-label="Close style editor">✕</button></header>
-   <div class="etools"><button id="edCopy">Copy JSON</button><button id="edDl">Download</button><label class="eimp">Import<input type="file" id="edImp" accept=".json,application/json"></label><button id="edReset">Reset</button></div>
-   <p class="enote" id="edNote">Changes show live and are saved in this browser. To make them permanent for everyone, download <b>style.json</b> and put it next to index.html.</p>
+   <div class="etools"><button id="edCopy">Copy JSON</button>${framed?'':'<button id="edDl">Download</button>'}<label class="eimp">Import<input type="file" id="edImp" accept=".json,application/json"></label><button id="edReset">Reset</button></div>
+   <p class="enote" id="edNote">Changes show live and are saved in this browser. To make them permanent for everyone, ${framed?'copy the JSON into':'download'} <b>style.json</b> next to index.html.</p>
    <div class="ebody">${ED.map(([sec,rows],i)=>`<details ${i<1?'open':''}><summary>${sec}</summary>${rows.map(ctl).join('')}</details>`).join('')}</div>`;
   const note=t=>{document.getElementById('edNote').textContent=t};
   ed.querySelectorAll('[data-p]').forEach(el=>{const p=el.dataset.p,t=el.dataset.t;
@@ -703,7 +703,7 @@ function renderEditor(){
   ed.querySelector('#edReset').onclick=()=>{ST=clone(SITE_STYLE);try{localStorage.removeItem(STYLE_KEY)}catch(e){}applyStyle();renderEditor();note('Reset to the site style.')};
   const json=()=>JSON.stringify(ST,null,2);
   ed.querySelector('#edCopy').onclick=async()=>{try{await navigator.clipboard.writeText(json());note('Copied. Paste it into style.json next to index.html.')}catch(e){note('Copy was blocked here — use Download instead.')}};
-  ed.querySelector('#edDl').onclick=()=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([json()],{type:'application/json'}));a.download='style.json';document.body.appendChild(a);a.click();a.remove();note('Downloaded style.json. Put it next to index.html to make this the site style.')}catch(e){note('Download was blocked here — use Copy JSON instead.')}};
+  if(!framed)ed.querySelector('#edDl').onclick=()=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([json()],{type:'application/json'}));a.download='style.json';document.body.appendChild(a);a.click();a.remove();note('Downloaded style.json. Put it next to index.html to make this the site style.')}catch(e){note('Download was blocked here — use Copy JSON instead.')}};
   ed.querySelector('#edImp').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{ST=merge(clone(STYLE_DEFAULTS),JSON.parse(t));saveStyle();applyStyle();renderEditor();note('Imported '+f.name+'.')}).catch(()=>note('That file is not a valid style JSON.'))};
 }
 function toggleEditor(){edOpen=!edOpen;const ed=document.getElementById('styleEd');ed.classList.toggle('open',edOpen);ed.setAttribute('aria-hidden',String(!edOpen));if(edOpen)renderEditor();
