@@ -543,30 +543,17 @@
         padding: 2px 8px;
         margin-right: 4px;
       }
-      .scaletabs {
+      .ringlbl {
         position: absolute;
-        top: 14px;
-        right: 14px;
-        z-index: 900;
-        display: flex;
-        gap: 0;
-        background: rgba(22, 22, 22, 0.92);
-        border-radius: 4px;
-        overflow: hidden;
-      }
-      .scaletabs span {
-        padding: 7px 12px;
-        color: #888;
-        font-size: 12px;
-        border-left: 1px solid #333;
-      }
-      .scaletabs span:first-child {
-        border-left: 0;
-      }
-      .scaletabs span.on {
-        background: var(--orange);
-        color: var(--orange-ink);
-        font-weight: 600;
+        transform: translate(-50%, -50%);
+        white-space: nowrap;
+        background: rgba(255, 255, 255, 0.92);
+        color: #111;
+        border: 1px solid #555;
+        border-radius: 999px;
+        padding: 1px 7px;
+        font-family: var(--mono);
+        font-size: 10.5px;
       }
       .hint {
         position: absolute;
@@ -592,6 +579,8 @@
         position: absolute;
         right: 14px;
         bottom: 26px;
+        width: 204px;
+        transition: bottom 0.3s;
         z-index: 900;
         background: rgba(255, 255, 255, 0.96);
         color: #111;
@@ -600,6 +589,10 @@
         font-size: 12.5px;
         min-width: 180px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      }
+      /* when the minimap is showing, the legend sits just above it */
+      .with-locator .maplegend {
+        bottom: 156px;
       }
       .maplegend .ttl {
         font-family: var(--serif);
@@ -619,11 +612,11 @@
       }
       .locator {
         position: absolute;
-        left: 14px;
+        right: 14px;
         bottom: 26px;
         z-index: 900;
-        width: 170px;
-        height: 100px;
+        width: 204px;
+        height: 120px;
         background: rgba(22, 22, 22, 0.9);
         border-radius: 4px;
         transition: opacity 0.4s;
@@ -1073,7 +1066,7 @@
          ============================================================ */
       .stylebtn {
         position: absolute;
-        top: 52px;
+        top: 14px;
         right: 14px;
         z-index: 950;
         background: rgba(22, 22, 22, 0.92);
@@ -1248,8 +1241,7 @@
           overflow: visible;
         }
         .maplegend,
-        .locator,
-        .scaletabs {
+        .locator {
           display: none;
         }
         html,
@@ -1279,14 +1271,9 @@
         <div id="mapHome"></div>                                          <!-- the map itself -->
         <nav class="crumbs" id="crumbs" aria-label="Map location"></nav>  <!-- "← Back  Singapore › Town › …" -->
 
-        <!-- the three scale names, top right -->
-        <div class="scaletabs" id="scaletabs" aria-hidden="true">
-          <span data-s="0">City · Site Finder</span><span data-s="2">Precinct · Residential Value</span><span data-s="3">Project · Retrofit-To-Order</span>
-        </div>
-
         <div class="hint" id="hint"></div>                                <!-- white hint bubble, bottom centre -->
         <div class="maplegend" id="maplegend"></div>                      <!-- map key, bottom right -->
-        <div class="locator" id="locator" style="opacity: 0">             <!-- small island map, bottom left -->
+        <div class="locator" id="locator" style="opacity: 0">             <!-- small island map, bottom right under the legend -->
           <canvas id="locCanvas" width="340" height="200"></canvas>
         </div>
         <div class="tip" id="tip"></div>                                  <!-- hover tooltip -->
@@ -1340,7 +1327,7 @@
           { k: 2, name: "Long slab >120 m" },
           { k: 3, name: "Bent block" },
           { k: 4, name: "Courtyard block" },
-          { k: 5, name: "Not analysed" },
+          { k: 5, name: "Low Risk" }, // blocks outside the typology analysis (50+ years left)
         ];
         // Amenity types: icon, name, colour (overridden by style.json), and which facility button
         // group they belong to (t transport · s schools · c food · h clinics · p parks).
@@ -1401,7 +1388,7 @@
           },
           hover: { dark: "#ffffff", light: "#111111", weight: 2 },
           precinct: { outline: "#ffffff", outlineOpacity: 0.5, light: "#111111" },
-          rings: { show: true, inner: 400, outer: 800, color: "#555555" },
+          rings: { show: true, spacing: 500, count: 3, color: "#555555" }, // walking bands every `spacing` metres
           recovery: { color: "#FF3C02", weight: 2 },
           sites: { outline: false, color: "#ff0000", weight: 1.5 },
           parks: { fill: "#9fd18b", opacity: 0.55, connector: "#4f9b3a", connectorWeight: 2 },
@@ -1419,7 +1406,6 @@
             legend: true,
             hint: true,
             locator: true,
-            scaletabs: true,
             crumbs: true,
             styleButton: true,
           },
@@ -1486,7 +1472,6 @@
           show("maplegend", ST.overlays.legend);
           show("hint", ST.overlays.hint);
           show("locator", ST.overlays.locator);
-          show("scaletabs", ST.overlays.scaletabs);
           show("crumbs", ST.overlays.crumbs);
           show("styleBtn", ST.overlays.styleButton);
         }
@@ -1854,14 +1839,15 @@
           renderLegend();
           renderLocator();
           showHint();
-          document
-            .querySelectorAll("#scaletabs span")
-            .forEach((s) => s.classList.toggle("on", +s.dataset.s === (state < 2 ? 0 : state)));
           if (!opts.noFly) {
             if (state === 0) fly(baseLayer.getBounds(), [10, 10]);
             if (state === 1) fly(S.town.bounds, [40, 40]);
-            if (state === 2)
-              fly(precs[S.prec].bounds.pad(precs[S.prec].site ? 0.35 : 0.9), [30, 30]);
+            if (state === 2) {
+              // show the whole precinct plus the first walking-distance band
+              const pr = precs[S.prec];
+              const band = L.latLng(pr.c).toBounds(2 * ringRadii()[0] * 1.08);
+              fly(L.latLngBounds(pr.bounds.getSouthWest(), pr.bounds.getNorthEast()).extend(band), [30, 30]);
+            }
             if (state === 3) fly(S.blk.bounds.pad(2.2), [60, 60]);
           }
           setHash();
@@ -1919,8 +1905,9 @@
                   fill: false,
                 }),
               );
+            // walking-distance bands around the centre of the precinct
             if (ST.rings.show)
-              [ST.rings.inner, ST.rings.outer].forEach((r) =>
+              ringRadii().forEach((r) => {
                 hiLayer.addLayer(
                   L.circle(pr.c, {
                     radius: r,
@@ -1931,8 +1918,21 @@
                     dashArray: "2 5",
                     fill: false,
                   }),
-                ),
-              );
+                );
+                // label at the top of each ring: "500 m · 6 min"
+                const top = [pr.c[0] + r / 110540, pr.c[1]];
+                hiLayer.addLayer(
+                  L.marker(top, {
+                    interactive: false,
+                    keyboard: false,
+                    icon: L.divIcon({
+                      className: "",
+                      html: `<span class="ringlbl" style="border-color:${ST.rings.color}">${fmt(r)} m · ${walkMin(r)} min</span>`,
+                      iconSize: [0, 0],
+                    }),
+                  }),
+                );
+              });
             if (S.state === 2) drawAmenities(pr);
           }
           if (S.state === 3 && S.blk) drawRecovery(S.blk);
@@ -1968,6 +1968,14 @@
           return hoverShape(o.ll, light);
         }
 
+        /* ---------- walking-distance bands ---------- */
+        // Radii of the bands, e.g. spacing 500 × count 3 → [500, 1000, 1500]
+        function ringRadii() {
+          const n = Math.max(1, Math.round(ST.rings.count));
+          return Array.from({ length: n }, (_, i) => ST.rings.spacing * (i + 1));
+        }
+        const walkMin = (m) => Math.max(1, Math.round(m / 80)); // walking at 80 m per minute
+
         /* ---------- amenities (real data) ---------- */
         function near(pr, r) {
           const out = {};
@@ -1981,7 +1989,7 @@
           return out;
         }
         function drawAmenities(pr) {
-          const n = near(pr, ST.rings.outer + 50);
+          const n = near(pr, Math.max(...ringRadii()) + 50);
           Object.entries(n).forEach(([k, list]) => {
             const m = AM[k];
             if (!S.fac[m.grp] || !ST.amen[k].show) return;
@@ -2224,6 +2232,8 @@
         function renderLocator() {
           const box = document.getElementById("locator");
           box.style.opacity = S.state >= 2 ? 1 : 0;
+          box.style.pointerEvents = S.state >= 2 ? "" : "none";
+          document.getElementById("mapwrap").classList.toggle("with-locator", S.state >= 2 && ST.overlays.locator);
           if (S.state < 2) return;
           const cv = document.getElementById("locCanvas"),
             g = cv.getContext("2d");
@@ -2428,7 +2438,7 @@
                     <span class="n">${fmt(scope.filter((p) => p.ty === t.k).length)}</span>
                   </label>`)}
               </div>
-              <p class="dek" style="font-size:12px;margin-top:6px">Typology from your QGIS layer (983 blocks with under 50 years left). Other blocks are "Not analysed".</p>
+              <p class="dek" style="font-size:12px;margin-top:6px">Typology from your QGIS layer (983 blocks with under 50 years left). Other blocks (50+ years left) are shown as "Low Risk".</p>
             </section>
 
             ${when(S.state === 0, `
@@ -2525,9 +2535,11 @@
           const carbon = pr.blocks.reduce((sum, p) => sum + (p.ec || 0), 0);
           const carbonBlocks = pr.blocks.filter((p) => p.ec != null).length;
 
-          // amenities within the inner / outer walking rings
-          const R1 = ST.rings.inner, R2 = ST.rings.outer;
-          const nearInner = near(pr, R1), nearOuter = near(pr, R2);
+          // amenities within each walking-distance band (500 m, 1000 m, …)
+          const radii = ringRadii();
+          const R2 = radii[radii.length - 1]; // the outermost band
+          const nearEach = radii.map((r) => near(pr, r));
+          const nearOuter = nearEach[nearEach.length - 1];
           const countGroup = (group, found) =>
             Object.keys(AM).filter((k) => AM[k].grp === group).reduce((sum, k) => sum + found[k].length, 0);
 
@@ -2580,10 +2592,10 @@
             </section>
 
             <section>
-              <p class="lbl"><span>Community facilities</span><span>${R1} m · ${R2} m</span></p>
+              <p class="lbl"><span>Community facilities</span><span>${radii.map(fmt).join(" · ")} m</span></p>
               <div class="facgrid">
                 ${list(GROUPS, ([group, name]) => `
-                  <button class="fac" data-f="${group}" aria-pressed="${S.fac[group]}">${name}<span>${countGroup(group, nearInner)} · ${countGroup(group, nearOuter)}</span></button>`)}
+                  <button class="fac" data-f="${group}" aria-pressed="${S.fac[group]}">${name}<span>${nearEach.map((found) => countGroup(group, found)).join(" · ")}</span></button>`)}
               </div>
               <p class="lbl" style="margin-top:14px"><span>Nearest</span><span>walk at 80 m/min</span></p>
               <div class="near">
@@ -3044,11 +3056,11 @@
             ],
           ],
           [
-            "Walking rings",
+            "Walking distance bands",
             [
               ["Show rings", "rings.show", "check"],
-              ["Inner ring (m)", "rings.inner", "range", [100, 800, 50]],
-              ["Outer ring (m)", "rings.outer", "range", [300, 1500, 50]],
+              ["Band spacing (m)", "rings.spacing", "range", [100, 1000, 50]],
+              ["Number of bands", "rings.count", "range", [1, 6, 1]],
               ["Ring colour", "rings.color", "color"],
             ],
           ],
@@ -3085,7 +3097,6 @@
               ["Legend", "overlays.legend", "check"],
               ["Hint bubble", "overlays.hint", "check"],
               ["Locator map", "overlays.locator", "check"],
-              ["Scale tabs", "overlays.scaletabs", "check"],
               ["Breadcrumb", "overlays.crumbs", "check"],
               ["🎨 Style button (press S to bring back)", "overlays.styleButton", "check"],
             ],

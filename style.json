@@ -65,8 +65,8 @@
   },
   "rings": {
     "show": true,
-    "inner": 150,
-    "outer": 300,
+    "spacing": 500,
+    "count": 3,
     "color": "#ffffff"
   },
   "recovery": {
@@ -122,7 +122,6 @@
     "legend": true,
     "hint": true,
     "locator": true,
-    "scaletabs": true,
     "crumbs": true,
     "styleButton": true
   }
