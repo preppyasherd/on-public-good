@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>On Public Good — Retrofit-To-Order Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --verm:#FF3C02; --orange:#FE9F4D; --orange-ink:#1d1d1d;
+  /* from QGIS: HDB VERs Eligibiltiy */
+  --v0:#E1001C; --v1:#E61518; --v2:#FB6B4B; --v3:#FCAF93; --v4:#FEE1D3; --v5:#FEE8DD; --v6:#FFEEE6; --vu:#FFF5F0;
+  /* from QGIS: HDB_typology_metrics_embodied_carbon (form) */
+  --t0:#D7191C; --t1:#FDAE61; --t2:#FFFFBF; --t3:#ABDDA4; --t4:#2B83BA; --tn:#8a8a8a;
+  --serif:"Newsreader","Times New Roman",Times,serif;
+  --sans:"IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:#111;color:#eee;font-family:var(--sans)}
+button{font:inherit;color:inherit}
+/* ---------- map app ---------- */
+.app{height:100vh;display:grid;grid-template-columns:400px 1fr;position:relative;border-top:1px solid var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;background:#111}
+.panel{background:#161616;color:#e9e9e9;overflow-y:auto;display:flex;flex-direction:column;min-width:0;border-right:1px solid #2a2a2a}
+.panel-inner{padding:18px 20px 40px;display:flex;flex-direction:column;gap:20px}
+.scalehead{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.btn-o{background:var(--orange);color:var(--orange-ink);border:0;border-radius:3px;padding:8px 16px;font-family:var(--sans);font-weight:600;font-size:17px;box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.btn-o.sub{font-weight:400;font-size:16px;padding:6px 16px}
+.panel h3{margin:0;font-family:var(--serif);font-weight:500;font-size:24px;line-height:1.15}
+.panel .dek{color:#a9a9a9;margin:0;font-size:13.5px}
+.lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#9a9a9a;margin:0 0 8px;display:flex;justify-content:space-between}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:#fff;color:#111;border:2px solid transparent;border-radius:3px;padding:6px 14px;font-weight:600;font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--orange);background:var(--orange)}
+.legend{display:flex;flex-direction:column;gap:1px}
+.lg{display:grid;grid-template-columns:16px 14px 1fr 54px 72px;gap:8px;align-items:center;padding:4px;border-radius:3px;cursor:pointer;font-variant-numeric:tabular-nums}
+.lg:hover{background:#222}
+.lg input{margin:0;accent-color:var(--orange)}
+.sw{width:14px;height:14px;border-radius:2px}
+.n{font-family:var(--mono);font-size:12px;text-align:right}
+.n.u{color:#9a9a9a}
+.tot{display:flex;justify-content:space-between;border-top:1px solid #2c2c2c;margin-top:6px;padding:8px 4px 0;font-family:var(--mono);font-size:12px;color:#9a9a9a}
+select{font:inherit;width:100%;padding:8px;border:1px solid #333;border-radius:3px;background:#1f1f1f;color:#eee}
+.row{display:flex;gap:10px;align-items:center}
+.tw{display:grid;grid-template-columns:120px 1fr 40px;gap:8px;align-items:center;font-size:12.5px;cursor:pointer;background:none;border:0;color:#ddd;padding:2px 0;text-align:left;width:100%}
+.tw:hover span:first-child{color:var(--orange)}
+.tw .bar{height:9px;background:#2a2a2a;border-radius:2px;overflow:hidden;display:flex}
+.tw .bar i{display:block;height:100%}
+.tw .pct{font-family:var(--mono);font-size:12px;text-align:right}
+.towns{display:flex;flex-direction:column;gap:4px}
+.box{border:1px solid #2e2e2e;border-radius:4px;padding:12px 14px;background:#1c1c1c}
+.box dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:8px 0 0;font-size:13px}
+.box dt{color:#9a9a9a}.box dd{margin:0;font-family:var(--mono);font-size:12.5px}
+.clock{height:8px;border-radius:4px;background:#2a2a2a;margin-top:10px;position:relative;overflow:hidden}
+.clock i{position:absolute;inset:0 auto 0 0;border-radius:4px}
+.ph{border:1px dashed #555;border-radius:4px;color:#8d8d8d;font-size:12.5px;padding:10px 12px;font-style:italic}
+.ph b{font-style:normal;color:#bbb}
+.tag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;border:1px solid #666;color:#aaa;padding:1px 6px;border-radius:2px;margin-left:6px;vertical-align:middle}
+.facgrid{display:flex;flex-direction:column;gap:8px}
+.fac{display:flex;justify-content:space-between;align-items:center;background:var(--orange);color:var(--orange-ink);border:2px solid var(--orange);border-radius:3px;padding:8px 12px;font-weight:600;font-size:13px;cursor:pointer;text-align:left}
+.fac[aria-pressed="false"]{background:transparent;color:var(--orange)}
+.fac span{font-family:var(--mono);font-weight:500}
+.typbar{display:flex;height:14px;border-radius:2px;overflow:hidden;margin-top:6px}
+.typbar i{display:block;height:100%}
+.typkey{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:#bbb;margin-top:8px}
+.typkey span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid #3a3a3a;border-radius:3px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:7px 8px;cursor:pointer;font-size:12.5px;color:#ccc}
+.seg button+button{border-left:1px solid #3a3a3a}
+.seg button[aria-pressed="true"]{background:#eee;color:#111;font-weight:600}
+.price{font-family:var(--serif);font-size:26px;color:#fff}
+.carbon{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.carbon div{background:#202020;border-radius:3px;padding:8px 10px}
+.carbon b{display:block;font-family:var(--mono);font-size:18px;color:#fff;font-weight:500}
+.carbon small{color:#9a9a9a;font-size:11.5px}
+.apply{width:100%;justify-content:center;font-size:16px;padding:14px}
+.blklist{display:flex;flex-wrap:wrap;gap:6px}
+.blklist button{background:#222;border:1px solid #333;border-radius:3px;color:#ddd;font-family:var(--mono);font-size:12px;padding:4px 8px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.blklist button:hover{border-color:var(--orange)}
+.blklist i{width:8px;height:8px;border-radius:2px;display:inline-block}
+details.method summary{cursor:pointer;color:#bbb;font-size:13px}
+details.method p{color:#999;font-size:12.5px;margin:8px 0 0}
+.hero-badge{display:inline-block;background:var(--verm);color:#fff;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:2px}
+
+.mapwrap{position:relative;min-width:0;background:#141414;overflow:hidden}
+#mapHome{position:absolute;inset:0;background:#141414}
+.crumbs{position:absolute;top:14px;left:14px;z-index:900;display:flex;align-items:center;gap:6px;background:rgba(22,22,22,.92);color:#eee;border-radius:4px;padding:6px 8px 6px 6px;font-size:13px;max-width:calc(100% - 120px);flex-wrap:wrap}
+.crumbs button{background:none;border:0;color:#eee;cursor:pointer;padding:2px 4px;border-radius:2px}
+.crumbs button:hover{background:#333}
+.crumbs .sep{color:#666}
+.crumbs .cur{color:var(--orange);font-weight:600}
+.crumbs .back{background:#2a2a2a;border:1px solid #444;padding:2px 8px;margin-right:4px}
+.scaletabs{position:absolute;top:14px;right:14px;z-index:900;display:flex;gap:0;background:rgba(22,22,22,.92);border-radius:4px;overflow:hidden}
+.scaletabs span{padding:7px 12px;color:#888;font-size:12px;border-left:1px solid #333}
+.scaletabs span:first-child{border-left:0}
+.scaletabs span.on{background:var(--orange);color:var(--orange-ink);font-weight:600}
+.hint{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:900;background:#fff;color:#111;border-radius:999px;padding:8px 16px;font-size:13px;font-weight:500;box-shadow:0 4px 18px rgba(0,0,0,.35);transition:opacity .4s;pointer-events:none;white-space:nowrap}
+.hint b{color:var(--verm)}
+.maplegend{position:absolute;right:14px;bottom:26px;z-index:900;background:rgba(255,255,255,.96);color:#111;border-radius:3px;padding:10px 12px;font-size:12.5px;min-width:180px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.maplegend .ttl{font-family:var(--serif);font-size:14px;margin-bottom:6px}
+.maplegend .it{display:flex;align-items:center;gap:8px;margin:3px 0}
+.maplegend .it i{width:22px;height:12px;border:1px solid rgba(0,0,0,.25)}
+.locator{position:absolute;left:14px;bottom:26px;z-index:900;width:170px;height:100px;background:rgba(22,22,22,.9);border-radius:4px;transition:opacity .4s;padding:4px}
+.locator canvas{width:100%;height:100%}
+.tip{position:absolute;z-index:950;pointer-events:none;background:#fff;color:#111;border-radius:3px;padding:7px 10px;font-size:12.5px;line-height:1.35;box-shadow:0 3px 14px rgba(0,0,0,.35);max-width:260px;display:none}
+.tip b{font-family:var(--serif);font-size:15px;font-weight:600;display:block}
+.tip .m{font-family:var(--mono);font-size:11.5px;color:#444}
+.lbl-ring{position:absolute;color:#fff;font-family:var(--mono);font-size:10.5px;opacity:.8}
+
+/* drawer / form */
+.drawer{position:absolute;top:0;right:0;bottom:0;width:min(460px,100%);background:#fff;color:#111;z-index:1000;transform:translateX(102%);transition:transform .35s ease;display:flex;flex-direction:column;box-shadow:-10px 0 30px rgba(0,0,0,.35)}
+.drawer.open{transform:none}
+.drawer header{padding:16px 20px;border-bottom:1px solid #e5e5e5;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.drawer header h4{margin:0;font-family:var(--serif);font-weight:500;font-size:20px}
+.drawer header button{background:none;border:1px solid #ccc;border-radius:3px;padding:4px 10px;cursor:pointer}
+.dots{display:flex;gap:6px;padding:12px 20px 0}
+.dots i{flex:1;height:4px;border-radius:2px;background:#e5e5e5}
+.dots i.on{background:var(--orange)}
+.fbody{padding:18px 20px;overflow-y:auto;flex:1}
+.fbody h5{font-family:var(--serif);font-size:24px;font-weight:500;margin:0 0 6px;line-height:1.2}
+.fbody p{color:#555;margin:0 0 14px}
+.opt{display:block;width:100%;text-align:left;border:1.5px solid #ddd;border-radius:4px;background:#fff;padding:14px 16px;margin-bottom:10px;cursor:pointer}
+.opt:hover{border-color:var(--orange)}
+.opt[aria-pressed="true"]{border-color:var(--orange);background:#fff6ee}
+.opt b{display:block;font-size:16px;margin-bottom:2px}
+.opt small{color:#666;font-size:13px}
+.opt .fig{float:right;font-family:var(--mono);font-size:13px;color:#111;margin-left:10px}
+.fld{display:block;margin-bottom:12px;font-size:13px;color:#444}
+.fld input,.fld select{display:block;width:100%;margin-top:4px;padding:9px;border:1px solid #ccc;border-radius:3px;background:#fff;color:#111;font:inherit}
+.ffoot{padding:14px 20px;border-top:1px solid #e5e5e5;display:flex;justify-content:space-between;gap:10px}
+.ffoot button{border-radius:3px;padding:10px 16px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.ffoot .bk{background:#fff;border:1px solid #bbb}
+.ffoot .nx{background:var(--orange);border:0;color:var(--orange-ink)}
+.ffoot .nx:disabled{opacity:.4;cursor:not-allowed}
+.tally{margin-top:8px}
+.tally .tb{display:flex;height:26px;border-radius:3px;overflow:hidden;margin:6px 0}
+.tally .tb i{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-family:var(--mono);font-style:normal}
+.tally .k{display:flex;gap:14px;font-size:12.5px;color:#444;flex-wrap:wrap}
+.tally .k span::before{content:"";display:inline-block;width:10px;height:10px;margin-right:5px;background:var(--c);vertical-align:-1px}
+.mindmap{font-family:var(--mono);font-size:11.5px;color:#666;background:#fafafa;border:1px solid #eee;border-radius:3px;padding:10px;white-space:pre;line-height:1.35;overflow-x:auto;margin-top:12px}
+
+/* Leaflet core */
+.leaflet-pane,.leaflet-map-pane canvas,.leaflet-layer{position:absolute;left:0;top:0}
+.leaflet-container{overflow:hidden;-webkit-tap-highlight-color:transparent;outline:0;touch-action:none;font-family:var(--sans)}
+.leaflet-pane{z-index:400}.leaflet-overlay-pane{z-index:400}.leaflet-marker-pane{z-index:600}
+.leaflet-zoom-animated{transform-origin:0 0}
+.leaflet-zoom-anim .leaflet-zoom-animated{transition:transform .25s cubic-bezier(0,0,.25,1)}
+.leaflet-marker-icon{position:absolute;left:0;top:0}
+.leaflet-control-container .leaflet-top,.leaflet-control-container .leaflet-bottom{position:absolute;z-index:800;pointer-events:none}
+.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}
+.leaflet-control{position:relative;z-index:800;pointer-events:auto;float:left;clear:both}
+.leaflet-bottom .leaflet-control{margin-bottom:2px}.leaflet-right .leaflet-control{float:right;margin-right:4px}
+.leaflet-control-attribution{font-size:10px;color:#999;background:rgba(0,0,0,.4);padding:1px 6px}
+.leaflet-control-attribution a{color:#bbb}
+.amen{width:30px;height:30px;border-radius:50%;background:#bfeee9;border:2px solid #fff;display:grid;place-items:center;font-size:15px;box-shadow:0 1px 6px rgba(0,0,0,.4)}
+
+
+.app{height:100vh;border-top:0}
+.kick{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8d8d8d;display:flex;justify-content:space-between;border-bottom:1px dashed #333;padding-bottom:10px}
+.kick b{color:#ddd;font-weight:500}
+.sites{display:flex;flex-direction:column;gap:6px}
+.sitebtn{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:#1f1f1f;border:1px solid #333;border-left:3px solid #ff0000;border-radius:3px;padding:8px 10px;cursor:pointer;text-align:left}
+.sitebtn:hover{border-color:var(--orange);border-left-color:#ff0000}
+.sitebtn b{font-family:var(--serif);font-weight:500;font-size:16px}
+.sitebtn small{color:#9a9a9a;font-size:12px;display:block}
+.sitebtn .n{font-family:var(--mono);font-size:12px;color:#ccc}
+.near{display:flex;flex-direction:column;gap:4px;margin-top:6px;font-size:12.5px}
+.near div{display:flex;justify-content:space-between;gap:8px;color:#ccc}
+.near span:last-child{font-family:var(--mono);color:#9a9a9a;white-space:nowrap}
+.amk{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;font-size:11px;margin-right:6px;vertical-align:-4px}
+.pin{display:grid;place-items:center;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);font-size:13px;width:26px;height:26px}
+.nodata{color:#9a9a9a;font-size:12.5px;font-style:italic}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:58vh auto;height:auto}
+  .mapwrap{height:58vh;order:-1}
+  .panel{overflow:visible}
+  .maplegend,.locator,.scaletabs{display:none}
+  html,body{height:auto}
+}
+@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
+</style>
+</head>
+<body>
+<section class="app" id="app" aria-label="Interactive map">
+  <aside class="panel" id="panel"><div class="panel-inner" id="panelInner"><p class="dek">Loading map…</p></div></aside>
+  <div class="mapwrap" id="mapwrap">
+    <div id="mapHome"></div>
+    <nav class="crumbs" id="crumbs" aria-label="Map location"></nav>
+    <div class="scaletabs" id="scaletabs" aria-hidden="true"><span data-s="0">City · Site Finder</span><span data-s="2">Precinct · Residential Value</span><span data-s="3">Project · Retrofit-To-Order</span></div>
+    <div class="hint" id="hint"></div>
+    <div class="maplegend" id="maplegend"></div>
+    <div class="locator" id="locator" style="opacity:0"><canvas id="locCanvas" width="340" height="200"></canvas></div>
+    <div class="tip" id="tip"></div>
+    <aside class="drawer" id="drawer" aria-label="Retrofit-To-Order application" aria-hidden="true"></aside>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+(function(){
+"use strict";
+const NOW=2026;
+let VB=2027; // VERS base year, from the QGIS expression
+const BANDS=[0,1,2,3,4,5,6].map(k=>({k,lo:k?k*10:-999,hi:k===6?999:(k+1)*10,tok:'--v'+k}));
+const bandLabel=b=>b.k===6?`60+ yrs`:`${b.k*10}–${b.k*10+10} yrs`;
+const bandYears=b=>b.k===6?`${VB+60} on`:`${VB+b.k*10}–${VB+b.k*10+9}`;
+const TYP=[{k:0,name:'Point block',tok:'--t0'},{k:1,name:'Slab block',tok:'--t1'},{k:2,name:'Long slab >120 m',tok:'--t2'},{k:3,name:'Bent block',tok:'--t3'},{k:4,name:'Courtyard block',tok:'--t4'},{k:5,name:'Not analysed',tok:'--tn'}];
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const CB={},CT={};BANDS.forEach(b=>CB[b.k]=css(b.tok));CB.unk=css('--vu');TYP.forEach(t=>CT[t.k]=css(t.tok));
+const AM={
+ mrt:{ic:'🚇',name:'MRT / LRT station',bg:'#bfeee9',grp:'t'},
+ bus:{ic:'',name:'Bus stop',bg:'#7fd3ff',grp:'t',dot:true},
+ school:{ic:'🏫',name:'School',bg:'#ffe08a',grp:'s'},
+ pre:{ic:'🧸',name:'Pre-school',bg:'#ffd0e0',grp:'s',dot:true},
+ hawker:{ic:'🍜',name:'Hawker / food centre',bg:'#ffc59a',grp:'c'},
+ clinic:{ic:'✚',name:'CHAS clinic',bg:'#e2d4ff',grp:'h',dot:true},
+ park:{ic:'🌳',name:'Park',bg:'#c8f0b4',grp:'p'}};
+const GROUPS=[['t','Transport'],['s','Schools / Kindergartens'],['c','Hawker / Food centres'],['h','Clinics'],['p','Parks']];
+const fmt=n=>n==null?'—':Math.round(n).toLocaleString('en-GB');
+const tc=s=>s.replace(/\w\S*/g,w=>w==="C'WEALTH"?"C'wealth":w[0]+w.slice(1).toLowerCase());
+const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let D,map,renderer,blocks=[],towns=[],precs=[],sites=[],baseLayer,parkLayer,hiLayer,overlayLayer,amenLayer;
+const S={state:0,town:null,prec:null,blk:null,colorBy:'vers',on:new Set([0,1,2,3,4,5,6]),typOn:new Set([0,1,2,3,4,5]),sersOnly:false,window:null,fac:{t:true,s:true,c:true,h:false,p:true}};
+
+function dec(r){const o=[];let x=0,y=0;for(let i=0;i<r.length;i+=2){x+=r[i];y+=r[i+1];o.push([D.y0+y/1e5,D.x0+x/1e5])}return o}
+function decode(rings){return rings.map(dec)}
+function bandOf(v){if(v==null)return 'unk';return BANDS.find(b=>v>=b.lo&&v<b.hi).k}
+function pip(pt,ring){let x=pt.lng,y=pt.lat,ins=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const xi=ring[i][1],yi=ring[i][0],xj=ring[j][1],yj=ring[j][0];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))ins=!ins}return ins}
+function inRings(pt,rings){let c=0;rings.forEach(r=>{if(pip(pt,r))c++});return c%2===1}
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return (h>>>0)/4294967295}
+function dist(a,b){const R=6371000,toR=Math.PI/180;const dLat=(b[0]-a[0])*toR,dLng=(b[1]-a[1])*toR;const x=dLng*Math.cos((a[0]+b[0])/2*toR);return R*Math.sqrt(x*x+dLat*dLat)}
+
+function init(){
+  map=L.map('mapHome',{preferCanvas:true,zoomSnap:.25,minZoom:10.5,maxZoom:19,zoomControl:false});
+  map.attributionControl.setPrefix(false).addAttribution('HDB · URA · LTA · MOE · ECDA · NEA · MOH · NParks via data.gov.sg');
+  renderer=L.canvas({padding:.4,tolerance:2});
+  baseLayer=L.featureGroup(D.sub.map(([n,pa,r])=>L.polygon(decode(r),{renderer,interactive:false,color:'#ffffff',weight:.4,opacity:.45,fillColor:'#333333',fillOpacity:1}))).addTo(map);
+  parkLayer=L.layerGroup();
+  D.parks.forEach(r=>parkLayer.addLayer(L.polygon(decode(r),{renderer,interactive:false,stroke:false,fillColor:'#9fd18b',fillOpacity:.55})));
+  D.pcn.forEach(r=>parkLayer.addLayer(L.polyline(dec(r),{renderer,interactive:false,color:'#4f9b3a',weight:2,dashArray:'4 3',opacity:.8})));
+  const bl=L.layerGroup().addTo(map);
+  D.p.forEach((a,i)=>{
+    const p={i,b:a[0],s:a[1],t:a[2],y:a[3],ls:a[4],v:a[5],u:a[6]||0,f:a[7],pc:a[8],sers:a[9],ro:a[10],ty:a[11]==null?5:a[11],len:a[12],ec:a[13],gfa:a[14],upf:a[15],era:a[16],pid:a[17]};
+    p.band=bandOf(p.v);p.ll=decode(D.g[i]);
+    p.layer=L.polygon(p.ll,{renderer,interactive:false,stroke:false,fillOpacity:0});p.bounds=p.layer.getBounds();
+    blocks.push(p);bl.addLayer(p.layer);
+  });
+  D.towns.forEach(([name,rings])=>{const ll=decode(rings);const lay=L.polygon(ll);towns.push({kind:'town',name,ll,bounds:lay.getBounds(),blocks:[]})});
+  const tBy={};towns.forEach(t=>tBy[t.name]=t);blocks.forEach(p=>tBy[p.t]&&tBy[p.t].blocks.push(p));
+  D.prec.forEach(([id,town,name,n,early,y0,y1,rings,site,street])=>{const ll=decode(rings);precs[id]={kind:'prec',id,town,name,n,early,y0,y1,ll,bounds:L.polygon(ll).getBounds(),blocks:[],site:!!site,street}});
+  blocks.forEach(p=>precs[p.pid].blocks.push(p));
+  precs.forEach(pr=>{let la=0,ln=0;pr.blocks.forEach(b=>{const c=b.bounds.getCenter();la+=c.lat;ln+=c.lng});pr.c=[la/pr.blocks.length,ln/pr.blocks.length]});
+  sites=D.sites.map(id=>precs[id]);
+  hiLayer=L.layerGroup().addTo(map);amenLayer=L.layerGroup().addTo(map);overlayLayer=L.layerGroup().addTo(map);
+  map.fitBounds(baseLayer.getBounds(),{padding:[10,10]});
+  wire();
+  addEventListener('hashchange',applyHash);
+  addEventListener('keydown',e=>{if(e.key==='Escape'){drawerOpen?(closeDrawer(),renderPanel()):goUp()}});
+  applyHash();
+}
+
+/* ---------- styling ---------- */
+function visible(p){
+  if(S.sersOnly&&!p.sers)return false;
+  if(S.colorBy==='vers'&&p.band!=='unk'&&!S.on.has(p.band))return false;
+  if(!S.typOn.has(p.ty))return false;
+  if(S.window){const yr=p.ls==null?null:p.ls+70;if(yr==null||yr<S.window[0]||yr>=S.window[1])return 'dim'}
+  return true;
+}
+function styleFor(p){
+  const v=visible(p);if(!v)return {stroke:false,fill:false};
+  const light=S.state>=2;
+  const col=S.colorBy==='typ'?CT[p.ty]:CB[p.band];
+  let op=v==='dim'?.18:.95;
+  if(S.state>=2&&p.pid!==S.prec)op=Math.min(op,.3);
+  if(S.state===3&&p!==S.blk)op=Math.min(op,p.pid===S.prec?.55:.25);
+  const z=map.getZoom();const lo=z<14;const w=z<12.5?1.6:z<14?1:z<15.5?.4:.8;
+  const s={fill:true,fillColor:col,fillOpacity:op,stroke:true,color:lo?col:'#232323',weight:w,opacity:op};
+  if(p.sers){s.stroke=true;s.color=light?'#111':'#fff';s.weight=2;s.opacity=1}
+  if(S.blk===p){s.stroke=true;s.color='#111';s.weight=3;s.opacity=1;s.fillOpacity=1}
+  return s;
+}
+function restyle(){blocks.forEach(p=>p.layer.setStyle(styleFor(p)))}
+function setBasemap(light){
+  baseLayer.setStyle(light?{color:'#b9b8b2',fillColor:'#e9e8e3',opacity:.9}:{color:'#ffffff',fillColor:'#333333',opacity:.45});
+  document.getElementById('mapHome').style.background=light?'#d6dad8':'#141414';
+  if(light)parkLayer.addTo(map);else parkLayer.remove();
+  parkLayer.eachLayer(l=>l.bringToBack&&0);
+}
+
+/* ---------- state machine ---------- */
+const HINTS=['Hover a town or a <b style="color:#e00">red site</b> · <b>click</b> to zoom in','Hover a precinct · <b>click</b> to zoom in','Hover a block · <b>click</b> to see its future','<b>Apply for RTO</b> in the panel · Esc to go back'];
+const seen=new Set();
+function showHint(){const h=document.getElementById('hint');if(seen.has(S.state)){h.style.opacity=0;return}h.innerHTML=matchMedia('(hover:none)').matches?HINTS[S.state].replace('Hover','Tap').replace('<b>click</b>','<b>tap again</b>'):HINTS[S.state];h.style.opacity=1}
+let flying=false;
+function fly(b,pad){flying=true;map.once('moveend',()=>setTimeout(()=>{flying=false;restyle()},60));map.flyToBounds(b,{padding:pad,duration:reduce?0:.8,maxZoom:18})}
+function go(state,opts={}){
+  const prev=S.state;S.state=state;
+  if(state<3){S.blk=null;closeDrawer()}
+  if(state<2)S.prec=null;
+  if(state<1)S.town=null;
+  if(state>=2&&prev<2)S.colorBy='typ';
+  if(state<2)S.colorBy='vers';
+  setBasemap(state>=2);
+  drawHighlights();restyle();renderPanel();renderCrumbs();renderLegend();renderLocator();showHint();
+  document.querySelectorAll('#scaletabs span').forEach(s=>s.classList.toggle('on',(+s.dataset.s)===(state<2?0:state)));
+  if(!opts.noFly){
+    if(state===0)fly(baseLayer.getBounds(),[10,10]);
+    if(state===1)fly(S.town.bounds,[40,40]);
+    if(state===2)fly(precs[S.prec].bounds.pad(precs[S.prec].site?.35:.9),[30,30]);
+    if(state===3)fly(S.blk.bounds.pad(2.2),[60,60]);
+  }
+  setHash();
+}
+function goUp(){if(S.state>0)go(S.state-1)}
+function openTown(t){S.town=t;go(1)}
+function openPrec(pr){S.town=towns.find(t=>t.name===pr.town);S.prec=pr.id;go(2)}
+function openBlk(p){S.town=towns.find(t=>t.name===p.t);S.prec=p.pid;S.blk=p;go(3)}
+
+function drawHighlights(hover){
+  hiLayer.clearLayers();overlayLayer.clearLayers();amenLayer.clearLayers();
+  // sites: always outlined in red (QGIS "261030 5 Sites")
+  sites.forEach(s=>hiLayer.addLayer(L.polygon(s.ll,{renderer,interactive:false,color:'#ff0000',weight:S.state>=2?2:1.6,fill:false})));
+  if(S.state===1&&S.town)precs.filter(p=>p&&p.town===S.town.name&&!p.site).forEach(pr=>hiLayer.addLayer(L.polygon(pr.ll,{renderer,interactive:false,color:'#fff',weight:1,dashArray:'3 4',opacity:.5,fill:false})));
+  if(S.state>=2&&S.prec!=null){
+    const pr=precs[S.prec];
+    if(!pr.site)hiLayer.addLayer(L.polygon(pr.ll,{renderer,interactive:false,color:'#111',weight:1.5,dashArray:'5 5',fill:false}));
+    [400,800].forEach(r=>hiLayer.addLayer(L.circle(pr.c,{radius:r,renderer,interactive:false,color:'#555',weight:1,dashArray:'2 5',fill:false})));
+    if(S.state===2)drawAmenities(pr);
+  }
+  if(S.state===3&&S.blk)drawRecovery(S.blk);
+  if(hover)hiLayer.addLayer(hover);
+}
+function hoverShape(ll,light){return L.polygon(ll,{renderer,interactive:false,color:light?'#111':'#fff',weight:2,fillColor:'#fff',fillOpacity:light?0:.08})}
+
+/* ---------- amenities (real data) ---------- */
+function near(pr,r){const out={};Object.keys(AM).forEach(k=>out[k]=D.amen[k].map(a=>({a,d:dist(pr.c,[a[1],a[0]])})).filter(x=>x.d<=r).sort((x,y)=>x.d-y.d));return out}
+function drawAmenities(pr){
+  const n=near(pr,850);
+  Object.entries(n).forEach(([k,list])=>{const m=AM[k];if(!S.fac[m.grp])return;
+    list.forEach(({a,d})=>{
+      const ll=[a[1],a[0]];let mk;
+      if(m.dot)mk=L.circleMarker(ll,{renderer,radius:5,color:'#fff',weight:1.5,fillColor:m.bg,fillOpacity:1});
+      else mk=L.marker(ll,{icon:L.divIcon({className:'',html:`<div class="pin" style="background:${m.bg}">${m.ic}</div>`,iconSize:[26,26],iconAnchor:[13,13]}),keyboard:false});
+      const html=`<b>${a[2]||m.name}</b><span class="m">${m.name} · ${Math.round(d)} m · ~${Math.max(1,Math.round(d/80))} min walk</span>`;
+      mk.on('mouseover',e=>tipShow(e.originalEvent,html));mk.on('mouseout',tipHide);
+      amenLayer.addLayer(mk)});
+  });
+}
+function nearestDonors(p){const pr=precs[p.pid];const c=p.bounds.getCenter();return pr.blocks.filter(b=>b!==p).map(b=>({b,d:c.distanceTo(b.bounds.getCenter())})).sort((a,b)=>a.d-b.d).slice(0,2).map(x=>x.b)}
+function drawRecovery(p){
+  const c=p.bounds.getCenter();
+  nearestDonors(p).forEach(b=>{const bc=b.bounds.getCenter();
+    overlayLayer.addLayer(L.polyline([bc,c],{renderer,interactive:false,color:'#FF3C02',weight:2,dashArray:'6 5'}));
+    overlayLayer.addLayer(L.polygon(b.ll,{renderer,interactive:false,color:'#FF3C02',weight:1.5,dashArray:'3 3',fill:false}))});
+  overlayLayer.addLayer(L.circleMarker(c,{renderer,interactive:false,radius:5,color:'#FF3C02',fillColor:'#FF3C02',fillOpacity:1}));
+}
+
+/* ---------- hit testing ---------- */
+let hoverObj=null,lastTap=null;
+function hitTest(ll){
+  if(S.state===0){
+    const s=sites.find(s=>s.bounds.contains(ll)&&inRings(ll,s.ll));if(s)return s;
+    return towns.find(t=>t.bounds.contains(ll)&&inRings(ll,t.ll))||null}
+  if(S.state===1){
+    const s=sites.find(s=>s.bounds.contains(ll)&&inRings(ll,s.ll));if(s)return s;
+    const pr=precs.find(p=>p&&p.town===S.town.name&&p.bounds.contains(ll)&&inRings(ll,p.ll));if(pr)return pr;
+    return towns.find(t=>t!==S.town&&t.bounds.contains(ll)&&inRings(ll,t.ll))||null}
+  return blocks.find(p=>visible(p)&&p.bounds.contains(ll)&&inRings(ll,p.ll))||null;
+}
+function vtxt(p){return p.v==null?'HDB-owned rental — no lease sold':p.v<=0?'VERS-eligible from '+(p.ls+70):p.v+' yrs till VERS ('+(p.ls+70)+')'}
+function describe(o){
+  if(o.kind==='town'){let n=0;o.blocks.forEach(p=>{if(p.v!=null&&p.v<20)n++});return `<b>${o.name}</b><span class="m">${fmt(o.blocks.length)} blocks · ${fmt(n)} VERS-eligible within 20 yrs (${Math.round(n/o.blocks.length*100)}%)</span>`}
+  if(o.kind==='prec')return `<b>${o.site?o.name+' · '+tc(o.street):tc(o.name)+' precinct'}</b><span class="m">${o.town} · ${o.n} blocks · built ${o.y0}${o.y1!==o.y0?'–'+o.y1:''} · first VERS ${o.early==null?'—':VB+o.early}</span>`;
+  const p=o;return `<b>Blk ${p.b} ${tc(p.s)}</b><span class="m">${TYP[p.ty].name} · built ${p.y} · ${p.f} storeys<br>${vtxt(p)} · ${fmt(p.u)} flats${p.ec!=null?'<br>Embodied carbon '+fmt(p.ec)+' t CO₂e':''}</span>`;
+}
+const tip=document.getElementById('tip');
+function tipShow(ev,html){const r=document.getElementById('mapwrap').getBoundingClientRect();tip.innerHTML=html;tip.style.display='block';let x=ev.clientX-r.left+14,y=ev.clientY-r.top+14;if(x+270>r.width)x-=290;if(y+100>r.height)y-=110;tip.style.left=x+'px';tip.style.top=y+'px'}
+function tipHide(){tip.style.display='none'}
+function wire(){
+  map.on('mousemove',e=>{const o=hitTest(e.latlng);document.getElementById('mapHome').style.cursor=o?'pointer':'';
+    if(o!==hoverObj){hoverObj=o;drawHighlights(o?hoverShape(o.ll,S.state>=2):null)}
+    o?tipShow(e.originalEvent,describe(o)):tipHide()});
+  map.on('mouseout',()=>{tipHide();hoverObj=null;drawHighlights()});
+  map.on('click',e=>{const o=hitTest(e.latlng);if(!o)return;
+    if(matchMedia('(hover:none)').matches&&lastTap!==o){lastTap=o;tipShow(e.originalEvent,describe(o));drawHighlights(hoverShape(o.ll,S.state>=2));return}
+    lastTap=null;tipHide();seen.add(S.state);
+    if(o.kind==='town')openTown(o);else if(o.kind==='prec')openPrec(o);else openBlk(o)});
+  map.on('zoomend',()=>{if(flying){return}const z=map.getZoom();
+    if(S.state>=1&&z<11.6)go(0,{noFly:true});else if(S.state>=2&&z<13.6)go(1,{noFly:true});else restyle()});
+}
+
+/* ---------- crumbs / legend / locator ---------- */
+function renderCrumbs(){
+  const c=document.getElementById('crumbs');const parts=[];
+  if(S.state>0)parts.push(`<button class="back" data-go="up">← Back</button>`);
+  const items=[['Singapore',0]];
+  if(S.state>=1)items.push([S.town.name,1]);
+  if(S.state>=2){const pr=precs[S.prec];items.push([pr.site?pr.name:tc(pr.name)+' precinct',2])}
+  if(S.state>=3)items.push(['Blk '+S.blk.b,3]);
+  items.forEach(([t,s],i)=>{if(i)parts.push('<span class="sep">›</span>');parts.push(i===items.length-1?`<span class="cur">${t}</span>`:`<button data-go="${s}">${t}</button>`)});
+  c.innerHTML=parts.join('');c.querySelectorAll('button').forEach(b=>b.onclick=()=>{b.dataset.go==='up'?goUp():go(+b.dataset.go)});
+}
+function renderLegend(){
+  const el=document.getElementById('maplegend');
+  const site=`<div class="it"><i style="background:transparent;border:2px solid #ff0000"></i>RTO site (5 Sites)</div>`;
+  if(S.colorBy==='typ')el.innerHTML=`<div class="ttl">Block typology</div>`+TYP.map(t=>`<div class="it"><i style="background:${CT[t.k]}"></i>${t.name}</div>`).join('')+site+(S.state===2?`<div class="it"><i style="background:#9fd18b;border-color:#9fd18b"></i>Park / park connector</div>`:'');
+  else el.innerHTML=`<div class="ttl">Years till VERS-eligible</div>`+BANDS.map(b=>`<div class="it"><i style="background:${CB[b.k]}"></i>${bandLabel(b)} <span style="color:#888">(${bandYears(b)})</span></div>`).join('')+`<div class="it"><i style="background:${CB.unk}"></i>HDB owned (rental)</div>`+site;
+}
+function renderLocator(){
+  const box=document.getElementById('locator');box.style.opacity=S.state>=2?1:0;if(S.state<2)return;
+  const cv=document.getElementById('locCanvas'),g=cv.getContext('2d');const b=baseLayer.getBounds();
+  const W=cv.width,H=cv.height,pad=8;const s=Math.min((W-2*pad)/(b.getEast()-b.getWest()),(H-2*pad)/(b.getNorth()-b.getSouth()));
+  const P=ll=>[pad+(ll[1]-b.getWest())*s,H-pad-(ll[0]-b.getSouth())*s];
+  g.clearRect(0,0,W,H);g.fillStyle='#444';
+  D.sub.forEach(([n,pa,r])=>decode(r).forEach(ring=>{g.beginPath();ring.forEach((p,i)=>{const [x,y]=P(p);i?g.lineTo(x,y):g.moveTo(x,y)});g.fill()}));
+  const [x,y]=P(precs[S.prec].c);g.fillStyle='#FF3C02';g.beginPath();g.arc(x,y,6,0,7);g.fill();g.strokeStyle='#fff';g.lineWidth=2;g.stroke();
+}
+
+/* ---------- panel ---------- */
+const P=document.getElementById('panelInner');
+const kick=`<div class="kick"><span><b>On Public Good</b> · Part 3</span><span>Retrofit-To-Order</span></div>`;
+function head(a,b,extra=''){return kick+`<div class="scalehead"><span class="btn-o">${a}</span><span class="btn-o sub">${b}</span></div>${extra}`}
+let lastState=-1;
+function renderPanel(){if(lastState!==S.state){document.getElementById('panel').scrollTop=0;lastState=S.state}
+  if(S.state<=1)panelCity();else if(S.state===2)panelPrecinct();else panelProject()}
+function siteList(){return `<section><p class="lbl"><span>RTO sites</span><span>blocks · first VERS</span></p><div class="sites">${sites.map(s=>`<button class="sitebtn" data-prec="${s.id}"><span class="n">${s.name.replace('Site ','#')}</span><span><b>${tc(s.street)}</b><small>${s.town}</small></span><span class="n">${s.n} · ${s.early==null?'—':VB+s.early}</span></button>`).join('')}</div></section>`}
+function panelCity(){
+  const scope=S.state===1?S.town.blocks:blocks;
+  const c={},u={};BANDS.forEach(b=>{c[b.k]=0;u[b.k]=0});scope.forEach(p=>{if(p.band==='unk'||(S.sersOnly&&!p.sers)||!S.typOn.has(p.ty))return;c[p.band]++;u[p.band]+=p.u});
+  let tot=0,tu=0;scope.forEach(p=>{if(visible(p)===true){tot++;tu+=p.u}});
+  const rank=towns.map(t=>{const b=[0,0,0,0,0,0,0];t.blocks.forEach(p=>{if(p.band!=='unk')b[p.band]++});return {t,b,n:t.blocks.length,s:(b[0]+b[1])/t.blocks.length}}).sort((a,b)=>b.s-a.s).slice(0,10);
+  let townCard='';
+  if(S.state===1){const t=S.town;let n=0,fu=0,ny=99;t.blocks.forEach(p=>{fu+=p.u;if(p.v!=null){if(p.v<20)n++;ny=Math.min(ny,p.v)}});
+    townCard=`<div class="box"><h3>${t.name}</h3><dl><dt>Blocks · flats</dt><dd>${fmt(t.blocks.length)} · ${fmt(fu)}</dd><dt>VERS within 20 yrs</dt><dd>${fmt(n)} blocks</dd><dt>First eligible</dt><dd>${VB+ny}</dd><dt>Precincts</dt><dd>${precs.filter(p=>p&&p.town===t.name).length} <span class="tag">derived</span></dd></dl></div>`}
+  P.innerHTML=head('Singapore Scale','Site Finder',`<p class="dek">Find blocks under threat of VERS demolition. Years till VERS-eligible = lease start + 70 − ${VB}.</p>`)+townCard+siteList()+`
+  <section><p class="lbl"><span>When possible RTO</span></p><div class="chips">
+    <button class="chip" data-w="2030" aria-pressed="${!!(S.window&&S.window[0]===2030)}">2030–2040</button>
+    <button class="chip" data-w="2040" aria-pressed="${!!(S.window&&S.window[0]===2040)}">2040–2050</button></div>
+    <p class="dek" style="margin-top:8px;font-size:12px">Highlights blocks reaching year 70 in that decade.</p></section>
+  <section><p class="lbl"><span>Years till VERS-eligible</span><span>blocks · flats</span></p><div class="legend">${BANDS.map(b=>`<label class="lg"><input type="checkbox" data-b="${b.k}" ${S.on.has(b.k)?'checked':''}><span class="sw" style="background:${CB[b.k]}"></span><span>${bandLabel(b)} <span style="color:#888;font-size:12px">${bandYears(b)}</span></span><span class="n">${fmt(c[b.k])}</span><span class="n u">${fmt(u[b.k])}</span></label>`).join('')}</div>
+    <div class="tot"><span>Showing</span><span>${fmt(tot)} blocks · ${fmt(tu)} flats</span></div></section>
+  <section><p class="lbl"><span>Filter</span></p><div style="display:flex;flex-direction:column;gap:10px"><select id="townSel" aria-label="Town"><option value="">All towns</option>${towns.map(t=>`<option ${S.town===t?'selected':''}>${t.name}</option>`).join('')}</select>
+    <label class="row" style="cursor:pointer"><input type="checkbox" id="sersOnly" ${S.sersOnly?'checked':''}> <span>Only blocks announced for SERS</span></label></div></section>
+  <section><p class="lbl"><span>Block type</span><span>blocks</span></p><div class="legend">${TYP.map(t=>`<label class="lg" style="grid-template-columns:16px 14px 1fr 54px"><input type="checkbox" data-t="${t.k}" ${S.typOn.has(t.k)?'checked':''}><span class="sw" style="background:${CT[t.k]}"></span><span>${t.name}</span><span class="n">${fmt(scope.filter(p=>p.ty===t.k).length)}</span></label>`).join('')}</div>
+    <p class="dek" style="font-size:12px;margin-top:6px">Typology from your QGIS layer (983 blocks with under 50 years left). Other blocks are "Not analysed".</p></section>
+  ${S.state===0?`<section><p class="lbl"><span>Towns by share VERS-eligible within 20 yrs</span></p><div class="towns">${rank.map(r=>`<button class="tw" data-town="${r.t.name}"><span>${r.t.name}</span><span class="bar">${r.b.map((x,i)=>x?`<i style="width:${x/r.n*100}%;background:${CB[i]}"></i>`:'').join('')}</span><span class="pct">${Math.round(r.s*100)}%</span></button>`).join('')}</div></section>`:''}
+  ${S.state===1?`<section><p class="lbl"><span>Precincts in ${S.town.name}</span><span>first VERS</span></p><div class="towns">${precs.filter(p=>p&&p.town===S.town.name).sort((a,b)=>(a.early??99)-(b.early??99)).slice(0,12).map(p=>`<button class="tw" data-prec="${p.id}"><span>${p.site?'<b style="color:#ff5a5a">'+p.name+'</b>':tc(p.name)}</span><span class="bar"><i style="width:${Math.max(4,100-(p.early??60)/60*100)}%;background:${CB[bandOf(p.early)]}"></i></span><span class="pct">${p.early==null?'—':VB+p.early}</span></button>`).join('')}</div></section>`:''}
+  <details class="method"><summary>Method &amp; sources</summary>
+   <p>All layers come from the QGIS project <i>261116_Singapore Cleaned</i>: HDB VERs Eligibility (lease start B), HDB typology metrics with embodied carbon, 261030 5 Sites, and MP2019 subzones as the base map.</p>
+   <p>Towns are HDB towns, drawn by grouping each town's blocks. Precincts outside your sites are a stand-in: blocks clustered by distance (~14 per precinct), named after their most common street.</p>
+   <p>Data: HDB, URA, LTA, MOE, ECDA, NEA, MOH, NParks via data.gov.sg (Singapore Open Data Licence).</p></details>`;
+  P.querySelectorAll('input[data-b]').forEach(i=>i.onchange=()=>{i.checked?S.on.add(+i.dataset.b):S.on.delete(+i.dataset.b);restyle();renderPanel()});
+  P.querySelectorAll('input[data-t]').forEach(i=>i.onchange=()=>{i.checked?S.typOn.add(+i.dataset.t):S.typOn.delete(+i.dataset.t);restyle();renderPanel()});
+  P.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{const w=+b.dataset.w;S.window=(S.window&&S.window[0]===w)?null:[w,w+10];restyle();renderPanel()});
+  P.querySelector('#sersOnly').onchange=e=>{S.sersOnly=e.target.checked;restyle();renderPanel()};
+  P.querySelector('#townSel').onchange=e=>{const t=towns.find(x=>x.name===e.target.value);t?openTown(t):go(0)};
+  P.querySelectorAll('[data-town]').forEach(b=>b.onclick=()=>openTown(towns.find(t=>t.name===b.dataset.town)));
+  P.querySelectorAll('[data-prec]').forEach(b=>b.onclick=()=>openPrec(precs[+b.dataset.prec]));
+}
+function panelPrecinct(){
+  const pr=precs[S.prec];
+  const tcount=[0,0,0,0,0,0];pr.blocks.forEach(p=>tcount[p.ty]++);
+  const yrs=pr.blocks.map(p=>p.y).sort((a,b)=>a-b);const med=yrs[Math.floor(yrs.length/2)];
+  const flats=pr.blocks.reduce((a,p)=>a+p.u,0);const ec=pr.blocks.reduce((a,p)=>a+(p.ec||0),0);const ecN=pr.blocks.filter(p=>p.ec!=null).length;
+  const n4=near(pr,400),n8=near(pr,800);
+  const cnt=(g,n)=>Object.keys(AM).filter(k=>AM[k].grp===g).reduce((a,k)=>a+n[k].length,0);
+  const first=(k,n)=>n[k][0];
+  const nearRow=(k,label)=>{const x=first(k,n8);return x?`<div><span><span class="amk" style="background:${AM[k].bg}">${AM[k].ic||'•'}</span>${x.a[2]||label}</span><span>${Math.round(x.d)} m · ${Math.max(1,Math.round(x.d/80))} min</span></div>`:`<div><span><span class="amk" style="background:${AM[k].bg}">${AM[k].ic||'•'}</span>${label}</span><span>none within 800 m</span></div>`};
+  P.innerHTML=head('Precinct Scale','Residential Value')+`
+  <div><h3>${pr.site?pr.name+' · '+tc(pr.street):tc(pr.name)+' precinct'}</h3><p class="dek">${pr.town} · ${pr.n} blocks · ${fmt(flats)} flats${pr.site?' · <b style="color:#ff5a5a">RTO site</b>':''}</p></div>
+  <div class="ph"><b>Precinct photo</b> — ${pr.site?'add an aerial or street photo of this site':'add a photo for this precinct'}</div>
+  <section><span class="btn-o sub" style="display:inline-block;margin-bottom:10px">History and Maturity of Neighbourhood</span>
+   <div class="box"><dl><dt>Built</dt><dd>${yrs[0]}${yrs.at(-1)!==yrs[0]?'–'+yrs.at(-1):''} (median ${med})</dd><dt>Neighbourhood age</dt><dd>${NOW-med} years</dd><dt>First VERS-eligible</dt><dd>${pr.early==null?'—':VB+pr.early}</dd><dt>Embodied carbon</dt><dd>${ecN?fmt(ec)+' t CO₂e':'—'} ${ecN&&ecN<pr.n?`<span class="tag">${ecN}/${pr.n} blocks</span>`:''}</dd></dl></div>
+   <div class="ph" style="margin-top:8px"><b>Your text here</b> — the history of this neighbourhood, from your oral histories and textual research.</div></section>
+  <section><p class="lbl"><span>Block typology</span><span>${pr.n} blocks</span></p><div class="typbar">${tcount.map((n,i)=>n?`<i style="width:${n/pr.n*100}%;background:${CT[i]}"></i>`:'').join('')}</div><div class="typkey">${TYP.map(t=>tcount[t.k]?`<span style="--c:${CT[t.k]}">${t.name} ${tcount[t.k]}</span>`:'').join('')}</div>
+   <p class="lbl" style="margin-top:14px"><span>Colour blocks by</span></p><div class="seg"><button data-c="typ" aria-pressed="${S.colorBy==='typ'}">Typology</button><button data-c="vers" aria-pressed="${S.colorBy==='vers'}">Years till VERS</button></div></section>
+  <section><p class="lbl"><span>Community facilities</span><span>400 m · 800 m</span></p><div class="facgrid">
+   ${GROUPS.map(([g,n])=>`<button class="fac" data-f="${g}" aria-pressed="${S.fac[g]}">${n}<span>${cnt(g,n4)} · ${cnt(g,n8)}</span></button>`).join('')}</div>
+   <p class="lbl" style="margin-top:14px"><span>Nearest</span><span>walk at 80 m/min</span></p><div class="near">${nearRow('mrt','MRT / LRT')}${nearRow('hawker','Hawker centre')}${nearRow('school','School')}${nearRow('park','Park')}</div></section>
+  <section><p class="lbl"><span>Blocks — click to open</span></p><div class="blklist">${pr.blocks.slice().sort((a,b)=>(a.v??99)-(b.v??99)).map(p=>`<button data-i="${p.i}"><i style="background:${S.colorBy==='typ'?CT[p.ty]:CB[p.band]}"></i>${p.b}</button>`).join('')}</div></section>`;
+  P.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{S.colorBy=b.dataset.c;restyle();renderPanel();renderLegend()});
+  P.querySelectorAll('.fac').forEach(b=>b.onclick=()=>{S.fac[b.dataset.f]=!S.fac[b.dataset.f];drawHighlights();renderPanel()});
+  P.querySelectorAll('.blklist button').forEach(b=>b.onclick=()=>openBlk(blocks[+b.dataset.i]));
+}
+const FLAT={'3-room':{fa:69,ifa:66,lo:297000,hi:355000},'4-room':{fa:90,ifa:86,lo:420000,hi:510000},'5-room':{fa:110,ifa:105,lo:530000,hi:640000}};
+let flatType='3-room';
+function seedTally(p){const h=hash(p.s+p.b);const n=precs[p.pid].site?340:Math.round(80+h*320);const a=.25+h*.2,b=.35-h*.1;const cash=Math.round(n*a),adapt=Math.round(n*b);return {n,cash,adapt,harvest:n-cash-adapt}}
+function loadVote(p){try{return JSON.parse(localStorage.getItem('rto-vote-'+p.s+'-'+p.b)||'null')}catch(e){return null}}
+function panelProject(){
+  const p=S.blk,pr=precs[p.pid],f=FLAT[flatType],t=seedTally(p),mine=loadVote(p);
+  P.innerHTML=head('Project Scale','Retrofit-To-Order')+`
+  <div><h3>Blk ${p.b} ${tc(p.s)}</h3><p class="dek">${p.t} · Singapore ${p.pc} · ${TYP[p.ty].name}${p.era?' · era '+p.era:''}${p.sers?' · <b>'+p.sers+'</b>':''}</p>
+   <div class="clock">${p.ls==null?'':`<i style="width:${Math.max(0,Math.min(100,(NOW-p.ls)/99*100))}%;background:${CB[p.band]}"></i>`}</div>
+   <p class="dek" style="font-size:12.5px;margin-top:6px">${p.ls==null?'HDB-owned rental — no lease sold':`Lease ${p.ls}–${p.ls+99} · ${NOW-p.ls} of 99 years used · VERS-eligible <b style="color:#fff">${p.ls+70}</b>`}</p></div>
+  <section><p class="lbl"><span>Prices / flat details</span><span class="tag">illustrative</span></p>
+   <select id="flatType">${Object.keys(FLAT).map(k=>`<option ${k===flatType?'selected':''}>${k}</option>`).join('')}</select>
+   <div class="box" style="margin-top:8px"><dl><dt>Est. floor area</dt><dd>${f.fa} sqm</dd><dt>Est. internal floor area</dt><dd>${f.ifa} sqm</dd><dt>Flats in block</dt><dd>${fmt(p.u)} · ${p.f} storeys${p.upf?' · '+p.upf+'/floor':''}</dd></dl>
+   <p class="lbl" style="margin:12px 0 2px"><span>Indicative price range</span></p><div class="price">$${fmt(f.lo)} – $${fmt(f.hi)}</div>
+   <p class="dek" style="font-size:12px">Placeholder from your mock-up until resale data and your RTO pricing model are added.</p></div></section>
+  <section><p class="lbl"><span>Embodied carbon stats</span>${p.ec!=null?'<span class="tag">your QGIS calc</span>':''}</p>
+   ${p.ec!=null?`<div class="carbon"><div><b>${fmt(p.ec)} t</b><small>CO₂e embodied — lost if demolished</small></div><div><b>${fmt(p.gfa)} m²</b><small>Estimated gross floor area</small></div><div><b>${fmt(p.ec/p.gfa*1000)} kg</b><small>CO₂e per m² GFA</small></div><div><b>${fmt(p.ec/Math.max(1,p.u))} t</b><small>CO₂e per flat</small></div></div>`:`<p class="nodata">Not calculated — this block has 50+ years left, outside your typology / carbon analysis set.</p>`}
+   <p class="dek" style="font-size:12px;margin-top:6px">Material recovery → concrete recovery quantity: to come. Red dashed lines on the map: neighbouring blocks that could share materials.</p></section>
+  <section class="box" style="text-align:center"><p class="lbl" style="justify-content:center"><span>RTO applicants</span></p><div style="font-family:var(--mono);font-size:34px;color:#fff">${fmt(t.n+(mine?1:0))}</div>${mine?`<p class="dek" style="font-size:12px">You voted: <b style="color:var(--orange)">${mine.choice}</b></p>`:''}</section>
+  <button class="cta apply" id="applyBtn">${mine?'Review your RTO application':'Apply for RTO'} →</button>
+  <section><p class="lbl"><span>Other blocks here</span></p><div class="blklist">${pr.blocks.filter(b=>b!==p).map(b=>`<button data-i="${b.i}"><i style="background:${CB[b.band]}"></i>${b.b}</button>`).join('')}</div></section>`;
+  P.querySelector('#flatType').onchange=e=>{flatType=e.target.value;renderPanel()};
+  P.querySelector('#applyBtn').onclick=openDrawer;
+  P.querySelectorAll('.blklist button').forEach(b=>b.onclick=()=>openBlk(blocks[+b.dataset.i]));
+}
+
+/* ---------- RTO form (mind map) ---------- */
+const drawer=document.getElementById('drawer');let drawerOpen=false;let F={};
+function openDrawer(){F={step:0,role:null,choice:null,future:null,unit:'',ftype:'3-room',hh:'2'};drawerOpen=true;drawer.classList.add('open');drawer.setAttribute('aria-hidden','false');renderForm()}
+function closeDrawer(){drawerOpen=false;drawer.classList.remove('open');drawer.setAttribute('aria-hidden','true')}
+function flow(){const s=['intro','role'];if(F.role==='resident')s.push('resident');if(F.role==='new'||F.choice==='join')s.push('future');s.push('result');return s}
+function renderForm(){
+  const p=S.blk,t=seedTally(p),seq=flow(),id=seq[F.step];
+  const rem=p.ls==null?null:p.ls+99-NOW;
+  const payout=rem==null?null:Math.round(FLAT['3-room'].hi*(1-Math.pow(1.035,-29))/(1-Math.pow(1.035,-Math.max(29,rem)))/1000);
+  let body='',ok=true;
+  if(id==='intro')body=`<h5>Retrofit-To-Order</h5><p>Blk ${p.b} ${tc(p.s)} becomes VERS-eligible in <b>${p.ls==null?'—':p.ls+70}</b>. Under VERS, residents may vote to cash out and the block is demolished${p.ec!=null?` — losing <b>${fmt(p.ec)} t CO₂e</b> of embodied carbon`:''}. Retrofit-To-Order asks residents and new applicants to decide its future together: <b>adapt</b> it in place, or <b>harvest</b> its materials for a neighbouring block.</p><p><b>${fmt(t.n)}</b> people have applied so far.</p><div class="mindmap">RTO Applicants: ${t.n}
+        │
+    Voting form
+     ├── Present resident ─┬─ Cash out?
+     │                     └─ Join RTO? ─┐
+     └── New applicant ────── Join RTO? ─┤
+                                    Adapt · Harvest</div>`;
+  if(id==='role'){ok=!!F.role;body=`<h5>Who are you?</h5><p>Your answer decides which questions come next.</p>
+   <button class="opt" data-role="resident" aria-pressed="${F.role==='resident'}"><b>Present resident</b><small>You own or live in a flat in Blk ${p.b}</small></button>
+   <button class="opt" data-role="new" aria-pressed="${F.role==='new'}"><b>New applicant</b><small>You'd like to buy into this block once it is retrofitted</small></button>
+   ${F.role==='resident'?`<label class="fld">Unit number (for the simulation — not checked)<input id="unit" placeholder="#08-123" value="${F.unit}"></label>`:''}
+   ${F.role==='new'?`<label class="fld">Preferred flat type<select id="ftype">${Object.keys(FLAT).map(k=>`<option ${k===F.ftype?'selected':''}>${k}</option>`).join('')}</select></label><label class="fld">Household size<select id="hh">${[1,2,3,4,5,'6+'].map(k=>`<option ${String(k)===F.hh?'selected':''}>${k}</option>`).join('')}</select></label>`:''}`}
+  if(id==='resident'){ok=!!F.choice;body=`<h5>Cash out, or join RTO?</h5><p>Estimates for a 3-room flat — illustrative until your financial model is added.</p>
+   <button class="opt" data-ch="cash" aria-pressed="${F.choice==='cash'}"><span class="fig">${payout?'~$'+payout+'k':'—'}</span><b>Cash out under VERS</b><small>Sell back at year 70; the block is demolished. Payout follows Bala's Table at ~29 years left.</small></button>
+   <button class="opt" data-ch="join" aria-pressed="${F.choice==='join'}"><span class="fig">stay</span><b>Join Retrofit-To-Order</b><small>Keep your home through the works and help decide what happens to the block.</small></button>`}
+  if(id==='future'){ok=!!F.future;body=`<h5>What should happen to Blk ${p.b}?</h5><p>Compare the two futures.</p>
+   <button class="opt" data-fu="adapt" aria-pressed="${F.future==='adapt'}"><span class="fig">${p.ec!=null?fmt(p.ec)+' t CO₂e kept':''}</span><b>Adapt</b><small>Retrofit in place: new services, layouts and lifts; the concrete frame and its embodied carbon stay.</small></button>
+   <button class="opt" data-fu="harvest" aria-pressed="${F.future==='harvest'}"><span class="fig">to come</span><b>Harvest</b><small>Carefully dismantle and reuse components in a neighbouring block (red dashed lines on the map). Recovery quantity to come from your calculator.</small></button>`}
+  if(id==='result'){const choice=F.choice==='cash'?'Cash out':F.future==='adapt'?'Adapt':'Harvest';
+    try{localStorage.setItem('rto-vote-'+p.s+'-'+p.b,JSON.stringify({choice,role:F.role}))}catch(e){}
+    const T={cash:t.cash+(choice==='Cash out'),adapt:t.adapt+(choice==='Adapt'),harvest:t.harvest+(choice==='Harvest')};const N=T.cash+T.adapt+T.harvest;
+    const seg=(k,c)=>`<i style="width:${T[k]/N*100}%;background:${c}">${Math.round(T[k]/N*100)}%</i>`;
+    body=`<h5>Thank you — your vote is in.</h5><p>You chose <b>${choice}</b>. Here is how Blk ${p.b} is voting (${fmt(N)} applicants):</p><div class="tally"><div class="tb">${seg('cash','#8a8a8a')}${seg('adapt','#FE9F4D')}${seg('harvest','#FF3C02')}</div><div class="k"><span style="--c:#8a8a8a">Cash out ${T.cash}</span><span style="--c:#FE9F4D">Adapt ${T.adapt}</span><span style="--c:#FF3C02">Harvest ${T.harvest}</span></div></div><p style="margin-top:16px;font-size:13px;color:#888">Simulated: the starting numbers are made up for the demonstration; your vote is stored only in this browser.</p>`}
+  drawer.innerHTML=`<header><h4>Apply for RTO · Blk ${p.b}</h4><button id="fClose">Close</button></header><div class="dots">${seq.map((_,i)=>`<i class="${i<=F.step?'on':''}"></i>`).join('')}</div><div class="fbody">${body}</div><div class="ffoot"><button class="bk" id="fBack" ${F.step===0?'style="visibility:hidden"':''}>← Back</button><button class="nx" id="fNext" ${ok?'':'disabled'}>${id==='result'?'Done':id==='intro'?'Start':'Next →'}</button></div>`;
+  drawer.querySelector('#fClose').onclick=()=>{closeDrawer();renderPanel()};
+  drawer.querySelector('#fBack').onclick=()=>{F.step=Math.max(0,F.step-1);renderForm()};
+  drawer.querySelector('#fNext').onclick=()=>{if(id==='result'){closeDrawer();renderPanel();return}F.step++;renderForm()};
+  drawer.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>{F.role=b.dataset.role;F.choice=null;F.future=null;renderForm()});
+  drawer.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{F.choice=b.dataset.ch;renderForm()});
+  drawer.querySelectorAll('[data-fu]').forEach(b=>b.onclick=()=>{F.future=b.dataset.fu;renderForm()});
+  const u=drawer.querySelector('#unit');if(u)u.oninput=()=>F.unit=u.value;
+  const ft=drawer.querySelector('#ftype');if(ft)ft.onchange=()=>F.ftype=ft.value;
+  const hh=drawer.querySelector('#hh');if(hh)hh.onchange=()=>F.hh=hh.value;
+}
+
+/* ---------- deep links: #town-x, #precinct-n, #site-n, #block-n ---------- */
+let applying=false;
+function setHash(){if(applying)return;let h='';if(S.state===1)h='town-'+slug(S.town.name);if(S.state===2){const pr=precs[S.prec];h=pr.site?'site-'+(sites.indexOf(pr)+1):'precinct-'+S.prec}if(S.state===3)h='block-'+S.blk.i;
+  try{history.replaceState(null,'',h?'#'+h:location.pathname+location.search)}catch(e){}}
+function applyHash(){const h=location.hash.slice(1);applying=true;let m;
+  if((m=h.match(/^town-(.+)$/))){const t=towns.find(t=>slug(t.name)===m[1]);t?openTown(t):go(0)}
+  else if((m=h.match(/^site-(\d+)$/))&&sites[+m[1]-1])openPrec(sites[+m[1]-1]);
+  else if((m=h.match(/^precinct-(\d+)$/))&&precs[+m[1]])openPrec(precs[+m[1]]);
+  else if((m=h.match(/^block-(\d+)$/))&&blocks[+m[1]])openBlk(blocks[+m[1]]);
+  else go(0);applying=false}
+
+fetch('map.json').then(r=>r.json()).then(d=>{D=d;VB=d.versBase;init()}).catch(e=>{console.error(e);P.innerHTML='<p>The map data did not load. Reload the page to try again.</p>'});
+})();
+</script>
+</body>
+</html>
