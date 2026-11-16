@@ -1,11 +1,11 @@
 {
   "ui": {
-    "accent": "#FE9F4D",
+    "accent": "#ffd814",
     "accentInk": "#1d1d1d",
     "panelBg": "#161616",
-    "panelInk": "#e9e9e9",
-    "serif": "Newsreader",
-    "sans": "IBM Plex Sans",
+    "panelInk": "#ffffff",
+    "serif": "Times New Roman",
+    "sans": "Space Grotesk",
     "scale": 1
   },
   "base": {
@@ -13,15 +13,15 @@
       "land": "#333333",
       "line": "#ffffff",
       "lineOpacity": 0.45,
-      "lineWeight": 0.4,
-      "water": "#141414"
+      "lineWeight": 0.5,
+      "water": "#000000"
     },
     "light": {
-      "land": "#e9e8e3",
-      "line": "#b9b8b2",
-      "lineOpacity": 0.9,
-      "lineWeight": 0.4,
-      "water": "#d6dad8"
+      "land": "#333333",
+      "line": "#ffffff",
+      "lineOpacity": 0.45,
+      "lineWeight": 0.5,
+      "water": "#000000"
     }
   },
   "vers": [
@@ -43,19 +43,19 @@
     "#8a8a8a"
   ],
   "blocks": {
-    "opacity": 0.95,
-    "dim": 0.18,
+    "opacity": 1,
+    "dim": 0.3,
     "context": 0.3,
     "outline": "#232323",
     "outlineWeight": 0.8,
     "selected": "#111111",
-    "selectedWeight": 3,
+    "selectedWeight": 2,
     "sers": "#ffffff"
   },
   "hover": {
     "dark": "#ffffff",
     "light": "#111111",
-    "weight": 2
+    "weight": 1
   },
   "precinct": {
     "outline": "#ffffff",
@@ -64,17 +64,17 @@
   },
   "rings": {
     "show": true,
-    "inner": 400,
-    "outer": 800,
-    "color": "#555555"
+    "inner": 150,
+    "outer": 300,
+    "color": "#ffffff"
   },
   "recovery": {
-    "color": "#FF3C02",
+    "color": "#ffd814",
     "weight": 2
   },
   "sites": {
     "outline": false,
-    "color": "#ff0000",
+    "color": "#ffd814",
     "weight": 1.5
   },
   "parks": {
