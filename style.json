@@ -1,0 +1,128 @@
+{
+  "ui": {
+    "accent": "#FE9F4D",
+    "accentInk": "#1d1d1d",
+    "panelBg": "#161616",
+    "panelInk": "#e9e9e9",
+    "serif": "Newsreader",
+    "sans": "IBM Plex Sans",
+    "scale": 1
+  },
+  "base": {
+    "dark": {
+      "land": "#333333",
+      "line": "#ffffff",
+      "lineOpacity": 0.45,
+      "lineWeight": 0.4,
+      "water": "#141414"
+    },
+    "light": {
+      "land": "#e9e8e3",
+      "line": "#b9b8b2",
+      "lineOpacity": 0.9,
+      "lineWeight": 0.4,
+      "water": "#d6dad8"
+    }
+  },
+  "vers": [
+    "#E1001C",
+    "#E61518",
+    "#FB6B4B",
+    "#FCAF93",
+    "#FEE1D3",
+    "#FEE8DD",
+    "#FFEEE6"
+  ],
+  "versRental": "#FFF5F0",
+  "typ": [
+    "#D7191C",
+    "#FDAE61",
+    "#FFFFBF",
+    "#ABDDA4",
+    "#2B83BA",
+    "#8a8a8a"
+  ],
+  "blocks": {
+    "opacity": 0.95,
+    "dim": 0.18,
+    "context": 0.3,
+    "outline": "#232323",
+    "outlineWeight": 0.8,
+    "selected": "#111111",
+    "selectedWeight": 3,
+    "sers": "#ffffff"
+  },
+  "hover": {
+    "dark": "#ffffff",
+    "light": "#111111",
+    "weight": 2
+  },
+  "precinct": {
+    "outline": "#ffffff",
+    "outlineOpacity": 0.5,
+    "light": "#111111"
+  },
+  "rings": {
+    "show": true,
+    "inner": 400,
+    "outer": 800,
+    "color": "#555555"
+  },
+  "recovery": {
+    "color": "#FF3C02",
+    "weight": 2
+  },
+  "sites": {
+    "outline": false,
+    "color": "#ff0000",
+    "weight": 1.5
+  },
+  "parks": {
+    "fill": "#9fd18b",
+    "opacity": 0.55,
+    "connector": "#4f9b3a",
+    "connectorWeight": 2
+  },
+  "amen": {
+    "mrt": {
+      "color": "#bfeee9",
+      "show": true
+    },
+    "bus": {
+      "color": "#7fd3ff",
+      "show": true
+    },
+    "school": {
+      "color": "#ffe08a",
+      "show": true
+    },
+    "pre": {
+      "color": "#ffd0e0",
+      "show": true
+    },
+    "hawker": {
+      "color": "#ffc59a",
+      "show": true
+    },
+    "clinic": {
+      "color": "#e2d4ff",
+      "show": true
+    },
+    "park": {
+      "color": "#c8f0b4",
+      "show": true
+    }
+  },
+  "amenSize": {
+    "pin": 26,
+    "dot": 5
+  },
+  "overlays": {
+    "legend": true,
+    "hint": true,
+    "locator": true,
+    "scaletabs": true,
+    "crumbs": true,
+    "styleButton": true
+  }
+}

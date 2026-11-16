@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>On Public Good — Retrofit-To-Order Map</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{
   --verm:#FF3C02; --orange:#FE9F4D; --orange-ink:#1d1d1d;
@@ -23,7 +23,7 @@ body{background:#111;color:#eee;font-family:var(--sans)}
 button{font:inherit;color:inherit}
 /* ---------- map app ---------- */
 .app{height:100vh;display:grid;grid-template-columns:400px 1fr;position:relative;border-top:1px solid var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;background:#111}
-.panel{background:#161616;color:#e9e9e9;overflow-y:auto;display:flex;flex-direction:column;min-width:0;border-right:1px solid #2a2a2a}
+.panel{background:var(--panel-bg,#161616);color:var(--panel-ink,#e9e9e9);zoom:var(--ui-scale,1);overflow-y:auto;display:flex;flex-direction:column;min-width:0;border-right:1px solid #2a2a2a}
 .panel-inner{padding:18px 20px 40px;display:flex;flex-direction:column;gap:20px}
 .scalehead{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .btn-o{background:var(--orange);color:var(--orange-ink);border:0;border-radius:3px;padding:8px 16px;font-family:var(--sans);font-weight:600;font-size:17px;box-shadow:0 2px 0 rgba(0,0,0,.25)}
@@ -172,6 +172,30 @@ details.method p{color:#999;font-size:12.5px;margin:8px 0 0}
 .amk{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;font-size:11px;margin-right:6px;vertical-align:-4px}
 .pin{display:grid;place-items:center;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);font-size:13px;width:26px;height:26px}
 .nodata{color:#9a9a9a;font-size:12.5px;font-style:italic}
+.stylebtn{position:absolute;top:52px;right:14px;z-index:950;background:rgba(22,22,22,.92);color:#eee;border:1px solid #444;border-radius:4px;padding:6px 12px;font-size:12.5px;cursor:pointer}
+.stylebtn:hover,.stylebtn[aria-pressed="true"]{background:var(--orange);color:var(--orange-ink);border-color:var(--orange)}
+.styleed{position:absolute;top:0;left:0;bottom:0;width:min(340px,100%);background:#fff;color:#111;z-index:1100;transform:translateX(-102%);transition:transform .3s ease;display:flex;flex-direction:column;box-shadow:10px 0 30px rgba(0,0,0,.35);font-family:var(--sans);font-size:13px}
+.styleed.open{transform:none}
+.styleed header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #e5e5e5}
+.styleed header b{font-family:var(--serif);font-size:18px;font-weight:500}
+.styleed header button{background:none;border:1px solid #ccc;border-radius:3px;padding:2px 8px;cursor:pointer}
+.etools{display:flex;gap:6px;padding:10px 14px 0;flex-wrap:wrap}
+.etools button,.eimp{background:#f2f2f2;border:1px solid #d5d5d5;border-radius:3px;padding:5px 9px;cursor:pointer;font-size:12px;font-weight:500;color:#111}
+.etools button:hover,.eimp:hover{border-color:var(--orange)}
+.eimp input{display:none}
+.enote{margin:8px 14px 6px;color:#666;font-size:11.5px;line-height:1.4}
+.ebody{overflow-y:auto;flex:1;padding:0 14px 30px}
+.ebody details{border-top:1px solid #eee;padding:8px 0}
+.ebody summary{cursor:pointer;font-weight:600;font-size:13px;padding:2px 0}
+.er{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:5px 0;color:#333}
+.er>span:first-child{flex:1}
+.ec{display:flex;align-items:center;gap:6px}
+.ec input[type=color]{width:30px;height:24px;border:1px solid #ccc;border-radius:3px;padding:0;background:none;cursor:pointer}
+.ec input[type=text]{width:74px;font-family:var(--mono);font-size:11.5px;padding:3px 5px;border:1px solid #ccc;border-radius:3px}
+.ec input[type=range]{width:110px;accent-color:var(--orange)}
+.ec output{font-family:var(--mono);font-size:11px;width:34px;text-align:right;color:#666}
+.er select{font-size:12px;padding:3px;border:1px solid #ccc;border-radius:3px;max-width:150px}
+.er input[type=checkbox]{accent-color:var(--orange);width:16px;height:16px}
 @media (max-width:860px){
   .app{grid-template-columns:minmax(0,1fr);grid-template-rows:58vh auto;height:auto}
   .mapwrap{height:58vh;order:-1}
@@ -193,6 +217,8 @@ details.method p{color:#999;font-size:12.5px;margin:8px 0 0}
     <div class="maplegend" id="maplegend"></div>
     <div class="locator" id="locator" style="opacity:0"><canvas id="locCanvas" width="340" height="200"></canvas></div>
     <div class="tip" id="tip"></div>
+    <button class="stylebtn" id="styleBtn" aria-pressed="false" title="Edit map styling (S)">🎨 Style</button>
+    <aside class="styleed" id="styleEd" aria-label="Style editor" aria-hidden="true"></aside>
     <aside class="drawer" id="drawer" aria-label="Retrofit-To-Order application" aria-hidden="true"></aside>
   </div>
 </section>
@@ -207,8 +233,6 @@ const BANDS=[0,1,2,3,4,5,6].map(k=>({k,lo:k?k*10:-999,hi:k===6?999:(k+1)*10,tok:
 const bandLabel=b=>b.k===6?`60+ yrs`:`${b.k*10}–${b.k*10+10} yrs`;
 const bandYears=b=>b.k===6?`${VB+60} on`:`${VB+b.k*10}–${VB+b.k*10+9}`;
 const TYP=[{k:0,name:'Point block',tok:'--t0'},{k:1,name:'Slab block',tok:'--t1'},{k:2,name:'Long slab >120 m',tok:'--t2'},{k:3,name:'Bent block',tok:'--t3'},{k:4,name:'Courtyard block',tok:'--t4'},{k:5,name:'Not analysed',tok:'--tn'}];
-const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const CB={},CT={};BANDS.forEach(b=>CB[b.k]=css(b.tok));CB.unk=css('--vu');TYP.forEach(t=>CT[t.k]=css(t.tok));
 const AM={
  mrt:{ic:'🚇',name:'MRT / LRT station',bg:'#bfeee9',grp:'t'},
  bus:{ic:'',name:'Bus stop',bg:'#7fd3ff',grp:'t',dot:true},
@@ -217,12 +241,57 @@ const AM={
  hawker:{ic:'🍜',name:'Hawker / food centre',bg:'#ffc59a',grp:'c'},
  clinic:{ic:'✚',name:'CHAS clinic',bg:'#e2d4ff',grp:'h',dot:true},
  park:{ic:'🌳',name:'Park',bg:'#c8f0b4',grp:'p'}};
+/* =========================================================
+   STYLE — every visual setting lives here. The style editor
+   (🎨 Style button) edits it live. Order of precedence:
+   defaults below  <  style.json next to index.html  <  edits saved in this browser
+   ========================================================= */
+const STYLE_DEFAULTS={
+ ui:{accent:'#FE9F4D',accentInk:'#1d1d1d',panelBg:'#161616',panelInk:'#e9e9e9',serif:'Newsreader',sans:'IBM Plex Sans',scale:1},
+ base:{dark:{land:'#333333',line:'#ffffff',lineOpacity:.45,lineWeight:.4,water:'#141414'},
+       light:{land:'#e9e8e3',line:'#b9b8b2',lineOpacity:.9,lineWeight:.4,water:'#d6dad8'}},
+ vers:['#E1001C','#E61518','#FB6B4B','#FCAF93','#FEE1D3','#FEE8DD','#FFEEE6'],versRental:'#FFF5F0',
+ typ:['#D7191C','#FDAE61','#FFFFBF','#ABDDA4','#2B83BA','#8a8a8a'],
+ blocks:{opacity:.95,dim:.18,context:.3,outline:'#232323',outlineWeight:.8,selected:'#111111',selectedWeight:3,sers:'#ffffff'},
+ hover:{dark:'#ffffff',light:'#111111',weight:2},
+ precinct:{outline:'#ffffff',outlineOpacity:.5,light:'#111111'},
+ rings:{show:true,inner:400,outer:800,color:'#555555'},
+ recovery:{color:'#FF3C02',weight:2},
+ sites:{outline:false,color:'#ff0000',weight:1.5},
+ parks:{fill:'#9fd18b',opacity:.55,connector:'#4f9b3a',connectorWeight:2},
+ amen:{mrt:{color:'#bfeee9',show:true},bus:{color:'#7fd3ff',show:true},school:{color:'#ffe08a',show:true},pre:{color:'#ffd0e0',show:true},hawker:{color:'#ffc59a',show:true},clinic:{color:'#e2d4ff',show:true},park:{color:'#c8f0b4',show:true}},
+ amenSize:{pin:26,dot:5},
+ overlays:{legend:true,hint:true,locator:true,scaletabs:true,crumbs:true,styleButton:true}
+};
+const STYLE_KEY='opg-style-v1';
+const clone=o=>JSON.parse(JSON.stringify(o));
+function merge(a,b){if(!b||typeof b!=='object')return a;for(const k of Object.keys(b)){if(!(k in a))continue;
+  if(Array.isArray(a[k])&&Array.isArray(b[k]))a[k]=a[k].map((v,i)=>b[k][i]??v);
+  else if(a[k]&&typeof a[k]==='object')merge(a[k],b[k]);else if(typeof b[k]===typeof a[k])a[k]=b[k]}return a}
+let SITE_STYLE=clone(STYLE_DEFAULTS);   // defaults + style.json
+let ST=clone(STYLE_DEFAULTS);           // what is on screen
+function loadSaved(){try{return JSON.parse(localStorage.getItem(STYLE_KEY)||'null')}catch(e){return null}}
+function saveStyle(){try{localStorage.setItem(STYLE_KEY,JSON.stringify(ST));return true}catch(e){return false}}
+let CB={},CT={};
+function recolor(){
+  BANDS.forEach(b=>CB[b.k]=ST.vers[b.k]);CB.unk=ST.versRental;TYP.forEach(t=>CT[t.k]=ST.typ[t.k]);
+  Object.keys(AM).forEach(k=>AM[k].bg=ST.amen[k].color);
+  const r=document.documentElement.style;
+  r.setProperty('--orange',ST.ui.accent);r.setProperty('--orange-ink',ST.ui.accentInk);
+  r.setProperty('--panel-bg',ST.ui.panelBg);r.setProperty('--panel-ink',ST.ui.panelInk);
+  r.setProperty('--serif',`"${ST.ui.serif}","Times New Roman",Times,serif`);r.setProperty('--sans',`"${ST.ui.sans}",system-ui,sans-serif`);
+  r.setProperty('--ui-scale',ST.ui.scale);
+  const show=(id,on)=>{const el=document.getElementById(id);if(el)el.style.display=on?'':'none'};
+  show('maplegend',ST.overlays.legend);show('hint',ST.overlays.hint);show('locator',ST.overlays.locator);show('scaletabs',ST.overlays.scaletabs);show('crumbs',ST.overlays.crumbs);show('styleBtn',ST.overlays.styleButton);
+}
+
 const GROUPS=[['t','Transport'],['s','Schools / Kindergartens'],['c','Hawker / Food centres'],['h','Clinics'],['p','Parks']];
 const fmt=n=>n==null?'—':Math.round(n).toLocaleString('en-GB');
 const tc=s=>s.replace(/\w\S*/g,w=>w==="C'WEALTH"?"C'wealth":w[0]+w.slice(1).toLowerCase());
 const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+let parkPolys=[],pcnLines=[];
 let D,map,renderer,blocks=[],towns=[],precs=[],sites=[],baseLayer,parkLayer,hiLayer,overlayLayer,amenLayer;
 const S={state:0,town:null,prec:null,blk:null,colorBy:'vers',on:new Set([0,1,2,3,4,5,6]),typOn:new Set([0,1,2,3,4,5]),sersOnly:false,window:null,fac:{t:true,s:true,c:true,h:false,p:true}};
 
@@ -238,10 +307,10 @@ function init(){
   map=L.map('mapHome',{preferCanvas:true,zoomSnap:.25,minZoom:10.5,maxZoom:19,zoomControl:false});
   map.attributionControl.setPrefix(false).addAttribution('HDB · URA · LTA · MOE · ECDA · NEA · MOH · NParks via data.gov.sg');
   renderer=L.canvas({padding:.4,tolerance:2});
-  baseLayer=L.featureGroup(D.sub.map(([n,pa,r])=>L.polygon(decode(r),{renderer,interactive:false,color:'#ffffff',weight:.4,opacity:.45,fillColor:'#333333',fillOpacity:1}))).addTo(map);
+  baseLayer=L.featureGroup(D.sub.map(([n,pa,r])=>L.polygon(decode(r),{renderer,interactive:false,color:ST.base.dark.line,weight:ST.base.dark.lineWeight,opacity:ST.base.dark.lineOpacity,fillColor:ST.base.dark.land,fillOpacity:1}))).addTo(map);
   parkLayer=L.layerGroup();
-  D.parks.forEach(r=>parkLayer.addLayer(L.polygon(decode(r),{renderer,interactive:false,stroke:false,fillColor:'#9fd18b',fillOpacity:.55})));
-  D.pcn.forEach(r=>parkLayer.addLayer(L.polyline(dec(r),{renderer,interactive:false,color:'#4f9b3a',weight:2,dashArray:'4 3',opacity:.8})));
+  D.parks.forEach(r=>{const l=L.polygon(decode(r),{renderer,interactive:false,stroke:false,fillColor:ST.parks.fill,fillOpacity:ST.parks.opacity});parkPolys.push(l);parkLayer.addLayer(l)});
+  D.pcn.forEach(r=>{const l=L.polyline(dec(r),{renderer,interactive:false,color:ST.parks.connector,weight:ST.parks.connectorWeight,dashArray:'4 3',opacity:.8});pcnLines.push(l);parkLayer.addLayer(l)});
   const bl=L.layerGroup().addTo(map);
   D.p.forEach((a,i)=>{
     const p={i,b:a[0],s:a[1],t:a[2],y:a[3],ls:a[4],v:a[5],u:a[6]||0,f:a[7],pc:a[8],sers:a[9],ro:a[10],ty:a[11]==null?5:a[11],len:a[12],ec:a[13],gfa:a[14],upf:a[15],era:a[16],pid:a[17]};
@@ -259,7 +328,7 @@ function init(){
   map.fitBounds(baseLayer.getBounds(),{padding:[10,10]});
   wire();
   addEventListener('hashchange',applyHash);
-  addEventListener('keydown',e=>{if(e.key==='Escape'){drawerOpen?(closeDrawer(),renderPanel()):goUp()}});
+  addEventListener('keydown',e=>{if(e.key==='Escape'){edOpen?toggleEditor():drawerOpen?(closeDrawer(),renderPanel()):goUp()}});
   applyHash();
 }
 
@@ -275,19 +344,21 @@ function styleFor(p){
   const v=visible(p);if(!v)return {stroke:false,fill:false};
   const light=S.state>=2;
   const col=S.colorBy==='typ'?CT[p.ty]:CB[p.band];
-  let op=v==='dim'?.18:.95;
-  if(S.state>=2&&p.pid!==S.prec)op=Math.min(op,.3);
-  if(S.state===3&&p!==S.blk)op=Math.min(op,p.pid===S.prec?.55:.25);
-  const z=map.getZoom();const lo=z<14;const w=z<12.5?1.6:z<14?1:z<15.5?.4:.8;
-  const s={fill:true,fillColor:col,fillOpacity:op,stroke:true,color:lo?col:'#232323',weight:w,opacity:op};
-  if(p.sers){s.stroke=true;s.color=light?'#111':'#fff';s.weight=2;s.opacity=1}
-  if(S.blk===p){s.stroke=true;s.color='#111';s.weight=3;s.opacity=1;s.fillOpacity=1}
+  const B=ST.blocks;let op=v==='dim'?B.dim:B.opacity;
+  if(S.state>=2&&p.pid!==S.prec)op=Math.min(op,B.context);
+  if(S.state===3&&p!==S.blk)op=Math.min(op,p.pid===S.prec?Math.max(B.context,B.opacity*.58):B.context*.8);
+  const z=map.getZoom();const lo=z<14;const w=z<12.5?1.6:z<14?1:z<15.5?B.outlineWeight*.5:B.outlineWeight;
+  const s={fill:true,fillColor:col,fillOpacity:op,stroke:w>0,color:lo?col:B.outline,weight:w,opacity:op};
+  if(ST.sites.outline&&precs[p.pid]&&precs[p.pid].site){s.stroke=true;s.color=ST.sites.color;s.weight=ST.sites.weight;s.opacity=1}
+  if(p.sers){s.stroke=true;s.color=light?B.selected:B.sers;s.weight=2;s.opacity=1}
+  if(S.blk===p){s.stroke=true;s.color=B.selected;s.weight=B.selectedWeight;s.opacity=1;s.fillOpacity=1}
   return s;
 }
 function restyle(){blocks.forEach(p=>p.layer.setStyle(styleFor(p)))}
 function setBasemap(light){
-  baseLayer.setStyle(light?{color:'#b9b8b2',fillColor:'#e9e8e3',opacity:.9}:{color:'#ffffff',fillColor:'#333333',opacity:.45});
-  document.getElementById('mapHome').style.background=light?'#d6dad8':'#141414';
+  const b=light?ST.base.light:ST.base.dark;
+  baseLayer.setStyle({color:b.line,fillColor:b.land,opacity:b.lineOpacity,weight:b.lineWeight,stroke:b.lineWeight>0});
+  document.getElementById('mapHome').style.background=b.water;document.getElementById('mapwrap').style.background=b.water;
   if(light)parkLayer.addTo(map);else parkLayer.remove();
   parkLayer.eachLayer(l=>l.bringToBack&&0);
 }
@@ -324,29 +395,29 @@ function openBlk(p){S.town=towns.find(t=>t.name===p.t);S.prec=p.pid;S.blk=p;go(3
 function drawHighlights(hover){
   hiLayer.clearLayers();overlayLayer.clearLayers();amenLayer.clearLayers();
   // sites: always outlined in red (QGIS "261030 5 Sites")
-  if(S.state===1&&S.town)precs.filter(p=>p&&p.town===S.town.name&&!p.site).forEach(pr=>hiLayer.addLayer(L.polygon(pr.ll,{renderer,interactive:false,color:'#fff',weight:1,dashArray:'3 4',opacity:.5,fill:false})));
+  if(S.state===1&&S.town)precs.filter(p=>p&&p.town===S.town.name&&!p.site).forEach(pr=>hiLayer.addLayer(L.polygon(pr.ll,{renderer,interactive:false,color:ST.precinct.outline,weight:1,dashArray:'3 4',opacity:ST.precinct.outlineOpacity,fill:false})));
   if(S.state>=2&&S.prec!=null){
     const pr=precs[S.prec];
-    if(!pr.site)hiLayer.addLayer(L.polygon(pr.ll,{renderer,interactive:false,color:'#111',weight:1.5,dashArray:'5 5',fill:false}));
-    [400,800].forEach(r=>hiLayer.addLayer(L.circle(pr.c,{radius:r,renderer,interactive:false,color:'#555',weight:1,dashArray:'2 5',fill:false})));
+    if(!pr.site)hiLayer.addLayer(L.polygon(pr.ll,{renderer,interactive:false,color:ST.precinct.light,weight:1.5,dashArray:'5 5',fill:false}));
+    if(ST.rings.show)[ST.rings.inner,ST.rings.outer].forEach(r=>hiLayer.addLayer(L.circle(pr.c,{radius:r,renderer,interactive:false,color:ST.rings.color,weight:1,dashArray:'2 5',fill:false})));
     if(S.state===2)drawAmenities(pr);
   }
   if(S.state===3&&S.blk)drawRecovery(S.blk);
   if(hover)hiLayer.addLayer(hover);
 }
-function hoverShape(ll,light){return L.polygon(ll,{renderer,interactive:false,color:light?'#111':'#fff',weight:2,fillColor:'#fff',fillOpacity:light?0:.08})}
+function hoverShape(ll,light){return L.polygon(ll,{renderer,interactive:false,color:light?ST.hover.light:ST.hover.dark,weight:ST.hover.weight,fillColor:'#fff',fillOpacity:light?0:.08})}
 // sites: outline their blocks, not the site rectangle
-function hoverFor(o,light){if(o.kind==='prec'&&o.site){const g=L.featureGroup();o.blocks.forEach(b=>g.addLayer(L.polygon(b.ll,{renderer,interactive:false,color:light?'#111':'#fff',weight:1.5,fill:false})));return g}return hoverShape(o.ll,light)}
+function hoverFor(o,light){if(o.kind==='prec'&&o.site){const g=L.featureGroup();o.blocks.forEach(b=>g.addLayer(L.polygon(b.ll,{renderer,interactive:false,color:light?ST.hover.light:ST.hover.dark,weight:Math.max(1,ST.hover.weight*.75),fill:false})));return g}return hoverShape(o.ll,light)}
 
 /* ---------- amenities (real data) ---------- */
 function near(pr,r){const out={};Object.keys(AM).forEach(k=>out[k]=D.amen[k].map(a=>({a,d:dist(pr.c,[a[1],a[0]])})).filter(x=>x.d<=r).sort((x,y)=>x.d-y.d));return out}
 function drawAmenities(pr){
-  const n=near(pr,850);
-  Object.entries(n).forEach(([k,list])=>{const m=AM[k];if(!S.fac[m.grp])return;
+  const n=near(pr,ST.rings.outer+50);
+  Object.entries(n).forEach(([k,list])=>{const m=AM[k];if(!S.fac[m.grp]||!ST.amen[k].show)return;
     list.forEach(({a,d})=>{
       const ll=[a[1],a[0]];let mk;
-      if(m.dot)mk=L.circleMarker(ll,{renderer,radius:5,color:'#fff',weight:1.5,fillColor:m.bg,fillOpacity:1});
-      else mk=L.marker(ll,{icon:L.divIcon({className:'',html:`<div class="pin" style="background:${m.bg}">${m.ic}</div>`,iconSize:[26,26],iconAnchor:[13,13]}),keyboard:false});
+      if(m.dot)mk=L.circleMarker(ll,{renderer,radius:ST.amenSize.dot,color:'#fff',weight:1.5,fillColor:m.bg,fillOpacity:1});
+      else mk=L.marker(ll,{icon:L.divIcon({className:'',html:`<div class="pin" style="background:${m.bg};width:${ST.amenSize.pin}px;height:${ST.amenSize.pin}px;font-size:${Math.round(ST.amenSize.pin*.5)}px">${m.ic}</div>`,iconSize:[ST.amenSize.pin,ST.amenSize.pin],iconAnchor:[ST.amenSize.pin/2,ST.amenSize.pin/2]}),keyboard:false});
       const html=`<b>${a[2]||m.name}</b><span class="m">${m.name} · ${Math.round(d)} m · ~${Math.max(1,Math.round(d/80))} min walk</span>`;
       mk.on('mouseover',e=>tipShow(e.originalEvent,html));mk.on('mouseout',tipHide);
       amenLayer.addLayer(mk)});
@@ -356,9 +427,9 @@ function nearestDonors(p){const pr=precs[p.pid];const c=p.bounds.getCenter();ret
 function drawRecovery(p){
   const c=p.bounds.getCenter();
   nearestDonors(p).forEach(b=>{const bc=b.bounds.getCenter();
-    overlayLayer.addLayer(L.polyline([bc,c],{renderer,interactive:false,color:'#FF3C02',weight:2,dashArray:'6 5'}));
-    overlayLayer.addLayer(L.polygon(b.ll,{renderer,interactive:false,color:'#FF3C02',weight:1.5,dashArray:'3 3',fill:false}))});
-  overlayLayer.addLayer(L.circleMarker(c,{renderer,interactive:false,radius:5,color:'#FF3C02',fillColor:'#FF3C02',fillOpacity:1}));
+    const R=ST.recovery;overlayLayer.addLayer(L.polyline([bc,c],{renderer,interactive:false,color:R.color,weight:R.weight,dashArray:'6 5'}));
+    overlayLayer.addLayer(L.polygon(b.ll,{renderer,interactive:false,color:R.color,weight:R.weight*.75,dashArray:'3 3',fill:false}))});
+  overlayLayer.addLayer(L.circleMarker(c,{renderer,interactive:false,radius:5,color:ST.recovery.color,fillColor:ST.recovery.color,fillOpacity:1}));
 }
 
 /* ---------- hit testing ---------- */
@@ -468,10 +539,10 @@ function panelPrecinct(){
   const tcount=[0,0,0,0,0,0];pr.blocks.forEach(p=>tcount[p.ty]++);
   const yrs=pr.blocks.map(p=>p.y).sort((a,b)=>a-b);const med=yrs[Math.floor(yrs.length/2)];
   const flats=pr.blocks.reduce((a,p)=>a+p.u,0);const ec=pr.blocks.reduce((a,p)=>a+(p.ec||0),0);const ecN=pr.blocks.filter(p=>p.ec!=null).length;
-  const n4=near(pr,400),n8=near(pr,800);
+  const R1=ST.rings.inner,R2=ST.rings.outer;const n4=near(pr,R1),n8=near(pr,R2);
   const cnt=(g,n)=>Object.keys(AM).filter(k=>AM[k].grp===g).reduce((a,k)=>a+n[k].length,0);
   const first=(k,n)=>n[k][0];
-  const nearRow=(k,label)=>{const x=first(k,n8);return x?`<div><span><span class="amk" style="background:${AM[k].bg}">${AM[k].ic||'•'}</span>${x.a[2]||label}</span><span>${Math.round(x.d)} m · ${Math.max(1,Math.round(x.d/80))} min</span></div>`:`<div><span><span class="amk" style="background:${AM[k].bg}">${AM[k].ic||'•'}</span>${label}</span><span>none within 800 m</span></div>`};
+  const nearRow=(k,label)=>{const x=first(k,n8);return x?`<div><span><span class="amk" style="background:${AM[k].bg}">${AM[k].ic||'•'}</span>${x.a[2]||label}</span><span>${Math.round(x.d)} m · ${Math.max(1,Math.round(x.d/80))} min</span></div>`:`<div><span><span class="amk" style="background:${AM[k].bg}">${AM[k].ic||'•'}</span>${label}</span><span>none within ${R2} m</span></div>`};
   P.innerHTML=head('Precinct Scale','Residential Value')+`
   <div><h3>${pr.site?pr.name+' · '+tc(pr.street):tc(pr.name)+' precinct'}</h3><p class="dek">${pr.town} · ${pr.n} blocks · ${fmt(flats)} flats${pr.site?' · <b style="color:#ff5a5a">RTO site</b>':''}</p></div>
   <div class="ph"><b>Precinct photo</b> — ${pr.site?'add an aerial or street photo of this site':'add a photo for this precinct'}</div>
@@ -480,7 +551,7 @@ function panelPrecinct(){
    <div class="ph" style="margin-top:8px"><b>Your text here</b> — the history of this neighbourhood, from your oral histories and textual research.</div></section>
   <section><p class="lbl"><span>Block typology</span><span>${pr.n} blocks</span></p><div class="typbar">${tcount.map((n,i)=>n?`<i style="width:${n/pr.n*100}%;background:${CT[i]}"></i>`:'').join('')}</div><div class="typkey">${TYP.map(t=>tcount[t.k]?`<span style="--c:${CT[t.k]}">${t.name} ${tcount[t.k]}</span>`:'').join('')}</div>
    <p class="lbl" style="margin-top:14px"><span>Colour blocks by</span></p><div class="seg"><button data-c="typ" aria-pressed="${S.colorBy==='typ'}">Typology</button><button data-c="vers" aria-pressed="${S.colorBy==='vers'}">Years till VERS</button></div></section>
-  <section><p class="lbl"><span>Community facilities</span><span>400 m · 800 m</span></p><div class="facgrid">
+  <section><p class="lbl"><span>Community facilities</span><span>${R1} m · ${R2} m</span></p><div class="facgrid">
    ${GROUPS.map(([g,n])=>`<button class="fac" data-f="${g}" aria-pressed="${S.fac[g]}">${n}<span>${cnt(g,n4)} · ${cnt(g,n8)}</span></button>`).join('')}</div>
    <p class="lbl" style="margin-top:14px"><span>Nearest</span><span>walk at 80 m/min</span></p><div class="near">${nearRow('mrt','MRT / LRT')}${nearRow('hawker','Hawker centre')}${nearRow('school','School')}${nearRow('park','Park')}</div></section>
   <section><p class="lbl"><span>Blocks — click to open</span></p><div class="blklist">${pr.blocks.slice().sort((a,b)=>(a.v??99)-(b.v??99)).map(p=>`<button data-i="${p.i}"><i style="background:${S.colorBy==='typ'?CT[p.ty]:CB[p.band]}"></i>${p.b}</button>`).join('')}</div></section>`;
@@ -559,6 +630,87 @@ function renderForm(){
   const hh=drawer.querySelector('#hh');if(hh)hh.onchange=()=>F.hh=hh.value;
 }
 
+/* ---------- style editor ---------- */
+const AMN={mrt:'MRT / LRT',bus:'Bus stops',school:'Schools',pre:'Pre-schools',hawker:'Hawker / food centres',clinic:'CHAS clinics',park:'Parks (points)'};
+const FONTS_SERIF=['Newsreader','Source Serif 4','Playfair Display','Times New Roman'];
+const FONTS_SANS=['IBM Plex Sans','Inter','Space Grotesk','Arial'];
+const ED=[
+ ['Interface',[
+  ['Accent (buttons)','ui.accent','color'],['Text on accent','ui.accentInk','color'],
+  ['Panel background','ui.panelBg','color'],['Panel text','ui.panelInk','color'],
+  ['Heading font','ui.serif','select',FONTS_SERIF],['Interface font','ui.sans','select',FONTS_SANS],
+  ['Panel text size','ui.scale','range',[.8,1.3,.05]]]],
+ ['Base map — city scale (dark)',[
+  ['Land','base.dark.land','color'],['Subzone lines','base.dark.line','color'],
+  ['Line opacity','base.dark.lineOpacity','range',[0,1,.05]],['Line weight','base.dark.lineWeight','range',[0,2,.1]],['Sea / background','base.dark.water','color']]],
+ ['Base map — precinct & project (light)',[
+  ['Land','base.light.land','color'],['Subzone lines','base.light.line','color'],
+  ['Line opacity','base.light.lineOpacity','range',[0,1,.05]],['Line weight','base.light.lineWeight','range',[0,2,.1]],['Sea / background','base.light.water','color']]],
+ ['Years till VERS',[...BANDS.map(b=>[bandLabel(b),'vers.'+b.k,'color']),['HDB owned (rental)','versRental','color']]],
+ ['Block typology',TYP.map(t=>[t.name,'typ.'+t.k,'color'])],
+ ['Blocks',[
+  ['Fill opacity','blocks.opacity','range',[.1,1,.05]],['Filtered-out (dimmed) opacity','blocks.dim','range',[0,1,.05]],
+  ['Other precincts opacity','blocks.context','range',[0,1,.05]],['Outline when zoomed in','blocks.outline','color'],
+  ['Outline weight','blocks.outlineWeight','range',[0,3,.1]],['Selected block outline','blocks.selected','color'],
+  ['Selected outline weight','blocks.selectedWeight','range',[1,6,.5]],['SERS outline (dark map)','blocks.sers','color']]],
+ ['Hover & outlines',[
+  ['Hover — dark map','hover.dark','color'],['Hover — light map','hover.light','color'],['Hover weight','hover.weight','range',[.5,5,.5]],
+  ['Precinct outlines (town view)','precinct.outline','color'],['Precinct outline opacity','precinct.outlineOpacity','range',[0,1,.05]],
+  ['Precinct outline (light map)','precinct.light','color']]],
+ ['RTO sites',[
+  ['Outline site blocks','sites.outline','check'],['Site outline colour','sites.color','color'],['Site outline weight','sites.weight','range',[.5,4,.5]]]],
+ ['Walking rings',[
+  ['Show rings','rings.show','check'],['Inner ring (m)','rings.inner','range',[100,800,50]],['Outer ring (m)','rings.outer','range',[300,1500,50]],['Ring colour','rings.color','color']]],
+ ['Material recovery lines',[['Colour','recovery.color','color'],['Weight','recovery.weight','range',[.5,5,.5]]]],
+ ['Parks',[['Park fill','parks.fill','color'],['Park opacity','parks.opacity','range',[0,1,.05]],['Park connector','parks.connector','color'],['Connector weight','parks.connectorWeight','range',[0,5,.5]]]],
+ ['Amenities',[...Object.keys(AMN).flatMap(k=>[[AMN[k],`amen.${k}.color`,'color'],[`Show ${AMN[k].toLowerCase()}`,`amen.${k}.show`,'check']]),
+  ['Icon size','amenSize.pin','range',[16,40,2]],['Dot size','amenSize.dot','range',[2,10,1]]]],
+ ['Show on map',[['Legend','overlays.legend','check'],['Hint bubble','overlays.hint','check'],['Locator map','overlays.locator','check'],
+  ['Scale tabs','overlays.scaletabs','check'],['Breadcrumb','overlays.crumbs','check'],['🎨 Style button (press S to bring back)','overlays.styleButton','check']]],
+];
+const getP=(o,p)=>p.split('.').reduce((a,k)=>a==null?a:a[k],o);
+function setP(o,p,v){const ks=p.split('.');const last=ks.pop();const t=ks.reduce((a,k)=>a[k],o);t[last]=v}
+let edOpen=false,pend=false;
+function applyStyle(){if(pend)return;pend=true;requestAnimationFrame(()=>{pend=false;recolor();if(!map)return;
+  setBasemap(S.state>=2);restyleParks();restyle();drawHighlights();renderLegend();renderPanel();renderLocator()})}
+function restyleParks(){parkPolys.forEach(l=>l.setStyle({fillColor:ST.parks.fill,fillOpacity:ST.parks.opacity}));pcnLines.forEach(l=>l.setStyle({color:ST.parks.connector,weight:ST.parks.connectorWeight,opacity:ST.parks.connectorWeight?.8:0}))}
+function renderEditor(){
+  const ed=document.getElementById('styleEd');
+  const ctl=([label,path,type,opt])=>{const v=getP(ST,path);const id='st-'+path.replace(/\./g,'-');
+    if(type==='color')return `<label class="er" for="${id}"><span>${label}</span><span class="ec"><input type="color" id="${id}" data-p="${path}" data-t="color" value="${v}"><input type="text" data-p="${path}" data-t="hex" value="${v}" maxlength="7" aria-label="${label} hex"></span></label>`;
+    if(type==='range')return `<label class="er" for="${id}"><span>${label}</span><span class="ec"><input type="range" id="${id}" data-p="${path}" data-t="range" min="${opt[0]}" max="${opt[1]}" step="${opt[2]}" value="${v}"><output>${v}</output></span></label>`;
+    if(type==='check')return `<label class="er" for="${id}"><span>${label}</span><input type="checkbox" id="${id}" data-p="${path}" data-t="check" ${v?'checked':''}></label>`;
+    if(type==='select')return `<label class="er" for="${id}"><span>${label}</span><select id="${id}" data-p="${path}" data-t="select">${opt.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select></label>`};
+  ed.innerHTML=`<header><b>Style editor</b><button id="edClose" aria-label="Close style editor">✕</button></header>
+   <div class="etools"><button id="edCopy">Copy JSON</button><button id="edDl">Download</button><label class="eimp">Import<input type="file" id="edImp" accept=".json,application/json"></label><button id="edReset">Reset</button></div>
+   <p class="enote" id="edNote">Changes show live and are saved in this browser. To make them permanent for everyone, download <b>style.json</b> and put it next to index.html.</p>
+   <div class="ebody">${ED.map(([sec,rows],i)=>`<details ${i<1?'open':''}><summary>${sec}</summary>${rows.map(ctl).join('')}</details>`).join('')}</div>`;
+  const note=t=>{document.getElementById('edNote').textContent=t};
+  ed.querySelectorAll('[data-p]').forEach(el=>{const p=el.dataset.p,t=el.dataset.t;
+    const set=v=>{setP(ST,p,v);saveStyle();applyStyle();
+      if(t==='color'){const h=ed.querySelector(`[data-p="${p}"][data-t="hex"]`);if(h)h.value=v}
+      if(t==='hex'){const c=ed.querySelector(`[data-p="${p}"][data-t="color"]`);if(c)c.value=v}
+      if(t==='range')el.nextElementSibling.textContent=v};
+    el.addEventListener('input',()=>{
+      if(t==='color')set(el.value);
+      else if(t==='hex'){if(/^#[0-9a-f]{6}$/i.test(el.value))set(el.value.toLowerCase())}
+      else if(t==='range')set(+el.value);
+      else if(t==='check')set(el.checked);
+      else if(t==='select')set(el.value)});
+    if(t==='check'||t==='select')el.addEventListener('change',()=>set(t==='check'?el.checked:el.value));
+  });
+  ed.querySelector('#edClose').onclick=toggleEditor;
+  ed.querySelector('#edReset').onclick=()=>{ST=clone(SITE_STYLE);try{localStorage.removeItem(STYLE_KEY)}catch(e){}applyStyle();renderEditor();note('Reset to the site style.')};
+  const json=()=>JSON.stringify(ST,null,2);
+  ed.querySelector('#edCopy').onclick=async()=>{try{await navigator.clipboard.writeText(json());note('Copied. Paste it into style.json next to index.html.')}catch(e){note('Copy was blocked here — use Download instead.')}};
+  ed.querySelector('#edDl').onclick=()=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([json()],{type:'application/json'}));a.download='style.json';document.body.appendChild(a);a.click();a.remove();note('Downloaded style.json. Put it next to index.html to make this the site style.')}catch(e){note('Download was blocked here — use Copy JSON instead.')}};
+  ed.querySelector('#edImp').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{ST=merge(clone(STYLE_DEFAULTS),JSON.parse(t));saveStyle();applyStyle();renderEditor();note('Imported '+f.name+'.')}).catch(()=>note('That file is not a valid style JSON.'))};
+}
+function toggleEditor(){edOpen=!edOpen;const ed=document.getElementById('styleEd');ed.classList.toggle('open',edOpen);ed.setAttribute('aria-hidden',String(!edOpen));if(edOpen)renderEditor();
+  document.getElementById('styleBtn').setAttribute('aria-pressed',String(edOpen))}
+
+document.getElementById('styleBtn').onclick=toggleEditor;
+addEventListener('keydown',e=>{if((e.key==='s'||e.key==='S')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|SELECT|TEXTAREA/.test((document.activeElement||{}).tagName||'')){e.preventDefault();if(!edOpen&&!ST.overlays.styleButton){ST.overlays.styleButton=true;saveStyle();recolor()}toggleEditor()}});
 /* ---------- deep links: #town-x, #precinct-n, #site-n, #block-n ---------- */
 let applying=false;
 function setHash(){if(applying)return;let h='';if(S.state===1)h='town-'+slug(S.town.name);if(S.state===2){const pr=precs[S.prec];h=pr.site?'site-'+(sites.indexOf(pr)+1):'precinct-'+S.prec}if(S.state===3)h='block-'+S.blk.i;
@@ -570,7 +722,8 @@ function applyHash(){const h=location.hash.slice(1);applying=true;let m;
   else if((m=h.match(/^block-(\d+)$/))&&blocks[+m[1]])openBlk(blocks[+m[1]]);
   else go(0);applying=false}
 
-fetch('map.json').then(r=>r.json()).then(d=>{D=d;VB=d.versBase;init()}).catch(e=>{console.error(e);P.innerHTML='<p>The map data did not load. Reload the page to try again.</p>'});
+fetch('style.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null).then(js=>{SITE_STYLE=merge(clone(STYLE_DEFAULTS),js);ST=merge(clone(SITE_STYLE),loadSaved());recolor()})
+.then(()=>fetch('map.json')).then(r=>r.json()).then(d=>{D=d;VB=d.versBase;init()}).catch(e=>{console.error(e);P.innerHTML='<p>The map data did not load. Reload the page to try again.</p>'});
 })();
 </script>
 </body>

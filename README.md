@@ -13,6 +13,22 @@ Then open <http://localhost:8000>. A local server is needed because the page loa
 
 **Note:** the page loads Leaflet from cdnjs and its fonts from Google Fonts. The map needs an internet connection even when served locally; without one the fonts fall back to system fonts, but the map itself will not draw.
 
+## Editing the map's styling
+
+Click **🎨 Style** at the top right of the map, or press **S**, to open the style editor. It controls the colours, line weights, opacities, fonts and sizes of every map element:
+- interface colours and fonts;
+- the dark and light base maps;
+- VERS band and typology colours;
+- block outlines and hover outlines;
+- RTO site outlines;
+- walking-ring radii;
+- material-recovery lines, parks and amenity icons;
+- which overlays are shown.
+
+Changes show live and are saved in your browser only.
+
+To make a style permanent for every visitor: click **Download** (or **Copy JSON**) in the editor, replace `style.json` in this repo with the new file, and commit it. The page loads its colours in this order: built-in defaults, then `style.json`, then any edits saved in the visitor's browser. **Reset** in the editor returns to the `style.json` version. You can hide the Style button for a crit from the editor ("Show on map"); press **S** to bring it back.
+
 ## Data sources
 
 - HDB, URA, LTA, MOE, ECDA, NEA, MOH and NParks datasets via [data.gov.sg](https://data.gov.sg), used under the [Singapore Open Data Licence](https://data.gov.sg/open-data-licence).
