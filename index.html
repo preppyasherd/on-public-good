@@ -247,7 +247,7 @@ const AM={
    defaults below  <  style.json next to index.html  <  edits saved in this browser
    ========================================================= */
 const STYLE_DEFAULTS={
- ui:{accent:'#FE9F4D',accentInk:'#1d1d1d',panelBg:'#161616',panelInk:'#e9e9e9',serif:'Newsreader',sans:'IBM Plex Sans',scale:1},
+ ui:{accent:'#FE9F4D',accentInk:'#1d1d1d',panelBg:'#161616',panelInk:'#e9e9e9',serif:'Newsreader',sans:'IBM Plex Sans',mono:'IBM Plex Mono',scale:1},
  base:{dark:{land:'#333333',line:'#ffffff',lineOpacity:.45,lineWeight:.4,water:'#141414'},
        light:{land:'#e9e8e3',line:'#b9b8b2',lineOpacity:.9,lineWeight:.4,water:'#d6dad8'}},
  vers:['#E1001C','#E61518','#FB6B4B','#FCAF93','#FEE1D3','#FEE8DD','#FFEEE6'],versRental:'#FFF5F0',
@@ -272,6 +272,11 @@ let SITE_STYLE=clone(STYLE_DEFAULTS);   // defaults + style.json
 let ST=clone(STYLE_DEFAULTS);           // what is on screen
 function loadSaved(){try{return JSON.parse(localStorage.getItem(STYLE_KEY)||'null')}catch(e){return null}}
 function saveStyle(){try{localStorage.setItem(STYLE_KEY,JSON.stringify(ST));return true}catch(e){return false}}
+// Helvetica can't be loaded as a web font: use it where installed, else Arial
+function fontStack(f,kind){
+  if(f==='Helvetica')return '"Helvetica Neue",Helvetica,Arial,sans-serif';
+  if(kind==='mono')return `"${f}",ui-monospace,Menlo,Consolas,monospace`;
+  return kind==='serif'?`"${f}","Times New Roman",Times,serif`:`"${f}",system-ui,sans-serif`}
 let CB={},CT={};
 function recolor(){
   BANDS.forEach(b=>CB[b.k]=ST.vers[b.k]);CB.unk=ST.versRental;TYP.forEach(t=>CT[t.k]=ST.typ[t.k]);
@@ -279,7 +284,7 @@ function recolor(){
   const r=document.documentElement.style;
   r.setProperty('--orange',ST.ui.accent);r.setProperty('--orange-ink',ST.ui.accentInk);
   r.setProperty('--panel-bg',ST.ui.panelBg);r.setProperty('--panel-ink',ST.ui.panelInk);
-  r.setProperty('--serif',`"${ST.ui.serif}","Times New Roman",Times,serif`);r.setProperty('--sans',`"${ST.ui.sans}",system-ui,sans-serif`);
+  r.setProperty('--serif',fontStack(ST.ui.serif,'serif'));r.setProperty('--sans',fontStack(ST.ui.sans,'sans'));r.setProperty('--mono',fontStack(ST.ui.mono,'mono'));
   r.setProperty('--ui-scale',ST.ui.scale);
   const show=(id,on)=>{const el=document.getElementById(id);if(el)el.style.display=on?'':'none'};
   show('maplegend',ST.overlays.legend);show('hint',ST.overlays.hint);show('locator',ST.overlays.locator);show('scaletabs',ST.overlays.scaletabs);show('crumbs',ST.overlays.crumbs);show('styleBtn',ST.overlays.styleButton);
@@ -632,13 +637,14 @@ function renderForm(){
 
 /* ---------- style editor ---------- */
 const AMN={mrt:'MRT / LRT',bus:'Bus stops',school:'Schools',pre:'Pre-schools',hawker:'Hawker / food centres',clinic:'CHAS clinics',park:'Parks (points)'};
-const FONTS_SERIF=['Newsreader','Source Serif 4','Playfair Display','Times New Roman'];
-const FONTS_SANS=['IBM Plex Sans','Inter','Space Grotesk','Arial'];
+const FONTS_SERIF=['Helvetica','Newsreader','Source Serif 4','Playfair Display','Times New Roman'];
+const FONTS_SANS=['Helvetica','IBM Plex Sans','Inter','Space Grotesk','Arial'];
+const FONTS_MONO=['Helvetica','IBM Plex Mono'];
 const ED=[
  ['Interface',[
   ['Accent (buttons)','ui.accent','color'],['Text on accent','ui.accentInk','color'],
   ['Panel background','ui.panelBg','color'],['Panel text','ui.panelInk','color'],
-  ['Heading font','ui.serif','select',FONTS_SERIF],['Interface font','ui.sans','select',FONTS_SANS],
+  ['Heading font','ui.serif','select',FONTS_SERIF],['Interface font','ui.sans','select',FONTS_SANS],['Numbers font','ui.mono','select',FONTS_MONO],
   ['Panel text size','ui.scale','range',[.8,1.3,.05]]]],
  ['Base map — city scale (dark)',[
   ['Land','base.dark.land','color'],['Subzone lines','base.dark.line','color'],

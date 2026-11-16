@@ -4,8 +4,9 @@
     "accentInk": "#1d1d1d",
     "panelBg": "#161616",
     "panelInk": "#ffffff",
-    "serif": "Times New Roman",
-    "sans": "Space Grotesk",
+    "serif": "Helvetica",
+    "sans": "Helvetica",
+    "mono": "Helvetica",
     "scale": 1
   },
   "base": {
