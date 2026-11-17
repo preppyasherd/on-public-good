@@ -34,36 +34,44 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..700&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..700&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:ital,wght@0,300;0,400;1,400&display=swap"
     />
     <style>
       /* ============================================================
-         DESIGN SYSTEM
-         The six colours from the design sheet + Inter.
+         DESIGN SYSTEM — see DESIGN.md
+         Carbon-style: IBM Plex, square corners, flat layers,
+         orange for what you can click or what is selected.
          These are defaults: the Style editor / style.json can
-         override them (Interface section). Everything below uses
-         these variables, so change a colour here once.
+         override the six colours and the fonts (Interface section).
          ============================================================ */
       :root {
-        --bg: #ffffff; /* Background — page and panel */
-        --text: #140080; /* Text — all text and icons */
-        --primary: #0000ee; /* Primary — buttons, selected states, links */
-        --accent: #0b00d9; /* Accent — hover / pressed */
-        --surface: #ffffff; /* Surface — cards, map overlays, form */
-        --border: #e2e8f0; /* Border — lines, card edges, empty bars */
+        --bg: #ffffff; /* Background — page, panel, drawer, map overlays */
+        --text: #1c1c1e; /* Ink — text, header bar, selected fills, tooltip */
+        --primary: #ff5a1f; /* Orange — primary buttons, focus ring, active markers */
+        --accent: #e84a12; /* Orange hover */
+        --surface: #f0eee9; /* Paper — tiles, cards, input fields */
+        --border: #d8d4cc; /* Stone — dividers, subtle borders, empty bars */
 
         /* made from the colours above */
-        --muted: color-mix(in srgb, var(--text) 60%, var(--bg)); /* secondary text */
-        --soft: color-mix(in srgb, var(--primary) 7%, var(--bg)); /* light tint for hover / selected */
-        --on-primary: #ffffff; /* text on blue buttons */
+        --muted: color-mix(in srgb, var(--text) 66%, var(--bg)); /* secondary text, ≥4.5:1 */
+        --hover: color-mix(in srgb, var(--text) 7%, var(--surface)); /* hover on rows and tiles */
+        --strong: color-mix(in srgb, var(--text) 52%, var(--bg)); /* input underline, control outlines */
+        --link: color-mix(in srgb, var(--primary) 72%, #000); /* orange as text (≥4.5:1) */
+        --on-primary: var(--text); /* text on orange — never white */
+        --pressed: color-mix(in srgb, var(--primary) 80%, #000); /* orange pressed */
+        --shell: var(--text); /* header bar */
+        --shell-text: var(--surface);
+        --shell-line: color-mix(in srgb, var(--shell-text) 18%, var(--shell));
+        --shell-hover: color-mix(in srgb, var(--shell-text) 9%, var(--shell));
 
-        --radius: 12px; /* cards */
-        --radius-sm: 8px; /* buttons, inputs */
-        --shadow: 0 4px 16px rgba(20, 0, 128, 0.1);
+        --radius: 0; /* Carbon: everything is square */
+        --radius-sm: 0;
+        --shadow: none;
+        --ease: cubic-bezier(0.2, 0, 0.38, 0.9);
 
-        --serif: "Inter", system-ui, sans-serif; /* headings */
-        --sans: "Inter", system-ui, sans-serif; /* interface */
-        --mono: "Inter", system-ui, sans-serif; /* numbers */
+        --serif: "IBM Plex Sans", system-ui, sans-serif; /* headings */
+        --sans: "IBM Plex Sans", system-ui, sans-serif; /* interface */
+        --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace; /* numbers */
       }
       * {
         box-sizing: border-box;
@@ -77,7 +85,13 @@
         background: var(--bg);
         color: var(--text);
         font-family: var(--sans);
+        font-size: 14px;
+        line-height: 20px;
+        letter-spacing: 0.16px;
         font-variant-numeric: tabular-nums;
+      }
+      a {
+        color: var(--link);
       }
       /* form controls don't inherit the page font by default */
       input,
@@ -87,27 +101,69 @@
       output {
         font-family: inherit;
         color: inherit;
+        letter-spacing: inherit;
       }
       button {
         font: inherit;
+        border-radius: 0;
       }
       .ico {
         display: inline-block;
         vertical-align: -3px;
         flex: none;
       }
+      /* one focus ring for everything: 2px orange, inset */
+      :focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: -2px;
+      }
+
+      /* ============================================================
+         HEADER BAR (UI shell)
+         48px ink strip across the top.
+         ============================================================ */
+      .shell {
+        height: 48px;
+        background: var(--shell);
+        color: var(--shell-text);
+        display: flex;
+        align-items: stretch;
+        padding-left: 16px;
+        position: relative;
+        z-index: 1200;
+      }
+      .shell .brand {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        padding-right: 16px;
+        white-space: nowrap;
+      }
+      .shell .page {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        border-left: 1px solid var(--shell-line);
+        padding: 0 16px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .shell .page span {
+        color: color-mix(in srgb, var(--shell-text) 70%, var(--shell));
+      }
 
       /* ============================================================
          LAYOUT
-         Side panel on the left (400px), map on the right.
+         Header on top, side panel (384px) left, map right.
          ============================================================ */
       .app {
-        height: 100vh;
+        height: calc(100vh - 48px);
         display: grid;
-        grid-template-columns: 400px 1fr;
+        grid-template-columns: 384px 1fr;
         position: relative;
         font-size: 14px;
-        line-height: 1.45;
+        line-height: 20px;
         background: var(--bg);
       }
 
@@ -125,241 +181,259 @@
         border-right: 1px solid var(--border);
       }
       .panel-inner {
-        padding: 20px 22px 44px;
+        padding: 32px 16px 40px;
         display: flex;
         flex-direction: column;
-        gap: 22px;
+        gap: 32px;
       }
 
-      /* top line: "ON PUBLIC GOOD · PART 3 … RETROFIT-TO-ORDER" */
+      /* the old in-panel title line is replaced by the header bar */
       .kick {
-        font-size: 10.5px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--muted);
-        display: flex;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--border);
-        padding-bottom: 12px;
-      }
-      .kick b {
-        color: var(--text);
-        font-weight: 700;
+        display: none;
       }
 
       /* scale name + subtitle ("Singapore Scale" / "Site Finder") */
       .scalehead {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 8px;
         align-items: flex-start;
       }
       .btn-o {
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .btn-o::before {
+        content: "";
+        width: 8px;
+        height: 8px;
         background: var(--primary);
-        color: var(--on-primary);
-        border-radius: 999px;
-        padding: 6px 14px;
-        font-weight: 600;
-        font-size: 13px;
-        letter-spacing: 0.01em;
       }
       .btn-o.sub {
-        background: none;
         color: var(--text);
-        padding: 2px 0 0;
-        font-weight: 700;
+        font-family: var(--serif);
+        font-weight: 300;
         font-size: 28px;
-        line-height: 1.1;
-        letter-spacing: -0.02em;
-        border-radius: 0;
+        line-height: 36px;
+        letter-spacing: 0;
+      }
+      .btn-o.sub::before {
+        display: none;
       }
       /* section headings inside the panel ("History and Maturity…") */
       .panel section > .btn-o.sub {
-        font-size: 17px;
-        letter-spacing: -0.01em;
-        margin-bottom: 10px !important;
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 24px;
+        margin-bottom: 12px !important;
       }
 
       .panel h3 {
         margin: 0;
         font-family: var(--serif);
-        font-weight: 700;
-        font-size: 22px;
-        line-height: 1.2;
-        letter-spacing: -0.015em;
+        font-weight: 400;
+        font-size: 20px;
+        line-height: 28px;
       }
       .panel .dek {
         color: var(--muted);
         margin: 0;
-        font-size: 13.5px;
       }
       .muted {
         color: var(--muted);
       }
       .accent-txt {
-        color: var(--primary);
+        color: var(--link);
       }
 
-      /* small capital labels ("RTO SITES", "BLOCK TYPE") */
+      /* section headings ("RTO sites", "Block type") */
       .lbl {
-        font-size: 10.5px;
+        font-size: 14px;
+        line-height: 18px;
         font-weight: 600;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--muted);
-        margin: 0 0 8px;
+        letter-spacing: 0.16px;
+        color: var(--text);
+        margin: 0 0 12px;
         display: flex;
         justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+      }
+      .lbl span + span {
+        font-size: 12px;
+        line-height: 16px;
+        font-weight: 400;
+        letter-spacing: 0.32px;
+        color: var(--muted);
+        text-align: right;
       }
 
-      /* cards */
+      /* tiles */
       .box {
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 14px 16px;
         background: var(--surface);
+        padding: 16px;
+        position: relative;
       }
       .box dl {
         display: grid;
         grid-template-columns: auto 1fr;
-        gap: 6px 14px;
-        margin: 8px 0 0;
-        font-size: 13px;
+        gap: 4px 16px;
+        margin: 16px 0 0;
       }
       .box dt {
         color: var(--muted);
       }
       .box dd {
         margin: 0;
-        font-weight: 500;
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.32px;
       }
       /* dashed "add your content here" boxes */
       .ph {
-        border: 1px dashed color-mix(in srgb, var(--text) 25%, var(--bg));
-        border-radius: var(--radius);
+        border: 1px dashed var(--strong);
         color: var(--muted);
-        font-size: 12.5px;
-        padding: 12px 14px;
-        font-style: italic;
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
+        padding: 12px 16px;
       }
       .ph b {
-        font-style: normal;
         color: var(--text);
       }
       .tag {
         display: inline-block;
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        border: 1px solid var(--border);
-        color: var(--muted);
-        padding: 1px 7px;
-        border-radius: 999px;
-        margin-left: 6px;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
+        background: var(--text);
+        color: var(--bg);
+        padding: 2px 8px;
+        margin-left: 8px;
         vertical-align: middle;
+      }
+      .lbl .tag {
+        color: var(--bg);
+      }
+      .lg .muted {
+        white-space: nowrap;
       }
       .nodata {
         color: var(--muted);
-        font-size: 12.5px;
-        font-style: italic;
+        font-size: 12px;
+        letter-spacing: 0.32px;
       }
 
-      /* RTO site cards */
+      /* RTO site tiles */
       .sites {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 2px;
       }
       .sitebtn {
         display: grid;
         grid-template-columns: auto 1fr auto;
-        gap: 12px;
+        gap: 16px;
         align-items: center;
         background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 10px 14px;
+        border: 0;
+        padding: 12px 16px;
         cursor: pointer;
         text-align: left;
+        transition: background 0.07s var(--ease);
       }
       .sitebtn:hover {
-        border-color: var(--primary);
-        background: var(--soft);
+        background: var(--hover);
+        box-shadow: inset 3px 0 0 var(--primary);
       }
       .sitebtn b {
-        font-weight: 700;
-        font-size: 15px;
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 24px;
       }
       .sitebtn small {
         color: var(--muted);
         font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
         display: block;
       }
       .sitebtn .n:first-child {
-        color: var(--primary);
-        font-weight: 700;
+        color: var(--link);
+        font-weight: 400;
       }
       .sitebtn .n {
+        font-family: var(--mono);
         font-size: 12px;
+        letter-spacing: 0.32px;
         color: var(--muted);
       }
 
-      /* "When possible RTO" pills */
+      /* "When possible RTO" toggles */
       .chips {
         display: flex;
-        gap: 8px;
         flex-wrap: wrap;
       }
       .chip {
-        background: var(--surface);
+        background: transparent;
         color: var(--text);
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        padding: 6px 14px;
-        font-weight: 600;
-        font-size: 13px;
+        border: 1px solid var(--text);
+        padding: 9px 16px;
+        font-size: 14px;
+        line-height: 20px;
         cursor: pointer;
+        transition: background 0.07s var(--ease);
+      }
+      .chip + .chip {
+        border-left: 0;
       }
       .chip:hover {
-        border-color: var(--primary);
+        background: var(--hover);
       }
       .chip[aria-pressed="true"] {
-        border-color: var(--primary);
-        background: var(--primary);
-        color: var(--on-primary);
+        background: var(--text);
+        color: var(--bg);
       }
 
       /* checkbox lists (VERS bands, block types) */
       .legend {
         display: flex;
         flex-direction: column;
-        gap: 1px;
       }
       .lg {
         display: grid;
-        grid-template-columns: 16px 14px 1fr 54px 72px;
-        gap: 8px;
+        grid-template-columns: 16px 16px 1fr 52px 72px;
+        gap: 12px;
         align-items: center;
-        padding: 5px 6px;
-        border-radius: var(--radius-sm);
+        padding: 8px;
+        border-bottom: 1px solid var(--border);
         cursor: pointer;
+        transition: background 0.07s var(--ease);
       }
       .lg:hover {
-        background: var(--soft);
+        background: var(--hover);
       }
       .lg input {
         margin: 0;
-        accent-color: var(--primary);
+        width: 16px;
+        height: 16px;
+        accent-color: var(--text);
       }
       .sw {
-        width: 14px;
-        height: 14px;
-        border-radius: 4px;
-        box-shadow: inset 0 0 0 1px rgba(20, 0, 128, 0.12);
+        width: 16px;
+        height: 16px;
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 16%, transparent);
       }
       .n {
+        font-family: var(--mono);
         font-size: 12px;
+        letter-spacing: 0.32px;
         text-align: right;
       }
       .n.u {
@@ -368,59 +442,70 @@
       .tot {
         display: flex;
         justify-content: space-between;
-        border-top: 1px solid var(--border);
-        margin-top: 6px;
-        padding: 10px 6px 0;
+        padding: 12px 8px 0;
+        font-family: var(--mono);
         font-size: 12px;
+        letter-spacing: 0.32px;
         color: var(--muted);
       }
 
       select {
         font: inherit;
         width: 100%;
-        padding: 9px 10px;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        background: var(--surface);
+        height: 40px;
+        padding: 0 40px 0 16px;
+        border: 0;
+        border-bottom: 1px solid var(--strong);
+        border-radius: 0;
+        background: var(--surface)
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M8 11 3 6l.7-.7L8 9.6l4.3-4.3.7.7z' fill='%238A857C'/%3E%3C/svg%3E")
+          no-repeat right 12px center;
         color: var(--text);
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+      }
+      select:hover {
+        background-color: var(--hover);
       }
       .row {
         display: flex;
-        gap: 10px;
+        gap: 12px;
         align-items: center;
       }
       .row input {
-        accent-color: var(--primary);
+        width: 16px;
+        height: 16px;
+        margin: 0;
+        accent-color: var(--text);
       }
 
       /* ranked bars (towns, precincts) */
       .towns {
         display: flex;
         flex-direction: column;
-        gap: 6px;
       }
       .tw {
         display: grid;
-        grid-template-columns: 120px 1fr 40px;
-        gap: 8px;
+        grid-template-columns: 120px 1fr 44px;
+        gap: 12px;
         align-items: center;
-        font-size: 12.5px;
         cursor: pointer;
         background: none;
         border: 0;
         color: var(--text);
-        padding: 2px 0;
+        padding: 6px 8px;
         text-align: left;
         width: 100%;
+        transition: background 0.07s var(--ease);
       }
-      .tw:hover span:first-child {
-        color: var(--primary);
-        text-decoration: underline;
+      .tw:hover {
+        background: var(--hover);
+        box-shadow: inset 3px 0 0 var(--primary);
       }
       .tw .bar {
         height: 8px;
-        background: var(--border);
-        border-radius: 999px;
+        background: var(--surface);
         overflow: hidden;
         display: flex;
       }
@@ -429,80 +514,85 @@
         height: 100%;
       }
       .tw .pct {
+        font-family: var(--mono);
         font-size: 12px;
+        letter-spacing: 0.32px;
         text-align: right;
       }
 
       /* lease clock bar */
       .clock {
-        height: 8px;
-        border-radius: 999px;
+        height: 4px;
         background: var(--border);
-        margin-top: 10px;
+        margin-top: 16px;
         position: relative;
         overflow: hidden;
       }
       .clock i {
         position: absolute;
         inset: 0 auto 0 0;
-        border-radius: 999px;
       }
 
       /* community facility toggles */
       .facgrid {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 2px;
       }
       .fac {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: var(--primary);
-        color: var(--on-primary);
-        border: 1px solid var(--primary);
-        border-radius: var(--radius-sm);
-        padding: 9px 14px;
-        font-weight: 600;
-        font-size: 13px;
+        min-height: 40px;
+        background: var(--text);
+        color: var(--bg);
+        border: 0;
+        padding: 10px 16px;
         cursor: pointer;
         text-align: left;
+        transition: background 0.07s var(--ease);
       }
       .fac:hover {
-        background: var(--accent);
+        background: color-mix(in srgb, var(--text) 88%, var(--bg));
       }
       .fac[aria-pressed="false"] {
         background: var(--surface);
         color: var(--text);
-        border-color: var(--border);
+      }
+      .fac[aria-pressed="false"]:hover {
+        background: var(--hover);
       }
       .fac span {
-        font-weight: 500;
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.32px;
       }
 
       /* "Nearest" list */
       .near {
         display: flex;
         flex-direction: column;
-        gap: 6px;
-        margin-top: 6px;
-        font-size: 12.5px;
+        margin-top: 8px;
       }
       .near div {
         display: flex;
         justify-content: space-between;
         gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--border);
       }
       .near span:last-child {
         color: var(--muted);
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.32px;
         white-space: nowrap;
       }
       .amk {
         display: inline-grid;
         place-items: center;
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
+        width: 24px;
+        height: 24px;
         margin-right: 8px;
         vertical-align: -6px;
         color: var(--text);
@@ -511,10 +601,9 @@
       /* block typology bar */
       .typbar {
         display: flex;
-        height: 10px;
-        border-radius: 999px;
+        height: 8px;
         overflow: hidden;
-        margin-top: 6px;
+        margin-top: 8px;
       }
       .typbar i {
         display: block;
@@ -523,148 +612,154 @@
       .typkey {
         display: flex;
         flex-wrap: wrap;
-        gap: 4px 12px;
+        gap: 4px 16px;
         font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
         color: var(--muted);
-        margin-top: 8px;
+        margin-top: 12px;
       }
       .typkey span::before {
         content: "";
         display: inline-block;
-        width: 10px;
-        height: 10px;
-        border-radius: 3px;
-        margin-right: 5px;
-        vertical-align: -1px;
+        width: 12px;
+        height: 12px;
+        margin-right: 6px;
+        vertical-align: -2px;
         background: var(--c);
       }
 
-      /* two-way switch ("Typology | Years till VERS") */
+      /* two-way switch ("Typology | Years till VERS") — content switcher */
       .seg {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        overflow: hidden;
-        padding: 3px;
-        gap: 3px;
+        border: 1px solid var(--text);
       }
       .seg button {
         background: transparent;
         border: 0;
-        border-radius: 6px;
-        padding: 7px 8px;
+        padding: 9px 16px;
         cursor: pointer;
-        font-size: 12.5px;
+        text-align: left;
         color: var(--text);
+        transition: background 0.07s var(--ease);
+      }
+      .seg button + button {
+        border-left: 1px solid var(--text);
+      }
+      .seg button:hover {
+        background: var(--hover);
       }
       .seg button[aria-pressed="true"] {
-        background: var(--primary);
-        color: var(--on-primary);
-        font-weight: 600;
+        background: var(--text);
+        color: var(--bg);
       }
 
       /* project scale numbers */
       .price {
-        font-size: 26px;
-        font-weight: 700;
-        letter-spacing: -0.02em;
+        font-weight: 300;
+        font-size: 28px;
+        line-height: 36px;
       }
       .carbon {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 8px;
+        gap: 2px;
       }
       .carbon div {
         background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        padding: 10px 12px;
+        padding: 12px 16px;
       }
       .carbon b {
         display: block;
-        font-size: 18px;
-        font-weight: 700;
+        font-weight: 300;
+        font-size: 20px;
+        line-height: 28px;
       }
       .carbon small {
         color: var(--muted);
-        font-size: 11.5px;
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
       }
       .big-num {
-        font-size: 34px;
-        font-weight: 700;
-        letter-spacing: -0.02em;
+        font-weight: 300;
+        font-size: 42px;
+        line-height: 50px;
       }
 
-      /* main call-to-action ("Apply for RTO") */
+      /* main call-to-action ("Apply for RTO") — primary button */
       .cta {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 48px;
         background: var(--primary);
         color: var(--on-primary);
         border: 0;
-        border-radius: var(--radius-sm);
-        padding: 12px 18px;
-        font-weight: 600;
-        font-size: 15px;
+        padding: 14px 16px;
+        font-size: 14px;
+        line-height: 20px;
         cursor: pointer;
         text-decoration: none;
+        transition: background 0.07s var(--ease);
       }
       .cta:hover {
         background: var(--accent);
       }
-      .cta:focus-visible,
-      button:focus-visible {
-        outline: 2px solid var(--primary);
-        outline-offset: 2px;
+      .cta:active {
+        background: var(--pressed);
+      }
+      .cta:focus-visible {
+        outline: 2px solid var(--text);
+        outline-offset: -2px;
+        box-shadow: inset 0 0 0 3px var(--bg);
       }
       .apply {
         width: 100%;
-        justify-content: center;
         font-size: 16px;
-        padding: 14px;
       }
 
       /* block number buttons */
       .blklist {
         display: flex;
         flex-wrap: wrap;
-        gap: 6px;
+        gap: 2px;
       }
       .blklist button {
         background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
+        border: 0;
         color: var(--text);
+        font-family: var(--mono);
         font-size: 12px;
-        padding: 4px 9px;
+        letter-spacing: 0.32px;
+        padding: 6px 10px;
         cursor: pointer;
         display: flex;
-        gap: 6px;
+        gap: 8px;
         align-items: center;
       }
       .blklist button:hover {
-        border-color: var(--primary);
-        background: var(--soft);
+        background: var(--hover);
       }
       .blklist i {
         width: 8px;
         height: 8px;
-        border-radius: 2px;
         display: inline-block;
       }
 
       details.method summary {
         cursor: pointer;
-        color: var(--primary);
-        font-size: 13px;
+        color: var(--link);
         font-weight: 600;
       }
       details.method p {
         color: var(--muted);
-        font-size: 12.5px;
-        margin: 8px 0 0;
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
+        margin: 12px 0 0;
       }
 
       /* ============================================================
@@ -675,74 +770,77 @@
       .mapwrap {
         position: relative;
         min-width: 0;
-        background: #141414;
+        background: #f7f6f3;
         overflow: hidden;
       }
       #mapHome {
         position: absolute;
         inset: 0;
-        background: #141414;
+        background: #f7f6f3;
       }
 
-      /* white floating cards on the map share this look */
+      /* white floating boxes on the map share this look */
       .crumbs,
       .hint,
       .maplegend,
       .locator,
-      .tip,
       .stylebtn,
       .ringlbl {
-        background: var(--surface);
+        background: var(--bg);
         color: var(--text);
         border: 1px solid var(--border);
-        box-shadow: var(--shadow);
       }
 
       .crumbs {
         position: absolute;
-        top: 14px;
-        left: 14px;
+        top: 16px;
+        left: 16px;
         z-index: 900;
         display: flex;
-        align-items: center;
-        gap: 4px;
-        border-radius: var(--radius);
-        padding: 6px 10px 6px 6px;
-        font-size: 13px;
+        align-items: stretch;
+        min-height: 40px;
+        padding: 0 12px 0 0;
         max-width: calc(100% - 140px);
         flex-wrap: wrap;
+      }
+      .crumbs > * {
+        display: inline-flex;
+        align-items: center;
       }
       .crumbs button {
         background: none;
         border: 0;
-        color: var(--text);
+        color: var(--link);
         cursor: pointer;
-        padding: 3px 6px;
-        border-radius: 6px;
+        padding: 0 8px;
       }
       .crumbs button:hover {
-        background: var(--soft);
+        background: var(--hover);
+        text-decoration: underline;
       }
       .crumbs .sep {
         color: var(--muted);
+        padding: 0 2px;
       }
       .crumbs .cur {
-        color: var(--primary);
-        font-weight: 700;
-        padding: 0 4px;
+        color: var(--text);
+        font-weight: 600;
+        padding: 0 8px 0 12px;
+      }
+      .crumbs .back + .sep {
+        display: none;
       }
       .crumbs .back {
-        display: inline-flex;
-        align-items: center;
-        gap: 2px;
-        background: var(--primary);
-        color: var(--on-primary);
-        padding: 4px 10px 4px 6px;
+        gap: 4px;
+        background: var(--text);
+        color: var(--bg);
+        padding: 0 16px 0 10px;
         margin-right: 4px;
-        font-weight: 600;
+        text-decoration: none;
       }
       .crumbs .back:hover {
-        background: var(--accent);
+        background: color-mix(in srgb, var(--text) 88%, var(--bg));
+        text-decoration: none;
       }
 
       /* "500 m · 6 min" labels on the walking bands */
@@ -750,108 +848,117 @@
         position: absolute;
         transform: translate(-50%, -50%);
         white-space: nowrap;
-        border-radius: 999px;
-        padding: 1px 8px;
-        font-size: 10.5px;
-        font-weight: 600;
-        box-shadow: none;
+        padding: 2px 8px;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
       }
 
       .hint {
         position: absolute;
         left: 50%;
-        bottom: 26px;
+        bottom: 24px;
         transform: translateX(-50%);
         z-index: 900;
-        border-radius: 999px;
-        padding: 8px 16px;
-        font-size: 13px;
-        font-weight: 500;
-        transition: opacity 0.4s;
+        padding: 10px 16px;
+        background: var(--text);
+        color: var(--bg);
+        border: 0;
+        transition: opacity 0.24s var(--ease);
         pointer-events: none;
         white-space: nowrap;
       }
       .hint b {
         color: var(--primary);
+        font-weight: 600;
       }
 
       .maplegend {
         position: absolute;
-        right: 14px;
-        bottom: 26px;
-        width: 210px;
-        transition: bottom 0.3s;
+        right: 16px;
+        bottom: 32px;
+        width: 224px;
+        transition: bottom 0.24s var(--ease);
         z-index: 900;
-        border-radius: var(--radius);
-        padding: 12px 14px;
-        font-size: 12.5px;
+        padding: 16px;
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
       }
       /* when the minimap is showing, the legend sits just above it */
       .with-locator .maplegend {
-        bottom: 160px;
+        bottom: 166px;
       }
       .maplegend .ttl {
-        font-weight: 700;
-        font-size: 13.5px;
-        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        line-height: 18px;
+        letter-spacing: 0.16px;
+        margin-bottom: 12px;
       }
       .maplegend .it {
         display: flex;
         align-items: center;
         gap: 8px;
-        margin: 4px 0;
+        margin: 6px 0;
       }
       .maplegend .it i {
-        width: 22px;
-        height: 12px;
-        border-radius: 3px;
-        box-shadow: inset 0 0 0 1px rgba(20, 0, 128, 0.15);
+        width: 16px;
+        height: 16px;
+        flex: none;
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 16%, transparent);
       }
 
       .locator {
         position: absolute;
-        right: 14px;
-        bottom: 26px;
+        right: 16px;
+        bottom: 32px;
         z-index: 900;
-        width: 210px;
-        height: 124px;
-        border-radius: var(--radius);
-        transition: opacity 0.4s;
-        padding: 6px;
+        width: 224px;
+        height: 126px;
+        transition: opacity 0.24s var(--ease);
+        padding: 8px;
       }
       .locator canvas {
         width: 100%;
         height: 100%;
       }
 
+      /* hover tooltip — ink box */
       .tip {
         position: absolute;
         z-index: 950;
         pointer-events: none;
-        border-radius: var(--radius-sm);
+        background: var(--text);
+        color: var(--bg);
         padding: 8px 12px;
-        font-size: 12.5px;
-        line-height: 1.4;
-        max-width: 270px;
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
+        max-width: 280px;
         display: none;
       }
       .tip b {
-        font-size: 14.5px;
-        font-weight: 700;
+        font-size: 14px;
+        line-height: 18px;
+        font-weight: 600;
+        letter-spacing: 0.16px;
         display: block;
+        margin-bottom: 2px;
       }
       .tip .m {
-        font-size: 11.5px;
-        color: var(--muted);
+        color: color-mix(in srgb, var(--bg) 72%, var(--text));
+      }
+      .tip .muted {
+        color: color-mix(in srgb, var(--bg) 72%, var(--text));
       }
 
       /* amenity icons on the map */
       .pin {
         display: grid;
         place-items: center;
-        border-radius: 50%;
-        border: 2px solid var(--surface);
-        box-shadow: 0 1px 5px rgba(20, 0, 128, 0.35);
+        border: 1px solid var(--text);
         color: var(--text);
         width: 26px;
         height: 26px;
@@ -866,154 +973,164 @@
         top: 0;
         right: 0;
         bottom: 0;
-        width: min(460px, 100%);
-        background: var(--surface);
+        width: min(464px, 100%);
+        background: var(--bg);
         color: var(--text);
         z-index: 1000;
         transform: translateX(102%);
-        transition: transform 0.35s ease;
+        transition: transform 0.24s var(--ease);
         display: flex;
         flex-direction: column;
         border-left: 1px solid var(--border);
-        box-shadow: -10px 0 30px rgba(20, 0, 128, 0.12);
+        box-shadow: -8px 0 24px rgba(28, 28, 30, 0.14);
       }
       .drawer.open {
         transform: none;
       }
       .drawer header {
-        padding: 16px 20px;
+        padding: 0 0 0 16px;
+        min-height: 48px;
         border-bottom: 1px solid var(--border);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
       }
       .drawer header h4 {
         margin: 0;
-        font-weight: 700;
-        font-size: 18px;
+        font-weight: 600;
+        font-size: 16px;
+        line-height: 24px;
       }
       .iconbtn {
         display: inline-grid;
         place-items: center;
-        width: 32px;
-        height: 32px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
+        width: 48px;
+        height: 48px;
+        background: transparent;
+        border: 0;
         color: var(--text);
         cursor: pointer;
         padding: 0;
+        transition: background 0.07s var(--ease);
       }
       .iconbtn:hover {
-        border-color: var(--primary);
-        background: var(--soft);
+        background: var(--hover);
       }
       .dots {
         display: flex;
-        gap: 6px;
-        padding: 14px 20px 0;
+        gap: 2px;
+        padding: 16px 16px 0;
       }
       .dots i {
         flex: 1;
         height: 4px;
-        border-radius: 999px;
         background: var(--border);
       }
       .dots i.on {
         background: var(--primary);
       }
       .fbody {
-        padding: 18px 20px;
+        padding: 24px 16px;
         overflow-y: auto;
         flex: 1;
       }
       .fbody h5 {
-        font-size: 24px;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        margin: 0 0 6px;
-        line-height: 1.2;
+        font-weight: 300;
+        font-size: 28px;
+        line-height: 36px;
+        margin: 0 0 8px;
       }
       .fbody p {
         color: var(--muted);
-        margin: 0 0 14px;
+        margin: 0 0 16px;
       }
       .fbody p b {
         color: var(--text);
       }
-      /* answer cards */
+      /* answer tiles */
       .opt {
         display: block;
         width: 100%;
         text-align: left;
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
+        border: 0;
         background: var(--surface);
         color: var(--text);
-        padding: 14px 16px;
-        margin-bottom: 10px;
+        padding: 16px;
+        margin-bottom: 2px;
         cursor: pointer;
+        transition: background 0.07s var(--ease);
       }
       .opt:hover {
-        border-color: var(--primary);
+        background: var(--hover);
       }
       .opt[aria-pressed="true"] {
-        border-color: var(--primary);
-        background: var(--soft);
-        box-shadow: inset 0 0 0 1px var(--primary);
+        background: var(--surface);
+        box-shadow: inset 0 0 0 2px var(--text), inset 4px 0 0 var(--primary);
       }
       .opt b {
         display: block;
+        font-weight: 600;
         font-size: 16px;
+        line-height: 24px;
         margin-bottom: 2px;
       }
       .opt small {
         color: var(--muted);
-        font-size: 13px;
+        font-size: 14px;
       }
       .opt .fig {
         float: right;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--primary);
-        margin-left: 10px;
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.32px;
+        color: var(--link);
+        margin-left: 12px;
       }
       .fld {
         display: block;
-        margin-bottom: 12px;
-        font-size: 13px;
+        margin-bottom: 16px;
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
         color: var(--muted);
       }
       .fld input,
       .fld select {
         display: block;
         width: 100%;
-        margin-top: 4px;
-        padding: 9px 10px;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        background: var(--surface);
+        height: 40px;
+        margin-top: 8px;
+        padding: 0 16px;
+        border: 0;
+        border-bottom: 1px solid var(--strong);
+        background-color: var(--surface);
         color: var(--text);
-        font: inherit;
+        font-size: 14px;
+        letter-spacing: 0.16px;
+      }
+      .fld select {
+        padding-right: 40px;
       }
       .ffoot {
-        padding: 14px 20px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         border-top: 1px solid var(--border);
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
       }
       .ffoot button {
-        border-radius: var(--radius-sm);
-        padding: 10px 18px;
-        font-weight: 600;
+        min-height: 64px;
+        padding: 14px 16px 30px;
+        text-align: left;
         cursor: pointer;
+        transition: background 0.07s var(--ease);
       }
       .ffoot .bk {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        color: var(--text);
+        background: var(--text);
+        border: 0;
+        color: var(--bg);
+      }
+      .ffoot .bk:hover {
+        background: color-mix(in srgb, var(--text) 88%, var(--bg));
       }
       .ffoot .nx {
         background: var(--primary);
@@ -1023,8 +1140,12 @@
       .ffoot .nx:hover {
         background: var(--accent);
       }
+      .ffoot .nx:active {
+        background: var(--pressed);
+      }
       .ffoot .nx:disabled {
-        opacity: 0.35;
+        background: var(--border);
+        color: var(--muted);
         cursor: not-allowed;
       }
       /* vote results bar */
@@ -1033,49 +1154,49 @@
       }
       .tally .tb {
         display: flex;
-        height: 28px;
-        border-radius: var(--radius-sm);
+        height: 32px;
         overflow: hidden;
-        margin: 6px 0;
+        margin: 8px 0;
       }
       .tally .tb i {
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #fff;
-        font-size: 11px;
-        font-weight: 600;
+        color: var(--bg);
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.32px;
         font-style: normal;
       }
       .tally .k {
         display: flex;
-        gap: 14px;
-        font-size: 12.5px;
+        gap: 16px;
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
         color: var(--muted);
         flex-wrap: wrap;
       }
       .tally .k span::before {
         content: "";
         display: inline-block;
-        width: 10px;
-        height: 10px;
-        margin-right: 5px;
-        border-radius: 3px;
+        width: 12px;
+        height: 12px;
+        margin-right: 6px;
         background: var(--c);
-        vertical-align: -1px;
+        vertical-align: -2px;
       }
       .mindmap {
-        font-family: ui-monospace, Menlo, Consolas, monospace; /* needs fixed-width letters to line up */
-        font-size: 11.5px;
+        font-family: var(--mono); /* needs fixed-width letters to line up */
+        font-size: 12px;
+        letter-spacing: 0;
         color: var(--muted);
-        background: var(--soft);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        padding: 12px;
+        background: var(--surface);
+        padding: 16px;
         white-space: pre;
         line-height: 1.35;
         overflow-x: auto;
-        margin-top: 12px;
+        margin-top: 16px;
       }
 
       /* ============================================================
@@ -1109,7 +1230,7 @@
         transform-origin: 0 0;
       }
       .leaflet-zoom-anim .leaflet-zoom-animated {
-        transition: transform 0.25s cubic-bezier(0, 0, 0.25, 1);
+        transition: transform 0.24s var(--ease);
       }
       .leaflet-marker-icon {
         position: absolute;
@@ -1142,18 +1263,19 @@
         clear: both;
       }
       .leaflet-bottom .leaflet-control {
-        margin-bottom: 2px;
+        margin-bottom: 0;
       }
       .leaflet-right .leaflet-control {
         float: right;
-        margin-right: 4px;
+        margin-right: 0;
       }
       .leaflet-control-attribution {
-        font-size: 10px;
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
         color: var(--muted);
-        background: color-mix(in srgb, var(--surface) 80%, transparent);
-        padding: 1px 6px;
-        border-radius: 4px;
+        background: var(--bg);
+        padding: 4px 8px;
       }
 
       /* ============================================================
@@ -1162,40 +1284,40 @@
          ============================================================ */
       .stylebtn {
         position: absolute;
-        top: 14px;
-        right: 14px;
+        top: 16px;
+        right: 16px;
         z-index: 950;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        border-radius: var(--radius-sm);
-        padding: 7px 12px;
-        font-size: 12.5px;
-        font-weight: 600;
+        gap: 8px;
+        height: 40px;
+        padding: 0 16px;
         cursor: pointer;
+        transition: background 0.07s var(--ease);
       }
-      .stylebtn:hover,
+      .stylebtn:hover {
+        background: var(--hover);
+      }
       .stylebtn[aria-pressed="true"] {
-        background: var(--primary);
-        color: var(--on-primary);
-        border-color: var(--primary);
+        background: var(--text);
+        color: var(--bg);
+        border-color: var(--text);
       }
       .styleed {
         position: absolute;
         top: 0;
         left: 0;
         bottom: 0;
-        width: min(340px, 100%);
-        background: var(--surface);
+        width: min(344px, 100%);
+        background: var(--bg);
         color: var(--text);
         z-index: 1100;
         transform: translateX(-102%);
-        transition: transform 0.3s ease;
+        transition: transform 0.24s var(--ease);
         display: flex;
         flex-direction: column;
         border-right: 1px solid var(--border);
-        box-shadow: 10px 0 30px rgba(20, 0, 128, 0.12);
-        font-size: 13px;
+        box-shadow: 8px 0 24px rgba(28, 28, 30, 0.14);
       }
       .styleed.open {
         transform: none;
@@ -1204,48 +1326,51 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 14px;
+        min-height: 48px;
+        padding: 0 0 0 16px;
         border-bottom: 1px solid var(--border);
       }
       .styleed header b {
-        font-size: 17px;
-        font-weight: 700;
+        font-size: 16px;
+        line-height: 24px;
+        font-weight: 600;
       }
       .etools {
         display: flex;
-        gap: 6px;
-        padding: 10px 14px 0;
+        gap: 2px;
+        padding: 12px 16px 0;
         flex-wrap: wrap;
       }
       .etools button,
       .eimp {
         background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        padding: 5px 10px;
+        border: 0;
+        padding: 8px 12px;
         cursor: pointer;
         font-size: 12px;
-        font-weight: 600;
+        line-height: 16px;
+        letter-spacing: 0.32px;
         color: var(--text);
+        transition: background 0.07s var(--ease);
       }
       .etools button:hover,
       .eimp:hover {
-        border-color: var(--primary);
-        background: var(--soft);
+        background: var(--hover);
       }
       .eimp input {
         display: none;
       }
       .enote {
-        margin: 8px 14px 6px;
+        margin: 12px 16px 8px;
         color: var(--muted);
-        font-size: 11.5px;
-        line-height: 1.4;
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
       }
       .ebody {
         overflow-y: auto;
         flex: 1;
-        padding: 0 14px 30px;
+        padding: 0 16px 32px;
       }
       .ebody details {
         border-top: 1px solid var(--border);
@@ -1253,16 +1378,15 @@
       }
       .ebody summary {
         cursor: pointer;
-        font-weight: 700;
-        font-size: 13px;
-        padding: 2px 0;
+        font-weight: 600;
+        padding: 4px 0;
       }
       .er {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 10px;
-        padding: 5px 0;
+        gap: 12px;
+        padding: 4px 0;
       }
       .er > span:first-child {
         flex: 1;
@@ -1270,42 +1394,47 @@
       .ec {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
       }
       .ec input[type="color"] {
-        width: 30px;
+        width: 32px;
         height: 24px;
         border: 1px solid var(--border);
-        border-radius: 6px;
         padding: 0;
         background: none;
         cursor: pointer;
       }
       .ec input[type="text"] {
-        width: 76px;
-        font-size: 11.5px;
-        padding: 3px 6px;
-        border: 1px solid var(--border);
-        border-radius: 6px;
+        width: 80px;
+        height: 24px;
+        font-family: var(--mono);
+        font-size: 12px;
+        padding: 0 8px;
+        border: 0;
+        border-bottom: 1px solid var(--strong);
+        background: var(--surface);
       }
       .ec input[type="range"] {
-        width: 110px;
-        accent-color: var(--primary);
+        width: 112px;
+        accent-color: var(--text);
       }
       .ec output {
-        font-size: 11px;
-        width: 34px;
+        font-family: var(--mono);
+        font-size: 12px;
+        width: 36px;
         text-align: right;
         color: var(--muted);
       }
       .er select {
         font-size: 12px;
-        padding: 3px 6px;
-        max-width: 150px;
+        height: 32px;
+        padding: 0 32px 0 8px;
+        max-width: 160px;
         width: auto;
+        background-position: right 8px center;
       }
       .er input[type="checkbox"] {
-        accent-color: var(--primary);
+        accent-color: var(--text);
         width: 16px;
         height: 16px;
       }
@@ -1314,6 +1443,9 @@
          SMALL SCREENS (phones)
          ============================================================ */
       @media (max-width: 860px) {
+        .shell .page span {
+          display: none;
+        }
         .app {
           grid-template-columns: minmax(0, 1fr);
           grid-template-rows: 58vh auto;
@@ -1337,9 +1469,10 @@
         }
       }
       @media (prefers-reduced-motion: reduce) {
+        *,
         .drawer,
         .styleed {
-          transition: none;
+          transition: none !important;
         }
       }
     </style>
@@ -1347,6 +1480,12 @@
   <body>
     <!-- The whole page: side panel (left) + map (right).
          Most boxes start empty — the script fills them in. -->
+    <!-- HEADER BAR -->
+    <header class="shell">
+      <span class="brand">On Public Good</span>
+      <span class="page">Retrofit-To-Order <span>· Part 3</span></span>
+    </header>
+
     <section class="app" id="app" aria-label="Interactive map">
 
       <!-- SIDE PANEL — filled by renderPanel() -->
@@ -1456,31 +1595,32 @@
            ================================================================== */
         const STYLE_DEFAULTS = {
           ui: {
-            background: "#FFFFFF", // page and panel
-            text: "#140080", // all text and icons
-            primary: "#0000EE", // buttons, selected states
-            accent: "#0B00D9", // hover / pressed
-            surface: "#FFFFFF", // cards, map overlays, form
-            border: "#E2E8F0", // lines and card edges
-            serif: "Inter",
-            sans: "Inter",
-            mono: "Inter",
+            background: "#FFFFFF", // page, panel, drawer, map overlays
+            text: "#1C1C1E", // ink — text, header bar, selected fills
+            primary: "#FF5A1F", // orange — primary buttons, focus, active markers
+            accent: "#E84A12", // orange hover
+            surface: "#F0EEE9", // paper — tiles, cards, input fields
+            border: "#D8D4CC", // stone — dividers and empty bars
+            serif: "IBM Plex Sans",
+            sans: "IBM Plex Sans",
+            mono: "IBM Plex Mono",
             scale: 1,
           },
           base: {
+            // "dark" = city scale, "light" = precinct + project scale (names kept for old style.json files)
             dark: {
-              land: "#333333",
-              line: "#ffffff",
-              lineOpacity: 0.45,
-              lineWeight: 0.4,
-              water: "#141414",
+              land: "#DEDAD2", // darker than the palest VERS band so it still shows
+              line: "#FFFFFF",
+              lineOpacity: 1,
+              lineWeight: 0.8,
+              water: "#F7F6F3",
             },
             light: {
-              land: "#e9e8e3",
-              line: "#b9b8b2",
-              lineOpacity: 0.9,
-              lineWeight: 0.4,
-              water: "#d6dad8",
+              land: "#E6E3DC",
+              line: "#FFFFFF",
+              lineOpacity: 1,
+              lineWeight: 0.8,
+              water: "#F7F6F3",
             },
           },
           vers: ["#E1001C", "#E61518", "#FB6B4B", "#FCAF93", "#FEE1D3", "#FEE8DD", "#FFEEE6"],
@@ -1490,17 +1630,17 @@
             opacity: 0.95,
             dim: 0.18,
             context: 0.3,
-            outline: "#232323",
+            outline: "#FFFFFF",
             outlineWeight: 0.8,
-            selected: "#111111",
+            selected: "#1C1C1E",
             selectedWeight: 3,
-            sers: "#ffffff",
+            sers: "#1C1C1E",
           },
-          hover: { dark: "#ffffff", light: "#111111", weight: 2 },
-          precinct: { outline: "#ffffff", outlineOpacity: 0.5, light: "#111111" },
-          rings: { show: true, spacing: 500, count: 3, color: "#555555" }, // walking bands every `spacing` metres
-          recovery: { color: "#FF3C02", weight: 2 },
-          sites: { outline: false, color: "#ff0000", weight: 1.5 },
+          hover: { dark: "#1C1C1E", light: "#1C1C1E", weight: 2 },
+          precinct: { outline: "#1C1C1E", outlineOpacity: 0.35, light: "#1C1C1E" },
+          rings: { show: true, spacing: 500, count: 3, color: "#8A857C" }, // walking bands every `spacing` metres
+          recovery: { color: "#1C1C1E", weight: 2 },
+          sites: { outline: false, color: "#1C1C1E", weight: 1.5 },
           parks: { fill: "#9fd18b", opacity: 0.55, connector: "#4f9b3a", connectorWeight: 2 },
           amen: {
             mrt: { color: "#bfeee9", show: true },
@@ -1520,7 +1660,7 @@
             styleButton: true,
           },
         };
-        const STYLE_KEY = "opg-style-v3"; // bump the number to make every browser forget old saved edits
+        const STYLE_KEY = "opg-style-v4"; // bump the number to make every browser forget old saved edits
         const clone = (o) => JSON.parse(JSON.stringify(o));
         function merge(a, b) {
           if (!b || typeof b !== "object") return a;
@@ -1552,7 +1692,7 @@
         // Helvetica can't be loaded as a web font: use it where installed, else Arial
         function fontStack(f, kind) {
           if (f === "Helvetica") return '"Helvetica Neue",Helvetica,Arial,sans-serif';
-          if (["Inter", "IBM Plex Sans", "Space Grotesk", "Arial"].includes(f))
+          if (["Inter", "IBM Plex Sans", "Space Grotesk", "Arial"].includes(f) && kind !== "mono")
             return `"${f}",system-ui,sans-serif`;
           if (kind === "mono") return `"${f}",ui-monospace,Menlo,Consolas,monospace`;
           return kind === "serif"
@@ -2057,8 +2197,8 @@
             interactive: false,
             color: light ? ST.hover.light : ST.hover.dark,
             weight: ST.hover.weight,
-            fillColor: "#fff",
-            fillOpacity: light ? 0 : 0.08,
+            fillColor: light ? ST.hover.light : ST.hover.dark,
+            fillOpacity: light ? 0 : 0.06,
           });
         }
         // sites: outline their blocks, not the site rectangle
@@ -2360,7 +2500,7 @@
           );
           const P = (ll) => [pad + (ll[1] - b.getWest()) * s, H - pad - (ll[0] - b.getSouth()) * s];
           g.clearRect(0, 0, W, H);
-          g.fillStyle = "#cbd2e1"; // land
+          g.fillStyle = ST.base.light.land; // land
           D.sub.forEach(([n, pa, r]) =>
             decode(r).forEach((ring) => {
               g.beginPath();
@@ -2376,7 +2516,7 @@
           g.beginPath();
           g.arc(x, y, 6, 0, 7);
           g.fill();
-          g.strokeStyle = "#fff";
+          g.strokeStyle = ST.ui.text;
           g.lineWidth = 2;
           g.stroke();
         }
@@ -2831,7 +2971,7 @@
             <section>
               <p class="lbl"><span>Embodied carbon stats</span>${when(p.ec != null, '<span class="tag">your QGIS calc</span>')}</p>
               ${carbonHtml}
-              <p class="dek" style="font-size:12px;margin-top:6px">Material recovery → concrete recovery quantity: to come. Red dashed lines on the map: neighbouring blocks that could share materials.</p>
+              <p class="dek" style="font-size:12px;margin-top:6px">Material recovery → concrete recovery quantity: to come. Dashed lines on the map: neighbouring blocks that could share materials.</p>
             </section>
 
             <section class="box" style="text-align:center">
@@ -3005,9 +3145,9 @@
               <h5>Thank you — your vote is in.</h5>
               <p>You chose <b>${choice}</b>. Here is how Blk ${p.b} is voting (${fmt(total)} applicants):</p>
               <div class="tally">
-                <div class="tb">${bar("cash", "#94a3b8")}${bar("adapt", "var(--primary)")}${bar("harvest", "var(--text)")}</div>
+                <div class="tb">${bar("cash", "var(--strong)")}${bar("adapt", "var(--primary)")}${bar("harvest", "var(--text)")}</div>
                 <div class="k">
-                  <span style="--c:#94a3b8">Cash out ${T.cash}</span>
+                  <span style="--c:var(--strong)">Cash out ${T.cash}</span>
                   <span style="--c:var(--primary)">Adapt ${T.adapt}</span>
                   <span style="--c:var(--text)">Harvest ${T.harvest}</span>
                 </div>
@@ -3085,6 +3225,8 @@
           park: "Parks (points)",
         };
         const FONTS_SERIF = [
+          "IBM Plex Sans",
+          "IBM Plex Serif",
           "Inter",
           "Helvetica",
           "Newsreader",
@@ -3092,8 +3234,8 @@
           "Playfair Display",
           "Times New Roman",
         ];
-        const FONTS_SANS = ["Inter", "Helvetica", "IBM Plex Sans", "Space Grotesk", "Arial"];
-        const FONTS_MONO = ["Inter", "Helvetica", "IBM Plex Mono"];
+        const FONTS_SANS = ["IBM Plex Sans", "Inter", "Helvetica", "IBM Plex Sans", "Space Grotesk", "Arial"];
+        const FONTS_MONO = ["IBM Plex Mono", "Inter", "Helvetica"];
         const ED = [
           [
             "Interface",
