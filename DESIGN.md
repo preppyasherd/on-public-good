@@ -61,7 +61,16 @@ It replaces §2 "Visual identity" of the build brief (serif type, vermilion `#FF
 | `link` | `#FF8A5C` |
 | `shell` | `#141416` |
 
-The theme follows the system setting by default. A header toggle overrides it and is remembered per browser.
+**Night mode** is a switch on the right of the header bar ("Night" / "Day"), remembered per browser. Day is the default. It lays the values above over the day style; the Style editor always edits the day style. On orange, text stays `#1C1C1E` in both modes.
+
+| Night map | Value |
+|---|---|
+| Land (city / precinct) | `#232326` / `#2A2A2D` |
+| Water | `#141416` |
+| Planning-area lines | `#3A3A3D` |
+| SERS, selected block outline | `#FFFFFF` |
+| Hover outline, precinct outlines, recovery lines | `#F0EEE9` |
+| Walking rings | `#A8A39A` |
 
 ### 2.5 Data palette — years till VERS-eligible
 **Rule:** VERS-eligible year = lease start + 70. Years till = that year − 2026.
@@ -86,8 +95,8 @@ The theme follows the system setting by default. A header toggle overrides it an
 | Land (planning areas) | `#DEDAD2` | `#232326` |
 | Water / map background | `#F7F6F3` | `#141416` |
 | Planning-area lines | `#FFFFFF`, 0.8px | `#3A3A3D`, 0.8px |
-| SERS block outline | `#1C1C1E`, 2.2px | `#000000`, 2.2px |
-| Selected block outline | `#1C1C1E`, 3px | `#000000`, 3px |
+| SERS block outline | `#1C1C1E`, 2.2px | `#FFFFFF`, 2.2px |
+| Selected block outline | `#1C1C1E`, 3px | `#FFFFFF`, 3px |
 
 - **Land must stay darker than the palest band.** On near-white land the 40+ yrs bands disappear.
 - **Block outlines scale with zoom.** Each block's outline uses its own fill colour, at 2px below z12.5, 1.2px to z14, 0.5px to z15.5, and none above that.
@@ -230,4 +239,4 @@ Use sentence case everywhere ("Years till VERS-eligible", not "YEARS TILL VERS-E
    - Darken 0–10 yrs (for example to `#A50014`).
    - Add a pattern or outline to 0–10 yrs.
 3. **Already-eligible blocks.** Blocks past 70 currently count in 0–10 yrs. Should they get their own "Eligible now" band?
-4. **Dark-mode emphasis.** On dark land the pale bands are the brightest marks, which reverses the emphasis. Should dark mode get its own ramp, or should the map always use the light ground?
+4. **Night-mode emphasis.** On dark land the pale bands are the brightest marks, which reverses the emphasis. Keep it, or give night mode its own ramp?

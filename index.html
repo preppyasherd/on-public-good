@@ -152,6 +152,28 @@
       .shell .page span {
         color: color-mix(in srgb, var(--shell-text) 70%, var(--shell));
       }
+      .shell .sp {
+        flex: 1;
+      }
+      /* night mode switch, right of the header bar */
+      .themebtn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 16px;
+        background: transparent;
+        border: 0;
+        border-left: 1px solid var(--shell-line);
+        color: var(--shell-text);
+        cursor: pointer;
+        transition: background 0.07s var(--ease);
+      }
+      .themebtn:hover {
+        background: var(--shell-hover);
+      }
+      .themebtn[aria-pressed="true"] {
+        box-shadow: inset 0 -2px 0 var(--primary);
+      }
 
       /* ============================================================
          LAYOUT
@@ -1443,7 +1465,8 @@
          SMALL SCREENS (phones)
          ============================================================ */
       @media (max-width: 860px) {
-        .shell .page span {
+        .shell .page span,
+        .themebtn .lbl-t {
           display: none;
         }
         .app {
@@ -1484,6 +1507,11 @@
     <header class="shell">
       <span class="brand">On Public Good</span>
       <span class="page">Retrofit-To-Order <span>· Part 3</span></span>
+      <span class="sp"></span>
+      <button class="themebtn" id="themeBtn" type="button" aria-pressed="false" title="Switch to night mode">
+        <svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        <span class="lbl-t">Night</span>
+      </button>
     </header>
 
     <section class="app" id="app" aria-label="Interactive map">
@@ -1673,7 +1701,39 @@
           return a;
         }
         let SITE_STYLE = clone(STYLE_DEFAULTS); // defaults + style.json
-        let ST = clone(STYLE_DEFAULTS); // what is on screen
+        let ST = clone(STYLE_DEFAULTS); // the day style: defaults + style.json + Style-editor edits
+
+        /* ---------- night mode ----------
+           A fixed dark palette laid over the day style (see DESIGN.md §2.4).
+           The Style editor always edits the day style; night mode only swaps
+           the colours listed here. VERS and typology colours stay the same. */
+        const NIGHT = {
+          ui: {
+            background: "#1C1C1E",
+            text: "#F0EEE9",
+            primary: "#FF7A45",
+            accent: "#FF8F62",
+            surface: "#2A2A2D",
+            border: "#3A3A3D",
+          },
+          base: {
+            dark: { land: "#232326", line: "#3A3A3D", lineOpacity: 1, lineWeight: 0.8, water: "#141416" },
+            light: { land: "#2A2A2D", line: "#3A3A3D", lineOpacity: 1, lineWeight: 0.8, water: "#141416" },
+          },
+          blocks: { outline: "#141416", selected: "#FFFFFF", sers: "#FFFFFF" },
+          hover: { dark: "#F0EEE9", light: "#F0EEE9" },
+          precinct: { outline: "#F0EEE9", outlineOpacity: 0.35, light: "#F0EEE9" },
+          rings: { color: "#A8A39A" },
+          recovery: { color: "#F0EEE9" },
+          sites: { color: "#F0EEE9" },
+          parks: { opacity: 0.4 },
+        };
+        const THEME_KEY = "opg-theme";
+        let NIGHT_ON = false;
+        try {
+          NIGHT_ON = localStorage.getItem(THEME_KEY) === "night";
+        } catch (e) {}
+        let T = ST; // what is on screen: the day style, or the day style + NIGHT
         function loadSaved() {
           try {
             return JSON.parse(localStorage.getItem(STYLE_KEY) || "null");
@@ -1702,31 +1762,51 @@
         let CB = {},
           CT = {};
         function recolor() {
-          BANDS.forEach((b) => (CB[b.k] = ST.vers[b.k]));
-          CB.unk = ST.versRental;
-          TYP.forEach((t) => (CT[t.k] = ST.typ[t.k]));
-          Object.keys(AM).forEach((k) => (AM[k].bg = ST.amen[k].color));
+          T = NIGHT_ON ? merge(clone(ST), NIGHT) : ST;
+          BANDS.forEach((b) => (CB[b.k] = T.vers[b.k]));
+          CB.unk = T.versRental;
+          TYP.forEach((t) => (CT[t.k] = T.typ[t.k]));
+          Object.keys(AM).forEach((k) => (AM[k].bg = T.amen[k].color));
           const r = document.documentElement.style;
           // design-system colours → CSS variables used by the stylesheet
-          r.setProperty("--bg", ST.ui.background);
-          r.setProperty("--text", ST.ui.text);
-          r.setProperty("--primary", ST.ui.primary);
-          r.setProperty("--accent", ST.ui.accent);
-          r.setProperty("--surface", ST.ui.surface);
-          r.setProperty("--border", ST.ui.border);
-          r.setProperty("--serif", fontStack(ST.ui.serif, "serif"));
-          r.setProperty("--sans", fontStack(ST.ui.sans, "sans"));
-          r.setProperty("--mono", fontStack(ST.ui.mono, "mono"));
-          r.setProperty("--ui-scale", ST.ui.scale);
+          r.setProperty("--bg", T.ui.background);
+          r.setProperty("--text", T.ui.text);
+          r.setProperty("--primary", T.ui.primary);
+          r.setProperty("--accent", T.ui.accent);
+          r.setProperty("--surface", T.ui.surface);
+          r.setProperty("--border", T.ui.border);
+          r.setProperty("--serif", fontStack(T.ui.serif, "serif"));
+          r.setProperty("--sans", fontStack(T.ui.sans, "sans"));
+          r.setProperty("--mono", fontStack(T.ui.mono, "mono"));
+          r.setProperty("--ui-scale", T.ui.scale);
+          // header bar and orange-as-text need their own values at night
+          if (NIGHT_ON) {
+            r.setProperty("--shell", "#141416");
+            r.setProperty("--shell-text", "#F0EEE9");
+            r.setProperty("--link", "#FF8A5C");
+            r.setProperty("--on-primary", "#1C1C1E"); // dark text on orange, day or night
+          } else {
+            r.removeProperty("--shell");
+            r.removeProperty("--shell-text");
+            r.removeProperty("--link");
+            r.removeProperty("--on-primary");
+          }
+          r.colorScheme = NIGHT_ON ? "dark" : "light";
+          const tb = document.getElementById("themeBtn");
+          if (tb) {
+            tb.setAttribute("aria-pressed", NIGHT_ON);
+            tb.title = NIGHT_ON ? "Switch to day mode" : "Switch to night mode";
+            tb.querySelector(".lbl-t").textContent = NIGHT_ON ? "Day" : "Night";
+          }
           const show = (id, on) => {
             const el = document.getElementById(id);
             if (el) el.style.display = on ? "" : "none";
           };
-          show("maplegend", ST.overlays.legend);
-          show("hint", ST.overlays.hint);
-          show("locator", ST.overlays.locator);
-          show("crumbs", ST.overlays.crumbs);
-          show("styleBtn", ST.overlays.styleButton);
+          show("maplegend", T.overlays.legend);
+          show("hint", T.overlays.hint);
+          show("locator", T.overlays.locator);
+          show("crumbs", T.overlays.crumbs);
+          show("styleBtn", T.overlays.styleButton);
         }
 
         const GROUPS = [
@@ -1847,10 +1927,10 @@
               L.polygon(decode(r), {
                 renderer,
                 interactive: false,
-                color: ST.base.dark.line,
-                weight: ST.base.dark.lineWeight,
-                opacity: ST.base.dark.lineOpacity,
-                fillColor: ST.base.dark.land,
+                color: T.base.dark.line,
+                weight: T.base.dark.lineWeight,
+                opacity: T.base.dark.lineOpacity,
+                fillColor: T.base.dark.land,
                 fillOpacity: 1,
               }),
             ),
@@ -1861,8 +1941,8 @@
               renderer,
               interactive: false,
               stroke: false,
-              fillColor: ST.parks.fill,
-              fillOpacity: ST.parks.opacity,
+              fillColor: T.parks.fill,
+              fillOpacity: T.parks.opacity,
             });
             parkPolys.push(l);
             parkLayer.addLayer(l);
@@ -1871,8 +1951,8 @@
             const l = L.polyline(dec(r), {
               renderer,
               interactive: false,
-              color: ST.parks.connector,
-              weight: ST.parks.connectorWeight,
+              color: T.parks.connector,
+              weight: T.parks.connectorWeight,
               dashArray: "4 3",
               opacity: 0.8,
             });
@@ -1982,7 +2062,7 @@
           if (!v) return { stroke: false, fill: false };
           const light = S.state >= 2;
           const col = S.colorBy === "typ" ? CT[p.ty] : CB[p.band];
-          const B = ST.blocks;
+          const B = T.blocks;
           let op = v === "dim" ? B.dim : B.opacity;
           if (S.state >= 2 && p.pid !== S.prec) op = Math.min(op, B.context);
           if (S.state === 3 && p !== S.blk)
@@ -2003,10 +2083,10 @@
             weight: w,
             opacity: op,
           };
-          if (ST.sites.outline && precs[p.pid] && precs[p.pid].site) {
+          if (T.sites.outline && precs[p.pid] && precs[p.pid].site) {
             s.stroke = true;
-            s.color = ST.sites.color;
-            s.weight = ST.sites.weight;
+            s.color = T.sites.color;
+            s.weight = T.sites.weight;
             s.opacity = 1;
           }
           if (p.sers) {
@@ -2028,7 +2108,7 @@
           blocks.forEach((p) => p.layer.setStyle(styleFor(p)));
         }
         function setBasemap(light) {
-          const b = light ? ST.base.light : ST.base.dark;
+          const b = light ? T.base.light : T.base.dark;
           baseLayer.setStyle({
             color: b.line,
             fillColor: b.land,
@@ -2137,10 +2217,10 @@
                   L.polygon(pr.ll, {
                     renderer,
                     interactive: false,
-                    color: ST.precinct.outline,
+                    color: T.precinct.outline,
                     weight: 1,
                     dashArray: "3 4",
-                    opacity: ST.precinct.outlineOpacity,
+                    opacity: T.precinct.outlineOpacity,
                     fill: false,
                   }),
                 ),
@@ -2152,21 +2232,21 @@
                 L.polygon(pr.ll, {
                   renderer,
                   interactive: false,
-                  color: ST.precinct.light,
+                  color: T.precinct.light,
                   weight: 1.5,
                   dashArray: "5 5",
                   fill: false,
                 }),
               );
             // walking-distance bands around the centre of the precinct
-            if (ST.rings.show)
+            if (T.rings.show)
               ringRadii().forEach((r) => {
                 hiLayer.addLayer(
                   L.circle(pr.c, {
                     radius: r,
                     renderer,
                     interactive: false,
-                    color: ST.rings.color,
+                    color: T.rings.color,
                     weight: 1,
                     dashArray: "2 5",
                     fill: false,
@@ -2180,7 +2260,7 @@
                     keyboard: false,
                     icon: L.divIcon({
                       className: "",
-                      html: `<span class="ringlbl" style="border-color:${ST.rings.color}">${fmt(r)} m · ${walkMin(r)} min</span>`,
+                      html: `<span class="ringlbl" style="border-color:${T.rings.color}">${fmt(r)} m · ${walkMin(r)} min</span>`,
                       iconSize: [0, 0],
                     }),
                   }),
@@ -2195,9 +2275,9 @@
           return L.polygon(ll, {
             renderer,
             interactive: false,
-            color: light ? ST.hover.light : ST.hover.dark,
-            weight: ST.hover.weight,
-            fillColor: light ? ST.hover.light : ST.hover.dark,
+            color: light ? T.hover.light : T.hover.dark,
+            weight: T.hover.weight,
+            fillColor: light ? T.hover.light : T.hover.dark,
             fillOpacity: light ? 0 : 0.06,
           });
         }
@@ -2210,8 +2290,8 @@
                 L.polygon(b.ll, {
                   renderer,
                   interactive: false,
-                  color: light ? ST.hover.light : ST.hover.dark,
-                  weight: Math.max(1, ST.hover.weight * 0.75),
+                  color: light ? T.hover.light : T.hover.dark,
+                  weight: Math.max(1, T.hover.weight * 0.75),
                   fill: false,
                 }),
               ),
@@ -2224,8 +2304,8 @@
         /* ---------- walking-distance bands ---------- */
         // Radii of the bands, e.g. spacing 500 × count 3 → [500, 1000, 1500]
         function ringRadii() {
-          const n = Math.max(1, Math.round(ST.rings.count));
-          return Array.from({ length: n }, (_, i) => ST.rings.spacing * (i + 1));
+          const n = Math.max(1, Math.round(T.rings.count));
+          return Array.from({ length: n }, (_, i) => T.rings.spacing * (i + 1));
         }
         const walkMin = (m) => Math.max(1, Math.round(m / 80)); // walking at 80 m per minute
 
@@ -2245,14 +2325,14 @@
           const n = near(pr, Math.max(...ringRadii()) + 50);
           Object.entries(n).forEach(([k, list]) => {
             const m = AM[k];
-            if (!S.fac[m.grp] || !ST.amen[k].show) return;
+            if (!S.fac[m.grp] || !T.amen[k].show) return;
             list.forEach(({ a, d }) => {
               const ll = [a[1], a[0]];
               let mk;
               if (m.dot)
                 mk = L.circleMarker(ll, {
                   renderer,
-                  radius: ST.amenSize.dot,
+                  radius: T.amenSize.dot,
                   color: "#fff",
                   weight: 1.5,
                   fillColor: m.bg,
@@ -2264,10 +2344,10 @@
                     className: "",
                     html: `<div class="pin" style="
                       background:${m.bg};
-                      width:${ST.amenSize.pin}px; height:${ST.amenSize.pin}px;
-                      ">${icon(k, Math.round(ST.amenSize.pin * 0.6))}</div>`,
-                    iconSize: [ST.amenSize.pin, ST.amenSize.pin],
-                    iconAnchor: [ST.amenSize.pin / 2, ST.amenSize.pin / 2],
+                      width:${T.amenSize.pin}px; height:${T.amenSize.pin}px;
+                      ">${icon(k, Math.round(T.amenSize.pin * 0.6))}</div>`,
+                    iconSize: [T.amenSize.pin, T.amenSize.pin],
+                    iconAnchor: [T.amenSize.pin / 2, T.amenSize.pin / 2],
                   }),
                   keyboard: false,
                 });
@@ -2295,7 +2375,7 @@
           const c = p.bounds.getCenter();
           nearestDonors(p).forEach((b) => {
             const bc = b.bounds.getCenter();
-            const R = ST.recovery;
+            const R = T.recovery;
             overlayLayer.addLayer(
               L.polyline([bc, c], {
                 renderer,
@@ -2321,8 +2401,8 @@
               renderer,
               interactive: false,
               radius: 5,
-              color: ST.recovery.color,
-              fillColor: ST.recovery.color,
+              color: T.recovery.color,
+              fillColor: T.recovery.color,
               fillOpacity: 1,
             }),
           );
@@ -2486,7 +2566,7 @@
           const box = document.getElementById("locator");
           box.style.opacity = S.state >= 2 ? 1 : 0;
           box.style.pointerEvents = S.state >= 2 ? "" : "none";
-          document.getElementById("mapwrap").classList.toggle("with-locator", S.state >= 2 && ST.overlays.locator);
+          document.getElementById("mapwrap").classList.toggle("with-locator", S.state >= 2 && T.overlays.locator);
           if (S.state < 2) return;
           const cv = document.getElementById("locCanvas"),
             g = cv.getContext("2d");
@@ -2500,7 +2580,7 @@
           );
           const P = (ll) => [pad + (ll[1] - b.getWest()) * s, H - pad - (ll[0] - b.getSouth()) * s];
           g.clearRect(0, 0, W, H);
-          g.fillStyle = ST.base.light.land; // land
+          g.fillStyle = T.base.light.land; // land
           D.sub.forEach(([n, pa, r]) =>
             decode(r).forEach((ring) => {
               g.beginPath();
@@ -2512,11 +2592,11 @@
             }),
           );
           const [x, y] = P(precs[S.prec].c);
-          g.fillStyle = ST.ui.primary; // the precinct
+          g.fillStyle = T.ui.primary; // the precinct
           g.beginPath();
           g.arc(x, y, 6, 0, 7);
           g.fill();
-          g.strokeStyle = ST.ui.text;
+          g.strokeStyle = T.ui.text;
           g.lineWidth = 2;
           g.stroke();
         }
@@ -3374,6 +3454,13 @@
         } catch (e) {
           framed = true;
         }
+        document.getElementById("themeBtn").onclick = () => {
+          NIGHT_ON = !NIGHT_ON;
+          try {
+            localStorage.setItem(THEME_KEY, NIGHT_ON ? "night" : "day");
+          } catch (e) {}
+          applyStyle();
+        };
         function applyStyle() {
           if (pend) return;
           pend = true;
@@ -3452,7 +3539,7 @@
               <label class="eimp">Import<input type="file" id="edImp" accept=".json,application/json"></label>
               <button id="edReset">Reset</button>
             </div>
-            <p class="enote" id="edNote">Changes show live and are saved in this browser. To make them permanent for everyone, ${framed ? "copy the JSON into" : "download"} <b>style.json</b> next to index.html.</p>
+            <p class="enote" id="edNote">Changes show live and are saved in this browser. To make them permanent for everyone, ${framed ? "copy the JSON into" : "download"} <b>style.json</b> next to index.html. This editor changes the day style; night mode keeps its own fixed colours.</p>
             <div class="ebody">
               ${ED.map(([section, rows], i) => `
                 <details ${i < 1 ? "open" : ""}>
