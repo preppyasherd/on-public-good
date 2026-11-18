@@ -1,6 +1,6 @@
 # On Public Good — Retrofit-To-Order Map
 
-An interactive map of Singapore's HDB blocks, built for an AA Fourth Year Media Studies project on policies that incentivise waste. This repository holds **Part 3: Retrofit-To-Order**. The scrollytelling story that comes before it (Parts 1–2) will be added later. The map works across three scales. **City (Site Finder):** every HDB block is coloured by years until it becomes eligible for the Voluntary Early Redevelopment Scheme (VERS), with filters for VERS band, town, block type and SERS status; click a town to zoom in. **Precinct (Residential Value):** click a precinct, or one of the four red RTO sites, to see its history and maturity, block typology, embodied carbon, and nearby transport, schools, food centres, clinics and parks within walking-distance bands every 500 m. **Project (Retrofit-To-Order):** click a block to see its lease clock, flat details, embodied carbon and possible material-recovery links to neighbouring blocks. From there, "Apply for RTO" opens a voting form. A present resident chooses to cash out under VERS or join RTO; a new applicant joins RTO. Anyone who joins RTO then votes to adapt or harvest the block.
+An interactive map of Singapore's HDB blocks, built for an AA Fourth Year Media Studies project on policies that incentivise waste. This repository holds **Part 3: Retrofit-To-Order**. The scrollytelling story that comes before it (Parts 1–2) will be added later. The map works across four scales: **Singapore → Town → Precinct → Block**. The **left panel** shows the same sections at every scale and counts only what is selected: a scale indicator, the total embodied carbon, a **Map mode** switch (VERS status or Block type, which also scrolls to that list), the VERS status and Block type checkbox lists (both always filter the map), and a ranking list of the next level down. Outside the selected town or precinct, blocks turn grey. The **right panel** opens with a preview navigator (the white box is what the map is showing), then a summary card, a block typology bar, the share VERS-eligible within 20 years and an **At risk** section; at precinct scale it adds the neighbourhood's history and its facilities within walking-distance bands every 500 m. At **block scale** a card rises at the bottom centre with flat details, embodied carbon and **Apply for RTO**, which slides the voting form up from the bottom. A present resident chooses to cash out under VERS or join RTO; a new applicant joins RTO. Anyone who joins RTO then votes to adapt or harvest the block.
 
 ## Run it locally (offline backup for the crit)
 
@@ -15,7 +15,7 @@ Then open <http://localhost:8000>. A local server is needed because the page loa
 
 ## Editing the map's styling
 
-Click **🎨 Style** at the top right of the map, or press **S**, to open the style editor. It controls the colours, line weights, opacities, fonts and sizes of every map element:
+Click **Style** at the top right of the map, or press **S**, to open the style editor. It controls the colours, line weights, opacities, fonts and sizes of every map element:
 - interface colours and fonts;
 - the dark and light base maps;
 - VERS band and typology colours;
@@ -31,12 +31,12 @@ To make a style permanent for every visitor: click **Download** (or **Copy JSON*
 
 ## Editing the code
 
-`index.html` opens with a short guide (an HTML comment at the very top) that says what is where and which function to search for. For example, `panelCity` holds the side-panel wording at city scale, `renderForm` the RTO form, and `describe` the hover tooltips. Colours, fonts and sizes don't need code: use the 🎨 Style editor or `style.json`.
+`index.html` opens with a short guide (an HTML comment at the very top) that says what is where and which function to search for. For example, `panelLeft` and `panelRight` hold the two side panels, `renderBlockCard` the block card, `renderForm` the RTO form, and `describe` the hover tooltips. Colours, fonts and sizes don't need code: use the Style editor or `style.json`.
 
 ## Data sources
 
 - HDB, URA, LTA, MOE, ECDA, NEA, MOH and NParks datasets via [data.gov.sg](https://data.gov.sg), used under the [Singapore Open Data Licence](https://data.gov.sg/open-data-licence).
-- Layers, styles and the 4 RTO sites come from the QGIS project **"261116_Singapore Cleaned"**: HDB VERs Eligibility (lease start B, counted from 2027), HDB typology metrics with embodied carbon (983 blocks with under 50 years left), 261030 5 Sites, and MP2019 subzones as the base map.
+- Block type, embodied carbon and gross internal area come from the QGIS project **"261118 RTO Interface"** (layer `hdb_block_type_full`, every block). Lease start B, the 4 RTO sites and the MP2019 subzone base map come from **"261116_Singapore Cleaned"**. Years till VERS-eligible = lease start + 70 − 2026; bands follow the eligible year (0–10 yrs = 2027–2036).
 - Precincts outside the RTO sites are a stand-in: blocks grouped by distance (about 14 per precinct) until real precinct boundaries are added.
 
 ## About the RTO votes
