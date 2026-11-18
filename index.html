@@ -15,10 +15,10 @@
 
   WHERE TO EDIT …
     Colours, fonts, line weights, ring sizes  → Style button (or style.json). No code needed.
-    Wording in the side panel                 → search for:  function panelCity / panelPrecinct / panelProject
+    Wording in the side panels                → search for:  function panelLeft / panelRight / renderBlockCard
     Wording in the RTO form                   → search for:  function renderForm
     Tooltip text on hover                     → search for:  function describe
-    Map key (legend) text                     → search for:  function renderLegend
+    Preview navigator (right panel)           → search for:  function drawNav
     Placeholder flat sizes and prices         → search for:  const FLAT
     Default colours (before style.json)       → search for:  const STYLE_DEFAULTS
     Panel / map layout and spacing (CSS)      → the SIDE PANEL and MAP AREA sections in <style>
@@ -119,74 +119,23 @@
       }
 
       /* ============================================================
-         HEADER BAR (UI shell)
-         48px ink strip across the top.
-         ============================================================ */
-      .shell {
-        height: 48px;
-        background: var(--shell);
-        color: var(--shell-text);
-        display: flex;
-        align-items: stretch;
-        padding-left: 16px;
-        position: relative;
-        z-index: 1200;
-      }
-      .shell .brand {
-        display: flex;
-        align-items: center;
-        font-weight: 600;
-        padding-right: 16px;
-        white-space: nowrap;
-      }
-      .shell .page {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        border-left: 1px solid var(--shell-line);
-        padding: 0 16px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .shell .page span {
-        color: color-mix(in srgb, var(--shell-text) 70%, var(--shell));
-      }
-      .shell .sp {
-        flex: 1;
-      }
-      /* night mode switch, right of the header bar */
-      .themebtn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 0 16px;
-        background: transparent;
-        border: 0;
-        border-left: 1px solid var(--shell-line);
-        color: var(--shell-text);
-        cursor: pointer;
-        transition: background 0.07s var(--ease);
-      }
-      .themebtn:hover {
-        background: var(--shell-hover);
-      }
-      .themebtn[aria-pressed="true"] {
-        box-shadow: inset 0 -2px 0 var(--primary);
-      }
-
-      /* ============================================================
          LAYOUT
-         Header on top, side panel (384px) left, map right.
+         Left panel (384px), map, and the right panel (384px) over the
+         right edge of the map. --rp-w = how much of the map it covers.
          ============================================================ */
       .app {
-        height: calc(100vh - 48px);
+        --rp-w: 0px;
+        height: 100vh;
         display: grid;
         grid-template-columns: 384px 1fr;
         position: relative;
         font-size: 14px;
         line-height: 20px;
         background: var(--bg);
+        overflow: hidden;
+      }
+      .app.rp-open {
+        --rp-w: 384px;
       }
 
       /* ============================================================
@@ -209,17 +158,122 @@
         gap: 32px;
       }
 
-      /* the old in-panel title line is replaced by the header bar */
-      .kick {
-        display: none;
-      }
-
-      /* scale name + subtitle ("Singapore Scale" / "Site Finder") */
+      /* title + scale indicator */
       .scalehead {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 12px;
         align-items: flex-start;
+      }
+      .title {
+        margin: 0;
+        font-family: var(--serif);
+        font-weight: 300;
+        font-size: 28px;
+        line-height: 36px;
+        letter-spacing: 0;
+      }
+      /* four squares, largest = Singapore; the current scale is orange */
+      .scaleind {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .sqs {
+        display: flex;
+        align-items: flex-end;
+        gap: 4px;
+      }
+      .sq {
+        width: var(--s);
+        height: var(--s);
+        padding: 0;
+        border: 0;
+        background: var(--muted);
+        cursor: pointer;
+      }
+      .sq:hover {
+        background: var(--text);
+      }
+      .sq.on {
+        background: var(--primary);
+        cursor: default;
+      }
+      .sq:disabled {
+        background: var(--border);
+        cursor: default;
+      }
+      .scname {
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
+        color: var(--muted);
+      }
+      /* "Total embodied carbon" — same type as the title */
+      .clbl {
+        margin: 0 0 4px;
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
+        color: var(--muted);
+      }
+      .ct-n {
+        font-family: var(--serif);
+        font-weight: 300;
+        font-size: 28px;
+        line-height: 36px;
+        letter-spacing: 0;
+      }
+      .ct-u {
+        font-size: 12px;
+        letter-spacing: 0.32px;
+        color: var(--muted);
+      }
+      /* list headings with column labels over the numbers */
+      .lghead {
+        display: grid;
+        grid-template-columns: 1fr 52px 72px;
+        gap: 12px;
+        align-items: baseline;
+        padding: 0 8px 12px 0;
+      }
+      .lghead.typ {
+        grid-template-columns: 1fr 52px;
+      }
+      .lghead > span:first-child {
+        font-weight: 600;
+        letter-spacing: 0.16px;
+      }
+      .lghead .n {
+        font-family: var(--sans);
+        color: var(--muted);
+      }
+      .lg.typ {
+        grid-template-columns: 16px 16px 1fr 52px;
+      }
+      .dek.note,
+      .dek.small {
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
+      }
+      .dek.note {
+        margin-top: 12px;
+      }
+      /* a list section flashes when the Map mode switch scrolls to it */
+      @keyframes flash {
+        from {
+          background: color-mix(in srgb, var(--primary) 22%, transparent);
+        }
+        to {
+          background: transparent;
+        }
+      }
+      section.flash {
+        animation: flash 0.9s var(--ease);
+      }
+      .panel section {
+        scroll-margin-top: 16px;
       }
       .btn-o {
         font-size: 12px;
@@ -352,77 +406,6 @@
         letter-spacing: 0.32px;
       }
 
-      /* RTO site tiles */
-      .sites {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-      }
-      .sitebtn {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 16px;
-        align-items: center;
-        background: var(--surface);
-        border: 0;
-        padding: 12px 16px;
-        cursor: pointer;
-        text-align: left;
-        transition: background 0.07s var(--ease);
-      }
-      .sitebtn:hover {
-        background: var(--hover);
-        box-shadow: inset 3px 0 0 var(--primary);
-      }
-      .sitebtn b {
-        font-weight: 600;
-        font-size: 16px;
-        line-height: 24px;
-      }
-      .sitebtn small {
-        color: var(--muted);
-        font-size: 12px;
-        line-height: 16px;
-        letter-spacing: 0.32px;
-        display: block;
-      }
-      .sitebtn .n:first-child {
-        color: var(--link);
-        font-weight: 400;
-      }
-      .sitebtn .n {
-        font-family: var(--mono);
-        font-size: 12px;
-        letter-spacing: 0.32px;
-        color: var(--muted);
-      }
-
-      /* "When possible RTO" toggles */
-      .chips {
-        display: flex;
-        flex-wrap: wrap;
-      }
-      .chip {
-        background: transparent;
-        color: var(--text);
-        border: 1px solid var(--text);
-        padding: 9px 16px;
-        font-size: 14px;
-        line-height: 20px;
-        cursor: pointer;
-        transition: background 0.07s var(--ease);
-      }
-      .chip + .chip {
-        border-left: 0;
-      }
-      .chip:hover {
-        background: var(--hover);
-      }
-      .chip[aria-pressed="true"] {
-        background: var(--text);
-        color: var(--bg);
-      }
-
       /* checkbox lists (VERS bands, block types) */
       .legend {
         display: flex;
@@ -541,6 +524,19 @@
         letter-spacing: 0.32px;
         text-align: right;
       }
+      .tw.on {
+        background: var(--surface);
+        box-shadow: inset 3px 0 0 var(--primary);
+      }
+      .tw.static {
+        cursor: default;
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .tw.static:hover {
+        background: none;
+        box-shadow: none;
+      }
 
       /* lease clock bar */
       .clock {
@@ -561,18 +557,39 @@
         flex-direction: column;
         gap: 2px;
       }
-      .fac {
+      .fachead {
+        display: grid;
+        padding: 0 16px 8px;
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
+        color: var(--muted);
+      }
+      .fachead span,
+      .fac .fc {
+        text-align: center;
+      }
+      .fac .fn {
         display: flex;
-        justify-content: space-between;
+        align-items: center;
+        font-family: var(--sans);
+        font-size: 14px;
+        letter-spacing: 0.16px;
+      }
+      .fac {
+        display: grid;
         align-items: center;
         min-height: 40px;
         background: var(--text);
         color: var(--bg);
         border: 0;
-        padding: 10px 16px;
+        padding: 8px 16px;
         cursor: pointer;
         text-align: left;
         transition: background 0.07s var(--ease);
+      }
+      .fac[aria-pressed="false"] .amk {
+        opacity: 0.45;
       }
       .fac:hover {
         background: color-mix(in srgb, var(--text) 88%, var(--bg));
@@ -613,11 +630,14 @@
       .amk {
         display: inline-grid;
         place-items: center;
+        flex: none;
         width: 24px;
         height: 24px;
         margin-right: 8px;
         vertical-align: -6px;
-        color: var(--text);
+        border-radius: 50%;
+        color: #1c1c1e;
+        box-shadow: inset 0 0 0 1px rgba(28, 28, 30, 0.45);
       }
 
       /* block typology bar */
@@ -787,7 +807,7 @@
       /* ============================================================
          MAP AREA
          The map and what floats on it: breadcrumb (.crumbs), hint
-         bubble, legend (.maplegend), minimap (.locator), tooltip (.tip).
+         bubble, Style / Day–Night buttons (.mapctl), tooltip (.tip).
          ============================================================ */
       .mapwrap {
         position: relative;
@@ -804,9 +824,8 @@
       /* white floating boxes on the map share this look */
       .crumbs,
       .hint,
-      .maplegend,
-      .locator,
       .stylebtn,
+      .themebtn,
       .ringlbl {
         background: var(--bg);
         color: var(--text);
@@ -879,7 +898,7 @@
 
       .hint {
         position: absolute;
-        left: 50%;
+        left: calc((100% - var(--rp-w)) / 2);
         bottom: 24px;
         transform: translateX(-50%);
         z-index: 900;
@@ -895,56 +914,10 @@
         color: var(--primary);
         font-weight: 600;
       }
-
-      .maplegend {
-        position: absolute;
-        right: 16px;
-        bottom: 32px;
-        width: 224px;
-        transition: bottom 0.24s var(--ease);
-        z-index: 900;
-        padding: 16px;
-        font-size: 12px;
-        line-height: 16px;
-        letter-spacing: 0.32px;
-      }
-      /* when the minimap is showing, the legend sits just above it */
-      .with-locator .maplegend {
-        bottom: 166px;
-      }
-      .maplegend .ttl {
-        font-weight: 600;
-        font-size: 14px;
-        line-height: 18px;
-        letter-spacing: 0.16px;
-        margin-bottom: 12px;
-      }
-      .maplegend .it {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin: 6px 0;
-      }
-      .maplegend .it i {
-        width: 16px;
-        height: 16px;
-        flex: none;
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 16%, transparent);
-      }
-
-      .locator {
-        position: absolute;
-        right: 16px;
-        bottom: 32px;
-        z-index: 900;
-        width: 224px;
-        height: 126px;
-        transition: opacity 0.24s var(--ease);
-        padding: 8px;
-      }
-      .locator canvas {
-        width: 100%;
-        height: 100%;
+      /* at block scale the hint sits at the top, clear of the block card */
+      .has-card .hint {
+        bottom: auto;
+        top: 72px;
       }
 
       /* hover tooltip — ink box */
@@ -976,14 +949,175 @@
         color: color-mix(in srgb, var(--bg) 72%, var(--text));
       }
 
-      /* amenity icons on the map */
+      /* facility markers on the map: coloured circle, black line icon */
       .pin {
         display: grid;
         place-items: center;
-        border: 1px solid var(--text);
+        border-radius: 50%;
+        border: 1px solid rgba(28, 28, 30, 0.6);
+        color: #1c1c1e;
+        width: 24px;
+        height: 24px;
+      }
+
+      /* ============================================================
+         RIGHT PANEL
+         Navigator, summary card, bar graphs, At risk, precinct extras.
+         ============================================================ */
+      .rpanel {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 384px;
+        background: var(--bg);
         color: var(--text);
-        width: 26px;
-        height: 26px;
+        border-left: 1px solid var(--border);
+        overflow-y: auto;
+        z-index: 1000;
+        transform: translateX(102%);
+        transition: transform 0.24s var(--ease);
+        zoom: var(--ui-scale, 1);
+      }
+      .app.rp-open .rpanel {
+        transform: none;
+      }
+      .rp-inner {
+        padding: 0 16px 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+      .rphead {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        min-height: 48px;
+        margin: 0 -16px -16px;
+        padding-left: 16px;
+        border-bottom: 1px solid var(--border);
+        font-size: 12px;
+        letter-spacing: 0.32px;
+        color: var(--muted);
+      }
+      .navbox {
+        height: 196px;
+        background: var(--surface);
+      }
+      .navbox canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .summary h3 {
+        margin: 0;
+      }
+      /* reopens the right panel after × */
+      .rptab {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 990;
+        writing-mode: vertical-rl;
+        padding: 16px 10px;
+        background: var(--text);
+        color: var(--bg);
+        border: 0;
+        cursor: pointer;
+      }
+      .rptab:hover {
+        background: color-mix(in srgb, var(--text) 88%, var(--bg));
+      }
+      .app.rp-open .rptab {
+        display: none;
+      }
+
+      /* ============================================================
+         BLOCK CARD (block scale) — bottom centre of the map
+         ============================================================ */
+      .blkcard {
+        position: absolute;
+        left: 16px;
+        right: calc(var(--rp-w) + 16px);
+        bottom: 0;
+        max-width: 720px;
+        max-height: 45%;
+        margin: 0 auto;
+        z-index: 960;
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        transform: translateY(102%);
+        transition: transform 0.24s var(--ease), right 0.24s var(--ease);
+      }
+      .blkcard.open {
+        transform: none;
+      }
+      .bc-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 16px 0 12px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      .bc-head .iconbtn {
+        margin-top: -12px;
+      }
+      .bc-id {
+        flex: 1;
+        min-width: 0;
+      }
+      .bc-id h3 {
+        margin: 0;
+        font-weight: 400;
+        font-size: 20px;
+        line-height: 28px;
+      }
+      .bc-id .clock {
+        margin-top: 8px;
+      }
+      .bc-id .dek.small {
+        margin-top: 6px;
+      }
+      .bc-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        padding: 16px;
+        overflow-y: auto;
+        min-height: 0;
+      }
+      .bc-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 0 0 0 16px;
+        border-top: 1px solid var(--border);
+      }
+      .bc-count {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .bc-count b {
+        font-weight: 300;
+        font-size: 28px;
+        line-height: 36px;
+      }
+      .bc-foot .apply {
+        width: auto;
+        min-width: 260px;
+      }
+      .blkcard.min .bc-body,
+      .blkcard.min .clock,
+      .blkcard.min .bc-id .dek {
+        display: none;
       }
 
       /* ============================================================
@@ -992,19 +1126,67 @@
          ============================================================ */
       .drawer {
         position: absolute;
-        top: 0;
-        right: 0;
+        left: 16px;
+        right: calc(var(--rp-w) + 16px);
         bottom: 0;
-        width: min(464px, 100%);
+        height: 80%;
+        max-width: 720px;
+        margin: 0 auto;
         background: var(--bg);
         color: var(--text);
-        z-index: 1000;
-        transform: translateX(102%);
+        z-index: 1010;
+        transform: translateY(102%);
         transition: transform 0.24s var(--ease);
         display: flex;
         flex-direction: column;
-        border-left: 1px solid var(--border);
-        box-shadow: -8px 0 24px rgba(28, 28, 30, 0.14);
+        border: 1px solid var(--border);
+        border-bottom: 0;
+        box-shadow: 0 -8px 24px rgba(28, 28, 30, 0.14);
+      }
+      .scrim {
+        position: absolute;
+        inset: 0;
+        z-index: 1005;
+        background: rgba(20, 20, 22, 0.45);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.24s var(--ease);
+      }
+      .scrim.on {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      /* the large "carbon saved" figure under Adapt / Harvest */
+      .saved {
+        margin-top: 16px;
+        background: var(--surface);
+        padding: 24px 16px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-height: 152px;
+        justify-content: center;
+      }
+      .saved .sv-k,
+      .saved .sv-u {
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
+        color: var(--muted);
+      }
+      .saved .sv-n {
+        font-family: var(--serif);
+        font-weight: 300;
+        font-size: 42px;
+        line-height: 50px;
+      }
+      .saved .sv-n small {
+        font-size: 20px;
+      }
+      .saved .sv-tbc {
+        font-size: 20px;
+        line-height: 28px;
       }
       .drawer.open {
         transform: none;
@@ -1269,7 +1451,8 @@
         top: 0;
       }
       .leaflet-right {
-        right: 0;
+        right: var(--rp-w);
+        transition: right 0.24s var(--ease);
       }
       .leaflet-bottom {
         bottom: 0;
@@ -1304,11 +1487,20 @@
          STYLE EDITOR
          The Style button and the editor panel on the left of the map.
          ============================================================ */
-      .stylebtn {
+      .mapctl {
         position: absolute;
         top: 16px;
-        right: 16px;
+        right: calc(var(--rp-w) + 16px);
         z-index: 950;
+        display: flex;
+        gap: 2px;
+        transition: right 0.24s var(--ease);
+      }
+      .themebtn[aria-pressed="true"] {
+        box-shadow: inset 0 -2px 0 var(--primary);
+      }
+      .stylebtn,
+      .themebtn {
         display: inline-flex;
         align-items: center;
         gap: 8px;
@@ -1317,7 +1509,8 @@
         cursor: pointer;
         transition: background 0.07s var(--ease);
       }
-      .stylebtn:hover {
+      .stylebtn:hover,
+      .themebtn:hover {
         background: var(--hover);
       }
       .stylebtn[aria-pressed="true"] {
@@ -1465,14 +1658,51 @@
          SMALL SCREENS (phones)
          ============================================================ */
       @media (max-width: 860px) {
-        .shell .page span,
         .themebtn .lbl-t {
           display: none;
         }
-        .app {
+        .app,
+        .app.rp-open {
+          --rp-w: 0px;
           grid-template-columns: minmax(0, 1fr);
-          grid-template-rows: 58vh auto;
+          grid-template-rows: 58vh auto auto;
           height: auto;
+          overflow: visible;
+        }
+        /* the right panel becomes a section under the left panel */
+        .rpanel {
+          position: static;
+          width: auto;
+          transform: none;
+          border-left: 0;
+          border-top: 1px solid var(--border);
+          overflow: visible;
+        }
+        .rphead .iconbtn,
+        .rptab {
+          display: none;
+        }
+        /* block card and form become full-width sheets from the bottom */
+        .blkcard,
+        .drawer,
+        .scrim {
+          position: fixed;
+        }
+        .blkcard,
+        .drawer {
+          left: 0;
+          right: 0;
+          max-width: none;
+        }
+        .blkcard {
+          max-height: 70vh;
+        }
+        .drawer {
+          top: 0;
+          height: auto;
+        }
+        .bc-body {
+          grid-template-columns: 1fr;
         }
         .mapwrap {
           height: 58vh;
@@ -1482,10 +1712,6 @@
           overflow: visible;
           border-right: 0;
         }
-        .maplegend,
-        .locator {
-          display: none;
-        }
         html,
         body {
           height: auto;
@@ -1494,26 +1720,18 @@
       @media (prefers-reduced-motion: reduce) {
         *,
         .drawer,
-        .styleed {
+        .styleed,
+        .rpanel,
+        .blkcard {
           transition: none !important;
+          animation: none !important;
         }
       }
     </style>
   </head>
   <body>
-    <!-- The whole page: side panel (left) + map (right).
+    <!-- The whole page: left panel, map, right panel.
          Most boxes start empty — the script fills them in. -->
-    <!-- HEADER BAR -->
-    <header class="shell">
-      <span class="brand">On Public Good</span>
-      <span class="page">Retrofit-To-Order <span>· Part 3</span></span>
-      <span class="sp"></span>
-      <button class="themebtn" id="themeBtn" type="button" aria-pressed="false" title="Switch to night mode">
-        <svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-        <span class="lbl-t">Night</span>
-      </button>
-    </header>
-
     <section class="app" id="app" aria-label="Interactive map">
 
       <!-- SIDE PANEL — filled by renderPanel() -->
@@ -1526,17 +1744,28 @@
         <div id="mapHome"></div>                                          <!-- the map itself -->
         <nav class="crumbs" id="crumbs" aria-label="Map location"></nav>  <!-- "← Back  Singapore › Town › …" -->
 
-        <div class="hint" id="hint"></div>                                <!-- white hint bubble, bottom centre -->
-        <div class="maplegend" id="maplegend"></div>                      <!-- map key, bottom right -->
-        <div class="locator" id="locator" style="opacity: 0">             <!-- small island map, bottom right under the legend -->
-          <canvas id="locCanvas" width="340" height="200"></canvas>
-        </div>
+        <div class="hint" id="hint"></div>                                <!-- hint bubble, bottom centre -->
         <div class="tip" id="tip"></div>                                  <!-- hover tooltip -->
 
-        <button class="stylebtn" id="styleBtn" aria-pressed="false" title="Edit map styling (S)"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>Style</button>
+        <div class="mapctl">                                              <!-- top right: Style + Day / Night -->
+  <button class="stylebtn" id="styleBtn" aria-pressed="false" title="Edit map styling (S)"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>Style</button>
+          <button class="themebtn" id="themeBtn" type="button" aria-pressed="false" title="Switch to night mode">
+            <svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            <span class="lbl-t">Night</span>
+          </button>
+        </div>
+
         <aside class="styleed" id="styleEd" aria-label="Style editor" aria-hidden="true"></aside>       <!-- style editor -->
-        <aside class="drawer" id="drawer" aria-label="Retrofit-To-Order application" aria-hidden="true"></aside>  <!-- RTO form -->
+        <section class="blkcard" id="blkcard" aria-label="Block details" aria-hidden="true"></section>  <!-- block scale: bottom centre -->
+        <div class="scrim" id="scrim"></div>                              <!-- dims the map under the RTO form -->
+        <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Retrofit-To-Order application" aria-hidden="true"></aside>  <!-- RTO form -->
       </div>
+
+      <!-- RIGHT PANEL — filled by panelRight() -->
+      <aside class="rpanel" id="rpanel" aria-label="Details">
+        <div class="rp-inner" id="rpInner"></div>
+      </aside>
+      <button class="rptab" id="rpTab" type="button">Details</button>
     </section>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
@@ -1553,8 +1782,8 @@
              state machine ....... the zoom levels: 0 island · 1 town · 2 precinct/site · 3 block
              amenities ........... MRT, schools, hawkers… within the walking rings
              hit testing ......... what is under the mouse + tooltip text (describe)
-             crumbs / legend ..... breadcrumb, map key, locator map
-             SIDE PANEL .......... panelCity / panelPrecinct / panelProject
+             crumbs .............. breadcrumb
+             SIDE PANELS ......... panelLeft / panelRight / drawNav / renderBlockCard
              RTO FORM ............ the voting form (renderForm)
              style editor ........ the Style panel
              deep links .......... #town-…, #site-1, #precinct-…, #block-… in the address bar
@@ -1564,25 +1793,22 @@
 
         /* ---------- SETTINGS ---------- */
         const NOW = 2026; // "this year" — used for how much of a lease has been used
-        let VB = 2027; // VERS base year, from the QGIS expression (years till VERS = lease start + 70 − VB)
+        let VB = 2026; // VERS base year: years till VERS-eligible = lease start + 70 − VB (map.json "versBase")
 
-        // The 7 "years till VERS-eligible" groups: 0–10, 10–20 … 60+ (k = group number)
-        const BANDS = [0, 1, 2, 3, 4, 5, 6].map((k) => ({
-          k,
-          lo: k ? k * 10 : -999,
-          hi: k === 6 ? 999 : (k + 1) * 10,
-        }));
+        // The 7 "years till VERS-eligible" groups, by eligible year (DESIGN.md §2.5):
+        // 0–10 yrs = eligible 2027–2036 (and any block already past 70), 10–20 = 2037–2046 … 60+ = 2087 on.
+        // A block eligible in 2036 is 10 yrs away and sits in 0–10.
+        const BANDS = [0, 1, 2, 3, 4, 5, 6].map((k) => ({ k }));
         const bandLabel = (b) => (b.k === 6 ? `60+ yrs` : `${b.k * 10}–${b.k * 10 + 10} yrs`);
         const bandYears = (b) =>
-          b.k === 6 ? `${VB + 60} on` : `${VB + b.k * 10}–${VB + b.k * 10 + 9}`;
-        // Block types, in the same order as the "form" field in the QGIS typology layer
+          b.k === 6 ? `${VB + 61} on` : `${VB + b.k * 10 + 1}–${VB + b.k * 10 + 10}`;
+        // Block types, in the same order as "block_type" in the QGIS layer hdb_block_type_full (every block has one)
         const TYP = [
           { k: 0, name: "Point block" },
           { k: 1, name: "Slab block" },
           { k: 2, name: "Long slab >120 m" },
           { k: 3, name: "Bent block" },
           { k: 4, name: "Courtyard block" },
-          { k: 5, name: "Low Risk" }, // blocks outside the typology analysis (50+ years left)
         ];
         // Amenity types: icon, name, colour (overridden by style.json), and which facility button
         // group they belong to (t transport · s schools · c food · h clinics · p parks).
@@ -1612,6 +1838,8 @@
           close: '<path d="M18 6 6 18"/> <path d="m6 6 12 12"/>', // x
           settings: '<path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/> <circle cx="12" cy="12" r="3"/>', // settings
           arrow: '<path d="M5 12h14"/> <path d="m12 5 7 7-7 7"/>', // arrow-right
+          chevdown: '<path d="m6 9 6 6 6-6"/>', // chevron-down
+          chevup: '<path d="m18 15-6-6-6 6"/>', // chevron-up
         };
         const icon = (name, size = 16) =>
           `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -1653,8 +1881,9 @@
           },
           vers: ["#E1001C", "#E61518", "#FB6B4B", "#FCAF93", "#FEE1D3", "#FEE8DD", "#FFEEE6"],
           versRental: "#FFF5F0",
-          typ: ["#D7191C", "#FDAE61", "#FFFFBF", "#ABDDA4", "#2B83BA", "#8a8a8a"],
+          typ: ["#E5B636", "#5DC963", "#21908D", "#3B528B", "#440154"], // QGIS 261118 RTO Interface
           blocks: {
+            out: "#B8B4AC", // blocks outside the selected town / precinct
             opacity: 0.95,
             dim: 0.18,
             context: 0.3,
@@ -1670,16 +1899,17 @@
           recovery: { color: "#1C1C1E", weight: 2 },
           sites: { outline: false, color: "#1C1C1E", weight: 1.5 },
           parks: { fill: "#9fd18b", opacity: 0.55, connector: "#4f9b3a", connectorWeight: 2 },
+          // facility palette (Asher's reference sheet): one colour per facility group
           amen: {
-            mrt: { color: "#bfeee9", show: true },
-            bus: { color: "#7fd3ff", show: true },
-            school: { color: "#ffe08a", show: true },
-            pre: { color: "#ffd0e0", show: true },
-            hawker: { color: "#ffc59a", show: true },
-            clinic: { color: "#e2d4ff", show: true },
-            park: { color: "#c8f0b4", show: true },
+            mrt: { color: "#075DA8", show: true }, // transport — blue
+            bus: { color: "#075DA8", show: true },
+            school: { color: "#FFD203", show: true }, // schools / kindergartens — yellow
+            pre: { color: "#FFD203", show: true },
+            hawker: { color: "#EE7A23", show: true }, // hawker / food centres — orange
+            clinic: { color: "#EE7191", show: true }, // clinics — pink
+            park: { color: "#31746B", show: true }, // parks — green
           },
-          amenSize: { pin: 26, dot: 5 },
+          amenSize: { pin: 24, dot: 18 }, // circle sizes: main facilities, and bus stops / pre-schools / clinics
           overlays: {
             legend: true,
             hint: true,
@@ -1688,7 +1918,7 @@
             styleButton: true,
           },
         };
-        const STYLE_KEY = "opg-style-v4"; // bump the number to make every browser forget old saved edits
+        const STYLE_KEY = "opg-style-v5"; // bump the number to make every browser forget old saved edits
         const clone = (o) => JSON.parse(JSON.stringify(o));
         function merge(a, b) {
           if (!b || typeof b !== "object") return a;
@@ -1720,7 +1950,7 @@
             dark: { land: "#232326", line: "#3A3A3D", lineOpacity: 1, lineWeight: 0.8, water: "#141416" },
             light: { land: "#2A2A2D", line: "#3A3A3D", lineOpacity: 1, lineWeight: 0.8, water: "#141416" },
           },
-          blocks: { outline: "#141416", selected: "#FFFFFF", sers: "#FFFFFF" },
+          blocks: { outline: "#141416", selected: "#FFFFFF", sers: "#FFFFFF", out: "#4A4A4E" },
           hover: { dark: "#F0EEE9", light: "#F0EEE9" },
           precinct: { outline: "#F0EEE9", outlineOpacity: 0.35, light: "#F0EEE9" },
           rings: { color: "#A8A39A" },
@@ -1802,9 +2032,7 @@
             const el = document.getElementById(id);
             if (el) el.style.display = on ? "" : "none";
           };
-          show("maplegend", T.overlays.legend);
           show("hint", T.overlays.hint);
-          show("locator", T.overlays.locator);
           show("crumbs", T.overlays.crumbs);
           show("styleBtn", T.overlays.styleButton);
         }
@@ -1849,9 +2077,7 @@
           blk: null,
           colorBy: "vers",
           on: new Set([0, 1, 2, 3, 4, 5, 6]),
-          typOn: new Set([0, 1, 2, 3, 4, 5]),
-          sersOnly: false,
-          window: null,
+          typOn: new Set([0, 1, 2, 3, 4]),
           fac: { t: true, s: true, c: true, h: false, p: true },
         };
 
@@ -1871,7 +2097,8 @@
         }
         function bandOf(v) {
           if (v == null) return "unk";
-          return BANDS.find((b) => v >= b.lo && v < b.hi).k;
+          if (v <= 10) return 0; // eligible by VB + 10, or already past year 70
+          return Math.min(6, Math.ceil(v / 10) - 1);
         }
         function pip(pt, ring) {
           let x = pt.lng,
@@ -1974,7 +2201,7 @@
               pc: a[8],
               sers: a[9],
               ro: a[10],
-              ty: a[11] == null ? 5 : a[11],
+              ty: a[11] == null ? 0 : a[11],
               len: a[12],
               ec: a[13],
               gfa: a[14],
@@ -2030,6 +2257,8 @@
               ln += c.lng;
             });
             pr.c = [la / pr.blocks.length, ln / pr.blocks.length];
+            const vs = pr.blocks.map((b) => b.v).filter((v) => v != null);
+            pr.early = vs.length ? Math.min(...vs) : null;
           });
           sites = D.sites.map((id) => precs[id]);
           hiLayer = L.layerGroup().addTo(map);
@@ -2037,34 +2266,34 @@
           overlayLayer = L.layerGroup().addTo(map);
           map.fitBounds(baseLayer.getBounds(), { padding: [10, 10] });
           wire();
+          map.on("move", () => requestAnimationFrame(drawNav));
+          addEventListener("resize", () => requestAnimationFrame(drawNav));
           addEventListener("hashchange", applyHash);
           addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
-              edOpen ? toggleEditor() : drawerOpen ? (closeDrawer(), renderPanel()) : goUp();
+              edOpen ? toggleEditor() : drawerOpen ? (closeDrawer(), renderPanel(), CARD.querySelector("#applyBtn")?.focus()) : goUp();
             }
           });
           applyHash();
         }
 
         /* ---------- styling ---------- */
+        // Both checkbox lists (VERS status and Block type) always filter the map;
+        // the Map mode switch only decides which one colours it.
         function visible(p) {
-          if (S.sersOnly && !p.sers) return false;
-          if (S.colorBy === "vers" && p.band !== "unk" && !S.on.has(p.band)) return false;
+          if (p.band !== "unk" && !S.on.has(p.band)) return false;
           if (!S.typOn.has(p.ty)) return false;
-          if (S.window) {
-            const yr = p.ls == null ? null : p.ls + 70;
-            if (yr == null || yr < S.window[0] || yr >= S.window[1]) return "dim";
-          }
           return true;
         }
         function styleFor(p) {
+          const B = T.blocks;
+          // outside the selected town / precinct: one flat grey, no colour
+          if (S.state >= 1 && !inScope(p)) return { fill: true, fillColor: B.out, fillOpacity: 1, stroke: false };
           const v = visible(p);
           if (!v) return { stroke: false, fill: false };
           const light = S.state >= 2;
           const col = S.colorBy === "typ" ? CT[p.ty] : CB[p.band];
-          const B = T.blocks;
-          let op = v === "dim" ? B.dim : B.opacity;
-          if (S.state >= 2 && p.pid !== S.prec) op = Math.min(op, B.context);
+          let op = B.opacity;
           if (S.state === 3 && p !== S.blk)
             op = Math.min(
               op,
@@ -2128,7 +2357,7 @@
           "Hover a town or an RTO site · <b>click</b> to zoom in",
           "Hover a precinct · <b>click</b> to zoom in",
           "Hover a block · <b>click</b> to see its future",
-          "<b>Apply for RTO</b> in the panel · Esc to go back",
+          "<b>Apply for RTO</b> below · Esc to go back",
         ];
         const seen = new Set();
         function showHint() {
@@ -2151,7 +2380,14 @@
               restyle();
             }, 60),
           );
-          map.flyToBounds(b, { padding: pad, duration: reduce ? 0 : 0.8, maxZoom: 18 });
+          // leave room for the right panel and, at block scale, the block card
+          const card = S.state === 3 ? Math.min(CARD.offsetHeight || 0, map.getSize().y * 0.45) : 0;
+          map.flyToBounds(b, {
+            paddingTopLeft: pad,
+            paddingBottomRight: [pad[0] + rpWidth(), pad[1] + card],
+            duration: reduce ? 0 : 0.8,
+            maxZoom: 18,
+          });
         }
         function go(state, opts = {}) {
           const prev = S.state;
@@ -2162,15 +2398,11 @@
           }
           if (state < 2) S.prec = null;
           if (state < 1) S.town = null;
-          if (state >= 2 && prev < 2) S.colorBy = "typ";
-          if (state < 2) S.colorBy = "vers";
           setBasemap(state >= 2);
           drawHighlights();
           restyle();
           renderPanel();
           renderCrumbs();
-          renderLegend();
-          renderLocator();
           showHint();
           if (!opts.noFly) {
             if (state === 0) fly(baseLayer.getBounds(), [10, 10]);
@@ -2258,6 +2490,7 @@
                   L.marker(top, {
                     interactive: false,
                     keyboard: false,
+                    zIndexOffset: 1000, // ring labels stay above the facility circles
                     icon: L.divIcon({
                       className: "",
                       html: `<span class="ringlbl" style="border-color:${T.rings.color}">${fmt(r)} m · ${walkMin(r)} min</span>`,
@@ -2326,31 +2559,19 @@
           Object.entries(n).forEach(([k, list]) => {
             const m = AM[k];
             if (!S.fac[m.grp] || !T.amen[k].show) return;
+            const sz = m.dot ? T.amenSize.dot : T.amenSize.pin;
             list.forEach(({ a, d }) => {
               const ll = [a[1], a[0]];
-              let mk;
-              if (m.dot)
-                mk = L.circleMarker(ll, {
-                  renderer,
-                  radius: T.amenSize.dot,
-                  color: "#fff",
-                  weight: 1.5,
-                  fillColor: m.bg,
-                  fillOpacity: 1,
-                });
-              else
-                mk = L.marker(ll, {
-                  icon: L.divIcon({
-                    className: "",
-                    html: `<div class="pin" style="
-                      background:${m.bg};
-                      width:${T.amenSize.pin}px; height:${T.amenSize.pin}px;
-                      ">${icon(k, Math.round(T.amenSize.pin * 0.6))}</div>`,
-                    iconSize: [T.amenSize.pin, T.amenSize.pin],
-                    iconAnchor: [T.amenSize.pin / 2, T.amenSize.pin / 2],
-                  }),
-                  keyboard: false,
-                });
+              const mk = L.marker(ll, {
+                icon: L.divIcon({
+                  className: "",
+                  html: `<div class="pin" style="background:${m.bg};width:${sz}px;height:${sz}px">${icon(k, Math.round(sz * 0.6))}</div>`,
+                  iconSize: [sz, sz],
+                  iconAnchor: [sz / 2, sz / 2],
+                }),
+                keyboard: false,
+                zIndexOffset: m.dot ? 0 : 100,
+              });
               const walkMinutes = Math.max(1, Math.round(d / 80)); // 80 m per minute
               const html = `
                 <b>${a[2] || m.name}</b>
@@ -2428,10 +2649,14 @@
               towns.find((t) => t !== S.town && t.bounds.contains(ll) && inRings(ll, t.ll)) || null
             );
           }
-          return (
-            blocks.find((p) => visible(p) && p.bounds.contains(ll) && inRings(ll, p.ll)) || null
-          );
+          const p = blocks.find((p) => p.bounds.contains(ll) && inRings(ll, p.ll));
+          if (!p) return null;
+          if (p.pid !== S.prec) return precs[p.pid]; // grey block outside the precinct: opens its precinct
+          return visible(p) ? p : null;
         }
+        // grey (outside the selection) things can be clicked but get no tooltip
+        const outside = (o) =>
+          (S.state === 1 && o.kind === "town") || (S.state >= 2 && o.kind === "prec");
         function vtxt(p) {
           return p.v == null
             ? "HDB-owned rental — no lease sold"
@@ -2442,11 +2667,11 @@
         // Tooltip text when hovering a town, precinct/site or block
         function describe(o) {
           if (o.kind === "town") {
-            const soon = o.blocks.filter((p) => p.v != null && p.v < 20).length;
-            const share = Math.round((soon / o.blocks.length) * 100);
+            const n = o.blocks.filter(soon).length;
+            const share = Math.round((n / o.blocks.length) * 100);
             return `
               <b>${o.name}</b>
-              <span class="m">${fmt(o.blocks.length)} blocks · ${fmt(soon)} VERS-eligible within 20 yrs (${share}%)</span>`;
+              <span class="m">${fmt(o.blocks.length)} blocks · ${fmt(n)} VERS-eligible within 20 yrs (${share}%)</span>`;
           }
           if (o.kind === "prec") {
             const title = o.site ? `${o.name} · ${tc(o.street)}` : `${tc(o.name)} precinct`;
@@ -2483,7 +2708,7 @@
               hoverObj = o;
               drawHighlights(o ? hoverFor(o, S.state >= 2) : null);
             }
-            o ? tipShow(e.originalEvent, describe(o)) : tipHide();
+            o && !outside(o) ? tipShow(e.originalEvent, describe(o)) : tipHide();
           });
           map.on("mouseout", () => {
             tipHide();
@@ -2493,7 +2718,7 @@
           map.on("click", (e) => {
             const o = hitTest(e.latlng);
             if (!o) return;
-            if (matchMedia("(hover:none)").matches && lastTap !== o) {
+            if (matchMedia("(hover:none)").matches && lastTap !== o && !outside(o)) {
               lastTap = o;
               tipShow(e.originalEvent, describe(o));
               drawHighlights(hoverFor(o, S.state >= 2));
@@ -2517,7 +2742,7 @@
           });
         }
 
-        /* ---------- crumbs / legend / locator ---------- */
+        /* ---------- crumbs ---------- */
         function renderCrumbs() {
           const c = document.getElementById("crumbs");
           const parts = [];
@@ -2545,274 +2770,226 @@
               }),
           );
         }
-        // Map key (bottom right of the map)
-        function renderLegend() {
-          const el = document.getElementById("maplegend");
-          const row = (colour, text) => `<div class="it"><i style="background:${colour}"></i>${text}</div>`;
-
-          if (S.colorBy === "typ") {
-            el.innerHTML = `
-              <div class="ttl">Block typology</div>
-              ${TYP.map((t) => row(CT[t.k], t.name)).join("")}
-              ${S.state === 2 ? `<div class="it"><i style="background:#9fd18b;border-color:#9fd18b"></i>Park / park connector</div>` : ""}`;
-          } else {
-            el.innerHTML = `
-              <div class="ttl">Years till VERS-eligible</div>
-              ${BANDS.map((b) => row(CB[b.k], `${bandLabel(b)} <span class="muted">(${bandYears(b)})</span>`)).join("")}
-              ${row(CB.unk, "HDB owned (rental)")}`;
-          }
-        }
-        function renderLocator() {
-          const box = document.getElementById("locator");
-          box.style.opacity = S.state >= 2 ? 1 : 0;
-          box.style.pointerEvents = S.state >= 2 ? "" : "none";
-          document.getElementById("mapwrap").classList.toggle("with-locator", S.state >= 2 && T.overlays.locator);
-          if (S.state < 2) return;
-          const cv = document.getElementById("locCanvas"),
-            g = cv.getContext("2d");
-          const b = baseLayer.getBounds();
-          const W = cv.width,
-            H = cv.height,
-            pad = 8;
-          const s = Math.min(
-            (W - 2 * pad) / (b.getEast() - b.getWest()),
-            (H - 2 * pad) / (b.getNorth() - b.getSouth()),
-          );
-          const P = (ll) => [pad + (ll[1] - b.getWest()) * s, H - pad - (ll[0] - b.getSouth()) * s];
-          g.clearRect(0, 0, W, H);
-          g.fillStyle = T.base.light.land; // land
-          D.sub.forEach(([n, pa, r]) =>
-            decode(r).forEach((ring) => {
-              g.beginPath();
-              ring.forEach((p, i) => {
-                const [x, y] = P(p);
-                i ? g.lineTo(x, y) : g.moveTo(x, y);
-              });
-              g.fill();
-            }),
-          );
-          const [x, y] = P(precs[S.prec].c);
-          g.fillStyle = T.ui.primary; // the precinct
-          g.beginPath();
-          g.arc(x, y, 6, 0, 7);
-          g.fill();
-          g.strokeStyle = T.ui.text;
-          g.lineWidth = 2;
-          g.stroke();
-        }
-
         /* =========================================================
-           SIDE PANEL
-           The dark column on the left (<aside id="panel">).
-           renderPanel() picks one of three layouts:
-             panelCity()      — City scale: Site Finder (island + town view)
-             panelPrecinct()  — Precinct scale: Residential Value
-             panelProject()   — Project scale: Retrofit-To-Order
-           Each one builds its HTML as a text template, puts it in
-           #panelInner, then connects the buttons ("wire up" section).
+           SIDE PANELS
+           Left panel  (<aside id="panel">)  — the same sections at every
+             scale; only the numbers change (they count the current scope).
+             → panelLeft()
+           Right panel (<aside id="rpanel">) — navigator, summary card,
+             bar graphs, "At risk", and extras for the precinct scale.
+             → panelRight()
+           Block card (bottom centre of the map, block scale only) —
+             flat details, embodied carbon, Apply for RTO.
+             → renderBlockCard()
+           Each one builds its HTML as a text template, then connects
+           the buttons ("wire up" section).
            ========================================================= */
         const P = document.getElementById("panelInner");
+        const RP = document.getElementById("rpInner");
+        const CARD = document.getElementById("blkcard");
 
         // Small helpers for building HTML
         const list = (items, fn) => items.map(fn).join(""); // one piece of HTML per item
         const when = (condition, htmlText) => (condition ? htmlText : ""); // HTML only if true
         const yearOrDash = (v) => (v == null ? "—" : VB + v); // years-till-VERS → calendar year
 
-        // Header shown at the top of every panel
-        function head(scaleName, subtitle, extra = "") {
-          return `
-            <div class="kick">
-              <span><b>On Public Good</b> · Part 3</span>
-              <span>Retrofit-To-Order</span>
-            </div>
-            <div class="scalehead">
-              <span class="btn-o">${scaleName}</span>
-              <span class="btn-o sub">${subtitle}</span>
-            </div>
-            ${extra}`;
+        const SCALES = ["Singapore", "Town", "Precinct", "Block"];
+        const soon = (p) => p.v != null && p.v <= 20; // VERS-eligible within 20 yrs (by VB + 20)
+        const precTitle = (pr) => (pr.site ? `${pr.name} · ${tc(pr.street)}` : `${tc(pr.name)} precinct`);
+        const sum = (arr, fn) => arr.reduce((s, x) => s + (fn(x) || 0), 0);
+
+        // The blocks the panels count: whole island, one town, or one precinct
+        // (at block scale the panels keep counting the block's precinct)
+        function scope() {
+          if (S.state === 0) return blocks;
+          if (S.state === 1) return S.town.blocks;
+          return precs[S.prec].blocks;
         }
+        function inScope(p) {
+          if (S.state === 0) return true;
+          if (S.state === 1) return p.t === S.town.name;
+          return p.pid === S.prec;
+        }
+        function scopeName() {
+          if (S.state === 0) return "Singapore";
+          if (S.state === 1) return S.town.name;
+          return precTitle(precs[S.prec]);
+        }
+        // one bar split into VERS band colours, for a set of blocks
+        function bandBar(bl) {
+          const per = [0, 0, 0, 0, 0, 0, 0];
+          bl.forEach((p) => p.band !== "unk" && per[p.band]++);
+          const n = bl.length || 1;
+          return list(per, (x, i) => when(x, `<i style="width:${(x / n) * 100}%;background:${CB[i]}"></i>`));
+        }
+        const shareSoon = (bl) => (bl.length ? bl.filter(soon).length / bl.length : 0);
 
         let lastState = -1;
+        let rpOpen = true; // right panel open (× closes it, the "Details" tab reopens it)
+        let cardMin = false; // block card collapsed
         function renderPanel() {
           // scroll back to the top when the scale changes
-          if (lastState !== S.state) {
+          const scaleChanged = lastState !== S.state;
+          panelLeft();
+          panelRight();
+          renderBlockCard();
+          if (scaleChanged) {
             document.getElementById("panel").scrollTop = 0;
+            document.getElementById("rpanel").scrollTop = 0;
             lastState = S.state;
           }
-          if (S.state <= 1) panelCity();
-          else if (S.state === 2) panelPrecinct();
-          else panelProject();
         }
 
-        /* ---------- City scale: Site Finder ---------- */
+        /* ---------- LEFT PANEL ---------- */
+        function panelLeft() {
+          const sc = scope();
 
-        // "RTO SITES" list of cards
-        function siteList() {
-          return `
-            <section>
-              <p class="lbl"><span>RTO sites</span><span>blocks · first VERS</span></p>
-              <div class="sites">
-                ${list(sites, (s) => `
-                  <button class="sitebtn" data-prec="${s.id}">
-                    <span class="n">${s.name.replace("Site ", "#")}</span>
-                    <span><b>${tc(s.street)}</b><small>${s.town}</small></span>
-                    <span class="n">${s.n} · ${yearOrDash(s.early)}</span>
-                  </button>`)}
-              </div>
-            </section>`;
-        }
-
-        function panelCity() {
-          // --- numbers ---
-          const scope = S.state === 1 ? S.town.blocks : blocks; // whole island, or one town
-
-          // blocks and flats per VERS band (respecting the SERS + block-type filters)
+          // blocks and flats per VERS band (respecting the block-type checkboxes)
           const bandBlocks = {}, bandFlats = {};
           BANDS.forEach((b) => { bandBlocks[b.k] = 0; bandFlats[b.k] = 0; });
-          scope.forEach((p) => {
-            if (p.band === "unk" || (S.sersOnly && !p.sers) || !S.typOn.has(p.ty)) return;
+          sc.forEach((p) => {
+            if (p.band === "unk" || !S.typOn.has(p.ty)) return;
             bandBlocks[p.band]++;
             bandFlats[p.band] += p.u;
           });
+          // blocks per type (respecting the VERS checkboxes)
+          const typBlocks = TYP.map((t) => sc.filter((p) => p.ty === t.k && (p.band === "unk" || S.on.has(p.band))).length);
 
-          // "Showing … blocks · … flats"
-          let showBlocks = 0, showFlats = 0;
-          scope.forEach((p) => {
-            if (visible(p) === true) { showBlocks++; showFlats += p.u; }
-          });
+          // what the map shows: "Showing …" and the carbon total follow both sets of checkboxes
+          const shown = sc.filter((p) => visible(p));
+          const showFlats = sum(shown, (p) => p.u);
+          const showCarbon = sum(shown, (p) => p.ec);
 
-          // towns ranked by share of blocks VERS-eligible within 20 years
-          const rank = towns
-            .map((t) => {
-              const perBand = [0, 0, 0, 0, 0, 0, 0];
-              t.blocks.forEach((p) => { if (p.band !== "unk") perBand[p.band]++; });
-              return { t, perBand, n: t.blocks.length, share: (perBand[0] + perBand[1]) / t.blocks.length };
-            })
-            .sort((a, b) => b.share - a.share)
-            .slice(0, 10);
-
-          // --- town summary card (town view only) ---
-          let townCard = "";
-          if (S.state === 1) {
-            const t = S.town;
-            let soon = 0, flats = 0, firstYears = 99;
-            t.blocks.forEach((p) => {
-              flats += p.u;
-              if (p.v != null) {
-                if (p.v < 20) soon++;
-                firstYears = Math.min(firstYears, p.v);
-              }
-            });
-            const precinctCount = precs.filter((p) => p && p.town === t.name).length;
-            townCard = `
-              <div class="box">
-                <h3>${t.name}</h3>
-                <dl>
-                  <dt>Blocks · flats</dt>      <dd>${fmt(t.blocks.length)} · ${fmt(flats)}</dd>
-                  <dt>VERS within 20 yrs</dt> <dd>${fmt(soon)} blocks</dd>
-                  <dt>First eligible</dt>     <dd>${VB + firstYears}</dd>
-                  <dt>Precincts</dt>          <dd>${precinctCount} <span class="tag">derived</span></dd>
-                </dl>
-              </div>`;
+          // ranking list: always the next level down
+          let rankHead = "", rankRows = "";
+          if (S.state === 0) {
+            rankHead = "Towns by share VERS-eligible within 20 yrs";
+            rankRows = list(
+              towns.map((t) => ({ t, share: shareSoon(t.blocks) })).sort((a, b) => b.share - a.share).slice(0, 10),
+              (r) => `
+                <button class="tw" data-town="${r.t.name}">
+                  <span>${r.t.name}</span>
+                  <span class="bar">${bandBar(r.t.blocks)}</span>
+                  <span class="pct">${Math.round(r.share * 100)}%</span>
+                </button>`);
+          } else if (S.state === 1) {
+            rankHead = "Precincts by share VERS-eligible within 20 yrs";
+            rankRows = list(
+              precs
+                .filter((p) => p && p.town === S.town.name)
+                .map((pr) => ({ pr, share: shareSoon(pr.blocks) }))
+                .sort((a, b) => b.share - a.share || (a.pr.early ?? 99) - (b.pr.early ?? 99))
+                .slice(0, 12),
+              (r) => `
+                <button class="tw" data-prec="${r.pr.id}">
+                  <span>${r.pr.site ? r.pr.name : tc(r.pr.name)}</span>
+                  <span class="bar">${bandBar(r.pr.blocks)}</span>
+                  <span class="pct">${Math.round(r.share * 100)}%</span>
+                </button>`);
+          } else {
+            rankHead = "Blocks by VERS-eligible year";
+            rankRows = list(
+              precs[S.prec].blocks.slice().sort((a, b) => (a.v ?? 99) - (b.v ?? 99)),
+              (p) => {
+                const used = p.ls == null ? 0 : Math.max(4, Math.min(100, ((NOW - p.ls) / 70) * 100)); // lease age ÷ 70
+                return `
+                <button class="tw ${when(S.blk === p, "on")}" data-i="${p.i}">
+                  <span>Blk ${p.b}</span>
+                  <span class="bar"><i style="width:${used}%;background:${CB[p.band]}"></i></span>
+                  <span class="pct">${yearOrDash(p.v)}</span>
+                </button>`;
+              });
           }
 
+          // scale indicator: one square per scale, largest = Singapore, current one orange
+          const scaleInd = `
+            <div class="scaleind">
+              <span class="sqs">
+                ${list(SCALES, (name, i) => `
+                  <button class="sq ${when(i === S.state, "on")}" data-scale="${i}" style="--s:${[16, 12, 9, 6][i]}px"
+                    ${when(i > S.state, "disabled")} aria-label="${name} scale" ${when(i === S.state, 'aria-current="true"')}></button>`)}
+              </span>
+              <span class="scname">${SCALES[S.state]} scale</span>
+            </div>`;
+
           // --- HTML ---
-          P.innerHTML =
-            head("Singapore Scale", "Site Finder",
-              `<p class="dek">Find blocks under threat of VERS demolition. Years till VERS-eligible = lease start + 70 − ${VB}.</p>`) +
-            townCard +
-            siteList() +
-            `
-            <section>
-              <p class="lbl"><span>When possible RTO</span></p>
-              <div class="chips">
-                <button class="chip" data-w="2030" aria-pressed="${!!(S.window && S.window[0] === 2030)}">2030–2040</button>
-                <button class="chip" data-w="2040" aria-pressed="${!!(S.window && S.window[0] === 2040)}">2040–2050</button>
-              </div>
-              <p class="dek" style="margin-top:8px;font-size:12px">Highlights blocks reaching year 70 in that decade.</p>
+          P.innerHTML = `
+            <div class="scalehead">
+              <h2 class="title">Retrofit-To-Order</h2>
+              ${scaleInd}
+            </div>
+            <p class="dek">Find blocks under threat of VERS demolition. Years till VERS-eligible = lease start + 70 − ${VB}.</p>
+
+            <section class="ctotal">
+              <p class="clbl">Total embodied carbon</p>
+              <div><span class="ct-n">${fmt(showCarbon)}</span> <span class="ct-u">t CO₂e</span></div>
             </section>
 
             <section>
-              <p class="lbl"><span>Years till VERS-eligible</span><span>blocks · flats</span></p>
+              <p class="lbl"><span>Map mode</span></p>
+              <div class="seg" id="modeSeg">
+                <button data-c="vers" aria-pressed="${S.colorBy === "vers"}">VERS status</button>
+                <button data-c="typ" aria-pressed="${S.colorBy === "typ"}">Block type</button>
+              </div>
+            </section>
+
+            <section id="sec-vers" class="${when(S.colorBy === "vers", "active")}">
+              <div class="lghead"><span>VERS status</span><span class="n">Blocks</span><span class="n">Flats</span></div>
               <div class="legend">
                 ${list(BANDS, (b) => `
                   <label class="lg">
                     <input type="checkbox" data-b="${b.k}" ${when(S.on.has(b.k), "checked")}>
                     <span class="sw" style="background:${CB[b.k]}"></span>
-                    <span>${bandLabel(b)} <span class="muted" style="font-size:12px">${bandYears(b)}</span></span>
+                    <span>${bandLabel(b)} <span class="muted">${bandYears(b)}</span></span>
                     <span class="n">${fmt(bandBlocks[b.k])}</span>
                     <span class="n u">${fmt(bandFlats[b.k])}</span>
                   </label>`)}
               </div>
-              <div class="tot"><span>Showing</span><span>${fmt(showBlocks)} blocks · ${fmt(showFlats)} flats</span></div>
+              <div class="tot"><span>Showing</span><span>${fmt(shown.length)} blocks · ${fmt(showFlats)} flats</span></div>
             </section>
 
-            <section>
-              <p class="lbl"><span>Filter</span></p>
-              <div style="display:flex;flex-direction:column;gap:10px">
-                <select id="townSel" aria-label="Town">
-                  <option value="">All towns</option>
-                  ${list(towns, (t) => `<option ${when(S.town === t, "selected")}>${t.name}</option>`)}
-                </select>
-                <label class="row" style="cursor:pointer">
-                  <input type="checkbox" id="sersOnly" ${when(S.sersOnly, "checked")}> <span>Only blocks announced for SERS</span>
-                </label>
-              </div>
-            </section>
-
-            <section>
-              <p class="lbl"><span>Block type</span><span>blocks</span></p>
+            <section id="sec-typ" class="${when(S.colorBy === "typ", "active")}">
+              <div class="lghead typ"><span>Block type</span><span class="n">Blocks</span></div>
               <div class="legend">
                 ${list(TYP, (t) => `
-                  <label class="lg" style="grid-template-columns:16px 14px 1fr 54px">
+                  <label class="lg typ">
                     <input type="checkbox" data-t="${t.k}" ${when(S.typOn.has(t.k), "checked")}>
                     <span class="sw" style="background:${CT[t.k]}"></span>
                     <span>${t.name}</span>
-                    <span class="n">${fmt(scope.filter((p) => p.ty === t.k).length)}</span>
+                    <span class="n">${fmt(typBlocks[t.k])}</span>
                   </label>`)}
               </div>
-              <p class="dek" style="font-size:12px;margin-top:6px">Typology from your QGIS layer (983 blocks with under 50 years left). Other blocks (50+ years left) are shown as "Low Risk".</p>
+              <p class="dek note">Block type from the QGIS project 261118 RTO Interface, for every HDB block.</p>
             </section>
 
-            ${when(S.state === 0, `
             <section>
-              <p class="lbl"><span>Towns by share VERS-eligible within 20 yrs</span></p>
-              <div class="towns">
-                ${list(rank, (r) => `
-                  <button class="tw" data-town="${r.t.name}">
-                    <span>${r.t.name}</span>
-                    <span class="bar">${list(r.perBand, (x, i) => when(x, `<i style="width:${(x / r.n) * 100}%;background:${CB[i]}"></i>`))}</span>
-                    <span class="pct">${Math.round(r.share * 100)}%</span>
-                  </button>`)}
-              </div>
-            </section>`)}
-
-            ${when(S.state === 1, `
-            <section>
-              <p class="lbl"><span>Precincts in ${S.town?.name}</span><span>first VERS</span></p>
-              <div class="towns">
-                ${list(
-                  precs
-                    .filter((p) => p && S.town && p.town === S.town.name)
-                    .sort((a, b) => (a.early ?? 99) - (b.early ?? 99))
-                    .slice(0, 12),
-                  (p) => `
-                  <button class="tw" data-prec="${p.id}">
-                    <span>${p.site ? `<b class="accent-txt">${p.name}</b>` : tc(p.name)}</span>
-                    <span class="bar"><i style="width:${Math.max(4, 100 - ((p.early ?? 60) / 60) * 100)}%;background:${CB[bandOf(p.early)]}"></i></span>
-                    <span class="pct">${yearOrDash(p.early)}</span>
-                  </button>`)}
-              </div>
-            </section>`)}
+              <p class="lbl"><span>${rankHead}</span></p>
+              <div class="towns">${rankRows}</div>
+            </section>
 
             <details class="method">
               <summary>Method &amp; sources</summary>
-              <p>All layers come from the QGIS project <i>261116_Singapore Cleaned</i>: HDB VERs Eligibility (lease start B), HDB typology metrics with embodied carbon, 261030 5 Sites, and MP2019 subzones as the base map.</p>
+              <p>Layers come from the QGIS project <i>261118 RTO Interface</i>: HDB block type with embodied carbon (every block), HDB VERS status (lease start B) and MP2019 subzones as the base map. Years till VERS-eligible = lease start + 70 − ${VB}; a block eligible in ${VB + 10} counts as 10 yrs.</p>
               <p>Towns are HDB towns, drawn by grouping each town's blocks. Precincts outside your sites are a stand-in: blocks clustered by distance (~14 per precinct), named after their most common street.</p>
               <p>Data: HDB, URA, LTA, MOE, ECDA, NEA, MOH, NParks via data.gov.sg (Singapore Open Data Licence).</p>
             </details>`;
 
           // --- wire up ---
+          P.querySelectorAll("[data-scale]").forEach((btn) => {
+            btn.onclick = () => +btn.dataset.scale < S.state && go(+btn.dataset.scale);
+          });
+          P.querySelectorAll("#modeSeg button").forEach((btn) => {
+            btn.onclick = () => {
+              S.colorBy = btn.dataset.c;
+              restyle();
+              renderPanel();
+              // scroll the panel down to the list for this mode, and flash it
+              const sec = P.querySelector(S.colorBy === "typ" ? "#sec-typ" : "#sec-vers");
+              sec.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+              sec.classList.add("flash");
+              setTimeout(() => sec.classList.remove("flash"), 900);
+            };
+          });
           P.querySelectorAll("input[data-b]").forEach((input) => {
             input.onchange = () => {
               input.checked ? S.on.add(+input.dataset.b) : S.on.delete(+input.dataset.b);
@@ -2827,149 +3004,212 @@
               renderPanel();
             };
           });
-          P.querySelectorAll(".chip").forEach((chip) => {
-            chip.onclick = () => {
-              const start = +chip.dataset.w;
-              S.window = S.window && S.window[0] === start ? null : [start, start + 10];
-              restyle();
-              renderPanel();
-            };
-          });
-          P.querySelector("#sersOnly").onchange = (e) => {
-            S.sersOnly = e.target.checked;
-            restyle();
-            renderPanel();
-          };
-          P.querySelector("#townSel").onchange = (e) => {
-            const t = towns.find((x) => x.name === e.target.value);
-            t ? openTown(t) : go(0);
-          };
           P.querySelectorAll("[data-town]").forEach((btn) => {
             btn.onclick = () => openTown(towns.find((t) => t.name === btn.dataset.town));
           });
           P.querySelectorAll("[data-prec]").forEach((btn) => {
             btn.onclick = () => openPrec(precs[+btn.dataset.prec]);
           });
+          P.querySelectorAll(".tw[data-i]").forEach((btn) => {
+            btn.onclick = () => openBlk(blocks[+btn.dataset.i]);
+          });
         }
 
-        /* ---------- Precinct scale: Residential Value ---------- */
+        /* ---------- RIGHT PANEL ---------- */
+        // colour + icon for each facility group (one palette for facilities only)
+        const GROUP_ICON = { t: "mrt", s: "school", c: "hawker", h: "clinic", p: "park" };
+        const groupColour = (g) => T.amen[Object.keys(AM).find((k) => AM[k].grp === g)].color;
+        const famk = (g, k) =>
+          `<span class="amk" style="background:${groupColour(g)}">${icon(k || GROUP_ICON[g], 14)}</span>`;
 
-        function panelPrecinct() {
-          // --- numbers ---
-          const pr = precs[S.prec];
-          const title = pr.site ? `${pr.name} · ${tc(pr.street)}` : `${tc(pr.name)} precinct`;
+        function panelRight() {
+          const app = document.getElementById("app");
+          app.classList.toggle("rp-open", rpOpen);
+          if (!rpOpen) {
+            RP.innerHTML = "";
+            return;
+          }
+          const sc = scope();
+          const flats = sum(sc, (p) => p.u);
+          const risk = sc.filter(soon);
 
-          const typeCount = [0, 0, 0, 0, 0, 0];
-          pr.blocks.forEach((p) => typeCount[p.ty]++);
+          // summary card: the place, its parts, blocks · flats
+          let parts = "";
+          if (S.state === 0) parts = `<dt>Towns</dt><dd>${fmt(towns.length)}</dd>`;
+          if (S.state === 1)
+            parts = `<dt>Precincts</dt><dd>${precs.filter((p) => p && p.town === S.town.name).length} <span class="tag">derived</span></dd>`;
 
-          const years = pr.blocks.map((p) => p.y).sort((a, b) => a - b);
-          const medianYear = years[Math.floor(years.length / 2)];
-          const flats = pr.blocks.reduce((sum, p) => sum + p.u, 0);
-          const carbon = pr.blocks.reduce((sum, p) => sum + (p.ec || 0), 0);
-          const carbonBlocks = pr.blocks.filter((p) => p.ec != null).length;
+          // block typology bar
+          const typeCount = TYP.map((t) => sc.filter((p) => p.ty === t.k).length);
 
-          // amenities within each walking-distance band (500 m, 1000 m, …)
-          const radii = ringRadii();
-          const R2 = radii[radii.length - 1]; // the outermost band
-          const nearEach = radii.map((r) => near(pr, r));
-          const nearOuter = nearEach[nearEach.length - 1];
-          const countGroup = (group, found) =>
-            Object.keys(AM).filter((k) => AM[k].grp === group).reduce((sum, k) => sum + found[k].length, 0);
+          // precinct extras
+          let extras = "";
+          if (S.state === 2) {
+            const pr = precs[S.prec];
+            const years = pr.blocks.map((p) => p.y).sort((a, b) => a - b);
+            const medianYear = years[Math.floor(years.length / 2)];
+            const radii = ringRadii();
+            const R2 = radii[radii.length - 1];
+            const nearEach = radii.map((r) => near(pr, r));
+            const nearOuter = nearEach[nearEach.length - 1];
+            const countGroup = (group, found) =>
+              Object.keys(AM).filter((k) => AM[k].grp === group).reduce((s, k) => s + found[k].length, 0);
+            const nearestRow = (k, label) => {
+              const x = nearOuter[k][0];
+              return x
+                ? `<div><span>${famk(AM[k].grp, k)}${x.a[2] || label}</span><span>${Math.round(x.d)} m · ${walkMin(x.d)} min</span></div>`
+                : `<div><span>${famk(AM[k].grp, k)}${label}</span><span>none within ${fmt(R2)} m</span></div>`;
+            };
+            const cols = `grid-template-columns:1fr repeat(${radii.length}, 56px)`;
+            extras = `
+              <section>
+                <p class="lbl"><span>History and maturity of neighbourhood</span></p>
+                <div class="ph"><b>Precinct photo</b> — ${pr.site ? "add an aerial or street photo of this site" : "add a photo for this precinct"}</div>
+                <div class="box" style="margin-top:2px">
+                  <dl style="margin:0">
+                    <dt>Built</dt>             <dd>${years[0]}${when(years.at(-1) !== years[0], "–" + years.at(-1))} (median ${medianYear})</dd>
+                    <dt>Neighbourhood age</dt> <dd>${NOW - medianYear} years</dd>
+                  </dl>
+                </div>
+                <div class="ph" style="margin-top:2px"><b>Your text here</b> — the history of this neighbourhood, from your oral histories and textual research.</div>
+              </section>
 
-          // one "Nearest …" row
-          const nearestRow = (k, label) => {
-            const x = nearOuter[k][0];
-            const ico = `<span class="amk" style="background:${AM[k].bg}">${icon(k, 13)}</span>`;
-            return x
-              ? `<div><span>${ico}${x.a[2] || label}</span><span>${Math.round(x.d)} m · ${Math.max(1, Math.round(x.d / 80))} min</span></div>`
-              : `<div><span>${ico}${label}</span><span>none within ${R2} m</span></div>`;
-          };
+              <section>
+                <p class="lbl"><span>Neighbourhood facilities</span></p>
+                <div class="fachead" style="${cols}"><span></span>${list(radii, (r) => `<span>${fmt(r)} m</span>`)}</div>
+                <div class="facgrid">
+                  ${list(GROUPS, ([group, name]) => `
+                    <button class="fac" data-f="${group}" aria-pressed="${S.fac[group]}" style="${cols}">
+                      <span class="fn">${famk(group)}${name}</span>
+                      ${list(nearEach, (found) => `<span class="fc">${countGroup(group, found)}</span>`)}
+                    </button>`)}
+                </div>
+                <p class="lbl" style="margin-top:16px"><span>Nearest</span><span>walk at 80 m/min</span></p>
+                <div class="near">
+                  ${nearestRow("mrt", "MRT / LRT")}
+                  ${nearestRow("hawker", "Hawker centre")}
+                  ${nearestRow("school", "School")}
+                  ${nearestRow("clinic", "Clinic")}
+                  ${nearestRow("park", "Park")}
+                </div>
+              </section>`;
+          }
 
           // --- HTML ---
-          P.innerHTML =
-            head("Precinct Scale", "Residential Value") +
-            `
-            <div>
-              <h3>${title}</h3>
-              <p class="dek">${pr.town} · ${pr.n} blocks · ${fmt(flats)} flats${when(pr.site, ' · <b class="accent-txt">RTO site</b>')}</p>
+          RP.innerHTML = `
+            <div class="rphead">
+              <span>${SCALES[S.state]} scale</span>
+              <button class="iconbtn" id="rpClose" aria-label="Close the details panel">${icon("close", 16)}</button>
+            </div>
+            <div class="navbox" title="Preview: the white box is what the map is showing"><canvas id="navCanvas"></canvas></div>
+
+            <div class="box summary">
+              <h3>${scopeName()}</h3>
+              <dl>
+                ${parts}
+                <dt>Blocks · Flats</dt><dd>${fmt(sc.length)} · ${fmt(flats)}</dd>
+              </dl>
             </div>
 
-            <div class="ph"><b>Precinct photo</b> — ${pr.site ? "add an aerial or street photo of this site" : "add a photo for this precinct"}</div>
+            <section>
+              <p class="lbl"><span>Block typology</span><span>${fmt(sc.length)} blocks</span></p>
+              <div class="typbar">${list(typeCount, (n, i) => when(n, `<i style="width:${(n / (sc.length || 1)) * 100}%;background:${CT[i]}"></i>`))}</div>
+              <div class="typkey">${list(TYP, (t) => when(typeCount[t.k], `<span style="--c:${CT[t.k]}">${t.name} ${fmt(typeCount[t.k])}</span>`))}</div>
+            </section>
 
             <section>
-              <span class="btn-o sub" style="display:inline-block;margin-bottom:10px">History and Maturity of Neighbourhood</span>
+              <p class="lbl"><span>Share VERS-eligible within 20 yrs</span></p>
+              <div class="tw static">
+                <span>${S.state >= 2 ? (precs[S.prec].site ? precs[S.prec].name : tc(precs[S.prec].name)) : scopeName()}</span>
+                <span class="bar">${bandBar(sc)}</span>
+                <span class="pct">${Math.round(shareSoon(sc) * 100)}%</span>
+              </div>
+            </section>
+
+            <section>
+              <p class="lbl"><span>At risk</span><span>VERS-eligible within 20 yrs</span></p>
               <div class="box">
-                <dl>
-                  <dt>Built</dt>               <dd>${years[0]}${when(years.at(-1) !== years[0], "–" + years.at(-1))} (median ${medianYear})</dd>
-                  <dt>Neighbourhood age</dt>   <dd>${NOW - medianYear} years</dd>
-                  <dt>First VERS-eligible</dt> <dd>${yearOrDash(pr.early)}</dd>
-                  <dt>Embodied carbon</dt>     <dd>${carbonBlocks ? fmt(carbon) + " t CO₂e" : "—"} ${when(carbonBlocks && carbonBlocks < pr.n, `<span class="tag">${carbonBlocks}/${pr.n} blocks</span>`)}</dd>
+                <dl style="margin:0">
+                  <dt>Blocks</dt>          <dd>${fmt(risk.length)}</dd>
+                  <dt>Flats</dt>           <dd>${fmt(sum(risk, (p) => p.u))}</dd>
+                  <dt>Embodied carbon</dt> <dd>${fmt(sum(risk, (p) => p.ec))} t CO₂e</dd>
                 </dl>
               </div>
-              <div class="ph" style="margin-top:8px"><b>Your text here</b> — the history of this neighbourhood, from your oral histories and textual research.</div>
             </section>
-
-            <section>
-              <p class="lbl"><span>Block typology</span><span>${pr.n} blocks</span></p>
-              <div class="typbar">
-                ${list(typeCount, (n, i) => when(n, `<i style="width:${(n / pr.n) * 100}%;background:${CT[i]}"></i>`))}
-              </div>
-              <div class="typkey">
-                ${list(TYP, (t) => when(typeCount[t.k], `<span style="--c:${CT[t.k]}">${t.name} ${typeCount[t.k]}</span>`))}
-              </div>
-              <p class="lbl" style="margin-top:14px"><span>Colour blocks by</span></p>
-              <div class="seg">
-                <button data-c="typ" aria-pressed="${S.colorBy === "typ"}">Typology</button>
-                <button data-c="vers" aria-pressed="${S.colorBy === "vers"}">Years till VERS</button>
-              </div>
-            </section>
-
-            <section>
-              <p class="lbl"><span>Community facilities</span><span>${radii.map(fmt).join(" · ")} m</span></p>
-              <div class="facgrid">
-                ${list(GROUPS, ([group, name]) => `
-                  <button class="fac" data-f="${group}" aria-pressed="${S.fac[group]}">${name}<span>${nearEach.map((found) => countGroup(group, found)).join(" · ")}</span></button>`)}
-              </div>
-              <p class="lbl" style="margin-top:14px"><span>Nearest</span><span>walk at 80 m/min</span></p>
-              <div class="near">
-                ${nearestRow("mrt", "MRT / LRT")}
-                ${nearestRow("hawker", "Hawker centre")}
-                ${nearestRow("school", "School")}
-                ${nearestRow("park", "Park")}
-              </div>
-            </section>
-
-            <section>
-              <p class="lbl"><span>Blocks — click to open</span></p>
-              <div class="blklist">
-                ${list(
-                  pr.blocks.slice().sort((a, b) => (a.v ?? 99) - (b.v ?? 99)),
-                  (p) => `<button data-i="${p.i}"><i style="background:${S.colorBy === "typ" ? CT[p.ty] : CB[p.band]}"></i>${p.b}</button>`)}
-              </div>
-            </section>`;
+            ${extras}`;
 
           // --- wire up ---
-          P.querySelectorAll(".seg button").forEach((btn) => {
-            btn.onclick = () => {
-              S.colorBy = btn.dataset.c;
-              restyle();
-              renderPanel();
-              renderLegend();
-            };
-          });
-          P.querySelectorAll(".fac").forEach((btn) => {
+          RP.querySelector("#rpClose").onclick = () => {
+            rpOpen = false;
+            renderPanel();
+            drawNav();
+          };
+          RP.querySelectorAll(".fac").forEach((btn) => {
             btn.onclick = () => {
               S.fac[btn.dataset.f] = !S.fac[btn.dataset.f];
               drawHighlights();
               renderPanel();
             };
           });
-          P.querySelectorAll(".blklist button").forEach((btn) => {
-            btn.onclick = () => openBlk(blocks[+btn.dataset.i]);
+          drawNav();
+        }
+        document.getElementById("rpTab").onclick = () => {
+          rpOpen = true;
+          renderPanel();
+        };
+
+        /* ---------- navigator (top of the right panel) ----------
+           The island, centred with even margins, and one box showing exactly
+           what the map is showing (the part not hidden by the right panel). */
+        let navRings = null;
+        function drawNav() {
+          const cv = document.getElementById("navCanvas");
+          if (!cv || !map) return;
+          const dpr = window.devicePixelRatio || 1;
+          const W = cv.clientWidth, H = cv.clientHeight;
+          if (!W || !H) return;
+          if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+          const g = cv.getContext("2d");
+          g.setTransform(dpr, 0, 0, dpr, 0, 0);
+          if (!navRings) navRings = D.sub.flatMap(([n, pa, r]) => decode(r));
+          const b = baseLayer.getBounds();
+          const kx = Math.cos((1.35 * Math.PI) / 180); // shrink longitude to keep the island's shape
+          const bw = (b.getEast() - b.getWest()) * kx, bh = b.getNorth() - b.getSouth();
+          const m = 14;
+          const s = Math.min((W - 2 * m) / bw, (H - 2 * m) / bh);
+          const ox = (W - bw * s) / 2, oy = (H - bh * s) / 2;
+          const Pt = (lat, lng) => [ox + (lng - b.getWest()) * kx * s, H - oy - (lat - b.getSouth()) * s];
+          g.clearRect(0, 0, W, H);
+          g.fillStyle = T.base.dark.water;
+          g.fillRect(0, 0, W, H);
+          g.fillStyle = NIGHT_ON ? "#3A3A3D" : T.base.dark.land;
+          navRings.forEach((ring) => {
+            g.beginPath();
+            ring.forEach((p, i) => {
+              const [x, y] = Pt(p[0], p[1]);
+              i ? g.lineTo(x, y) : g.moveTo(x, y);
+            });
+            g.fill();
           });
+          // the view box
+          const size = map.getSize();
+          const hidden = rpWidth();
+          const nw = map.containerPointToLatLng([0, 0]);
+          const se = map.containerPointToLatLng([Math.max(1, size.x - hidden), size.y]);
+          const [x0, y0] = Pt(nw.lat, nw.lng), [x1, y1] = Pt(se.lat, se.lng);
+          const cx0 = Math.max(1, Math.min(x0, x1)), cy0 = Math.max(1, Math.min(y0, y1));
+          const cx1 = Math.min(W - 1, Math.max(x0, x1)), cy1 = Math.min(H - 1, Math.max(y0, y1));
+          g.strokeStyle = NIGHT_ON ? "#FFFFFF" : T.ui.text;
+          g.lineWidth = 1.5;
+          g.strokeRect(cx0, cy0, Math.max(2, cx1 - cx0), Math.max(2, cy1 - cy0));
+        }
+        // width of the map hidden behind the right panel (0 when closed or on phones)
+        function rpWidth() {
+          const rp = document.getElementById("rpanel");
+          return rpOpen && getComputedStyle(rp).position === "absolute" ? rp.offsetWidth : 0;
         }
 
-        /* ---------- Project scale: Retrofit-To-Order ---------- */
+        /* ---------- BLOCK CARD (bottom centre, block scale) ---------- */
 
         // Placeholder flat sizes and prices (from the mock-up) — replace with real data later
         const FLAT = {
@@ -2997,91 +3237,90 @@
           }
         }
 
-        function panelProject() {
+        function renderBlockCard() {
+          const mw = document.getElementById("mapwrap");
+          const on = S.state === 3 && S.blk;
+          mw.classList.toggle("has-card", !!on);
+          CARD.classList.toggle("open", !!on);
+          CARD.setAttribute("aria-hidden", String(!on));
+          if (!on) return;
           // --- numbers ---
           const p = S.blk;
-          const pr = precs[p.pid];
           const flat = FLAT[flatType];
           const tally = seedTally(p);
           const myVote = loadVote(p);
           const leaseUsed = p.ls == null ? 0 : Math.max(0, Math.min(100, ((NOW - p.ls) / 99) * 100)); // % of the 99 years
-
           const leaseText = p.ls == null
             ? "HDB-owned rental — no lease sold"
-            : `Lease ${p.ls}–${p.ls + 99} · ${NOW - p.ls} of 99 years used · VERS-eligible <b style="color:var(--text)">${p.ls + 70}</b>`;
-
+            : `Lease ${p.ls}–${p.ls + 99} · ${NOW - p.ls} of 99 years used · VERS-eligible <b>${p.ls + 70}</b>`;
           const carbonHtml = p.ec != null
             ? `
               <div class="carbon">
                 <div><b>${fmt(p.ec)} t</b><small>CO₂e embodied — lost if demolished</small></div>
-                <div><b>${fmt(p.gfa)} m²</b><small>Estimated gross floor area</small></div>
-                <div><b>${fmt((p.ec / p.gfa) * 1000)} kg</b><small>CO₂e per m² GFA</small></div>
+                <div><b>${fmt(p.gfa)} m²</b><small>Gross internal area</small></div>
+                <div><b>${fmt((p.ec / p.gfa) * 1000)} kg</b><small>CO₂e per m² GIA</small></div>
                 <div><b>${fmt(p.ec / Math.max(1, p.u))} t</b><small>CO₂e per flat</small></div>
               </div>`
-            : `<p class="nodata">Not calculated — this block has 50+ years left, outside your typology / carbon analysis set.</p>`;
+            : `<p class="nodata">Not calculated for this block.</p>`;
 
           // --- HTML ---
-          P.innerHTML =
-            head("Project Scale", "Retrofit-To-Order") +
-            `
-            <div>
-              <h3>Blk ${p.b} ${tc(p.s)}</h3>
-              <p class="dek">${p.t} · Singapore ${p.pc} · ${TYP[p.ty].name}${when(p.era, " · era " + p.era)}${when(p.sers, " · <b>" + p.sers + "</b>")}</p>
-              <div class="clock">${when(p.ls != null, `<i style="width:${leaseUsed}%;background:${CB[p.band]}"></i>`)}</div>
-              <p class="dek" style="font-size:12.5px;margin-top:6px">${leaseText}</p>
+          CARD.classList.toggle("min", cardMin);
+          CARD.innerHTML = `
+            <div class="bc-head">
+              <div class="bc-id">
+                <h3>Blk ${p.b} ${tc(p.s)}</h3>
+                <p class="dek">${p.t} · Singapore ${p.pc} · ${TYP[p.ty].name}${when(p.era, " · era " + p.era)}${when(p.sers, " · <b>" + p.sers + "</b>")}</p>
+                <div class="clock">${when(p.ls != null, `<i style="width:${leaseUsed}%;background:${CB[p.band]}"></i>`)}</div>
+                <p class="dek small">${leaseText}</p>
+              </div>
+              <button class="iconbtn" id="bcMin" aria-expanded="${!cardMin}" aria-label="${cardMin ? "Expand" : "Collapse"} block details">${icon(cardMin ? "chevup" : "chevdown", 18)}</button>
             </div>
-
-            <section>
-              <p class="lbl"><span>Prices / flat details</span><span class="tag">illustrative</span></p>
-              <select id="flatType">
-                ${list(Object.keys(FLAT), (k) => `<option ${when(k === flatType, "selected")}>${k}</option>`)}
-              </select>
-              <div class="box" style="margin-top:8px">
-                <dl>
-                  <dt>Est. floor area</dt>          <dd>${flat.fa} sqm</dd>
-                  <dt>Est. internal floor area</dt> <dd>${flat.ifa} sqm</dd>
-                  <dt>Flats in block</dt>           <dd>${fmt(p.u)} · ${p.f} storeys${when(p.upf, " · " + p.upf + "/floor")}</dd>
-                </dl>
-                <p class="lbl" style="margin:12px 0 2px"><span>Indicative price range</span></p>
-                <div class="price">$${fmt(flat.lo)} – $${fmt(flat.hi)}</div>
-                <p class="dek" style="font-size:12px">Placeholder from your mock-up until resale data and your RTO pricing model are added.</p>
+            <div class="bc-body">
+              <section>
+                <p class="lbl"><span>Prices / flat details</span><span class="tag">illustrative</span></p>
+                <select id="flatType" aria-label="Flat type">
+                  ${list(Object.keys(FLAT), (k) => `<option ${when(k === flatType, "selected")}>${k}</option>`)}
+                </select>
+                <div class="box" style="margin-top:2px">
+                  <dl style="margin:0">
+                    <dt>Est. floor area</dt>          <dd>${flat.fa} sqm</dd>
+                    <dt>Est. internal floor area</dt> <dd>${flat.ifa} sqm</dd>
+                    <dt>Flats in block</dt>           <dd>${fmt(p.u)} · ${p.f} storeys${when(p.upf, " · " + Math.round(p.upf) + "/floor")}</dd>
+                  </dl>
+                  <p class="lbl" style="margin:16px 0 0"><span>Indicative price range</span></p>
+                  <div class="price">$${fmt(flat.lo)} – $${fmt(flat.hi)}</div>
+                  <p class="dek small">Placeholder from your mock-up until resale data and your RTO pricing model are added.</p>
+                </div>
+              </section>
+              <section>
+                <p class="lbl"><span>Embodied carbon stats</span>${when(p.ec != null, '<span class="tag">your QGIS calc</span>')}</p>
+                ${carbonHtml}
+                <p class="dek small" style="margin-top:8px">Material recovery → concrete recovery quantity: to come. Dashed lines on the map: neighbouring blocks that could share materials.</p>
+              </section>
+            </div>
+            <div class="bc-foot">
+              <div class="bc-count">
+                <span class="clbl">RTO applicants</span>
+                <b>${fmt(tally.n + (myVote ? 1 : 0))}</b>
+                ${when(myVote, `<span class="dek small">You voted: <b class="accent-txt">${myVote?.choice}</b></span>`)}
               </div>
-            </section>
-
-            <section>
-              <p class="lbl"><span>Embodied carbon stats</span>${when(p.ec != null, '<span class="tag">your QGIS calc</span>')}</p>
-              ${carbonHtml}
-              <p class="dek" style="font-size:12px;margin-top:6px">Material recovery → concrete recovery quantity: to come. Dashed lines on the map: neighbouring blocks that could share materials.</p>
-            </section>
-
-            <section class="box" style="text-align:center">
-              <p class="lbl" style="justify-content:center"><span>RTO applicants</span></p>
-              <div class="big-num">${fmt(tally.n + (myVote ? 1 : 0))}</div>
-              ${when(myVote, `<p class="dek" style="font-size:12px">You voted: <b class="accent-txt">${myVote?.choice}</b></p>`)}
-            </section>
-
-            <button class="cta apply" id="applyBtn">${myVote ? "Review your RTO application" : "Apply for RTO"} ${icon("arrow", 18)}</button>
-
-            <section>
-              <p class="lbl"><span>Other blocks here</span></p>
-              <div class="blklist">
-                ${list(pr.blocks.filter((b) => b !== p), (b) => `<button data-i="${b.i}"><i style="background:${CB[b.band]}"></i>${b.b}</button>`)}
-              </div>
-            </section>`;
+              <button class="cta apply" id="applyBtn">${myVote ? "Review your RTO application" : "Apply for RTO"} ${icon("arrow", 18)}</button>
+            </div>`;
 
           // --- wire up ---
-          P.querySelector("#flatType").onchange = (e) => {
-            flatType = e.target.value;
-            renderPanel();
+          CARD.querySelector("#bcMin").onclick = () => {
+            cardMin = !cardMin;
+            renderBlockCard();
           };
-          P.querySelector("#applyBtn").onclick = openDrawer;
-          P.querySelectorAll(".blklist button").forEach((btn) => {
-            btn.onclick = () => openBlk(blocks[+btn.dataset.i]);
-          });
+          CARD.querySelector("#flatType").onchange = (e) => {
+            flatType = e.target.value;
+            renderBlockCard();
+          };
+          CARD.querySelector("#applyBtn").onclick = openDrawer;
         }
 
         /* =========================================================
-           RTO FORM (the white drawer that slides in from the right)
+           RTO FORM (slides up from the bottom of the screen, out of the block card)
            Steps follow the mind map:
              intro → role → (resident: cash out or join?) → (join / new: adapt or harvest?) → result
            ========================================================= */
@@ -3105,13 +3344,20 @@
           drawerOpen = true;
           drawer.classList.add("open");
           drawer.setAttribute("aria-hidden", "false");
+          document.getElementById("scrim").classList.add("on");
           renderForm();
+          setTimeout(() => drawer.querySelector("#fClose")?.focus(), 250);
         }
         function closeDrawer() {
           drawerOpen = false;
           drawer.classList.remove("open");
           drawer.setAttribute("aria-hidden", "true");
+          document.getElementById("scrim").classList.remove("on");
         }
+        document.getElementById("scrim").onclick = () => {
+          closeDrawer();
+          renderPanel();
+        };
 
         // Which steps this visitor will see, given their answers so far
         function flow() {
@@ -3120,6 +3366,13 @@
           if (F.role === "new" || F.choice === "join") steps.push("future");
           steps.push("result");
           return steps;
+        }
+
+        // the large "carbon saved" figure under the Adapt / Harvest cards
+        function savedHtml(fu, p) {
+          if (fu === "harvest")
+            return `<span class="sv-k">Harvest</span><span class="sv-n sv-tbc">Recovery quantity to come</span><span class="sv-u">from your material recovery calculation</span>`;
+          return `<span class="sv-k">Adapt</span><span class="sv-n">${p.ec != null ? fmt(p.ec) : "—"} <small>t CO₂e</small></span><span class="sv-u">saved</span>`;
         }
 
         function renderForm() {
@@ -3195,15 +3448,14 @@
               <h5>What should happen to Blk ${p.b}?</h5>
               <p>Compare the two futures.</p>
               <button class="opt" data-fu="adapt" aria-pressed="${F.future === "adapt"}">
-                <span class="fig">${when(p.ec != null, fmt(p.ec) + " t CO₂e kept")}</span>
                 <b>Adapt</b>
                 <small>Retrofit in place: new services, layouts and lifts; the concrete frame and its embodied carbon stay.</small>
               </button>
               <button class="opt" data-fu="harvest" aria-pressed="${F.future === "harvest"}">
-                <span class="fig">to come</span>
                 <b>Harvest</b>
-                <small>Carefully dismantle and reuse components in a neighbouring block (red dashed lines on the map). Recovery quantity to come from your calculator.</small>
-              </button>`;
+                <small>Carefully dismantle and reuse components in a neighbouring block (dashed lines on the map). Recovery quantity to come from your calculator.</small>
+              </button>
+              <div class="saved" id="saved" aria-live="polite">${savedHtml(F.future || "adapt", p)}</div>`;
           }
 
           if (step === "result") {
@@ -3285,6 +3537,10 @@
               F.future = btn.dataset.fu;
               renderForm();
             };
+            // hovering an option previews its figure; leaving shows the chosen one again
+            const box = drawer.querySelector("#saved");
+            btn.onmouseenter = () => (box.innerHTML = savedHtml(btn.dataset.fu, p));
+            btn.onmouseleave = () => (box.innerHTML = savedHtml(F.future || "adapt", p));
           });
           const unit = drawer.querySelector("#unit");
           if (unit) unit.oninput = () => (F.unit = unit.value);
@@ -3364,8 +3620,8 @@
             "Blocks",
             [
               ["Fill opacity", "blocks.opacity", "range", [0.1, 1, 0.05]],
-              ["Filtered-out (dimmed) opacity", "blocks.dim", "range", [0, 1, 0.05]],
-              ["Other precincts opacity", "blocks.context", "range", [0, 1, 0.05]],
+              ["Blocks outside the selection (grey)", "blocks.out", "color"],
+              ["Other blocks in precinct (block view)", "blocks.context", "range", [0, 1, 0.05]],
               ["Outline when zoomed in", "blocks.outline", "color"],
               ["Outline weight", "blocks.outlineWeight", "range", [0, 3, 0.1]],
               ["Selected block outline", "blocks.selected", "color"],
@@ -3424,16 +3680,14 @@
                 [AMN[k], `amen.${k}.color`, "color"],
                 [`Show ${AMN[k].toLowerCase()}`, `amen.${k}.show`, "check"],
               ]),
-              ["Icon size", "amenSize.pin", "range", [16, 40, 2]],
-              ["Dot size", "amenSize.dot", "range", [2, 10, 1]],
+              ["Circle size — main facilities", "amenSize.pin", "range", [16, 40, 2]],
+              ["Circle size — bus stops, pre-schools, clinics", "amenSize.dot", "range", [12, 32, 2]],
             ],
           ],
           [
             "Show on map",
             [
-              ["Legend", "overlays.legend", "check"],
               ["Hint bubble", "overlays.hint", "check"],
-              ["Locator map", "overlays.locator", "check"],
               ["Breadcrumb", "overlays.crumbs", "check"],
               ["Style button (press S to bring back)", "overlays.styleButton", "check"],
             ],
@@ -3472,9 +3726,7 @@
             restyleParks();
             restyle();
             drawHighlights();
-            renderLegend();
             renderPanel();
-            renderLocator();
           });
         }
         function restyleParks() {

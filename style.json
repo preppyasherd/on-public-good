@@ -38,12 +38,11 @@
   ],
   "versRental": "#FFF5F0",
   "typ": [
-    "#D7191C",
-    "#FDAE61",
-    "#FFFFBF",
-    "#ABDDA4",
-    "#2B83BA",
-    "#8a8a8a"
+    "#E5B636",
+    "#5DC963",
+    "#21908D",
+    "#3B528B",
+    "#440154"
   ],
   "blocks": {
     "opacity": 1,
@@ -53,7 +52,8 @@
     "outlineWeight": 0.8,
     "selected": "#1C1C1E",
     "selectedWeight": 3,
-    "sers": "#1C1C1E"
+    "sers": "#1C1C1E",
+    "out": "#B8B4AC"
   },
   "hover": {
     "dark": "#1C1C1E",
@@ -88,42 +88,40 @@
   },
   "amen": {
     "mrt": {
-      "color": "#bfeee9",
+      "color": "#075DA8",
       "show": true
     },
     "bus": {
-      "color": "#7fd3ff",
+      "color": "#075DA8",
       "show": true
     },
     "school": {
-      "color": "#ffe08a",
+      "color": "#FFD203",
       "show": true
     },
     "pre": {
-      "color": "#ffd0e0",
+      "color": "#FFD203",
       "show": true
     },
     "hawker": {
-      "color": "#ffc59a",
+      "color": "#EE7A23",
       "show": true
     },
     "clinic": {
-      "color": "#e2d4ff",
+      "color": "#EE7191",
       "show": true
     },
     "park": {
-      "color": "#c8f0b4",
+      "color": "#31746B",
       "show": true
     }
   },
   "amenSize": {
-    "pin": 26,
-    "dot": 5
+    "pin": 24,
+    "dot": 18
   },
   "overlays": {
-    "legend": true,
     "hint": true,
-    "locator": true,
     "crumbs": true,
     "styleButton": true
   }
