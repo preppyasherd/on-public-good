@@ -151,6 +151,14 @@
         min-width: 0;
         border-right: 1px solid var(--border);
       }
+      .dataw {
+        margin: 0;
+        padding: 12px 16px;
+        background: var(--primary);
+        color: var(--on-primary);
+        font-size: 12px;
+        line-height: 16px;
+      }
       .panel-inner {
         padding: 32px 16px 40px;
         display: flex;
@@ -2201,7 +2209,7 @@
               pc: a[8],
               sers: a[9],
               ro: a[10],
-              ty: a[11] == null ? 0 : a[11],
+              ty: a[11], // null = no block type in the data (not counted in any type)
               len: a[12],
               ec: a[13],
               gfa: a[14],
@@ -2282,7 +2290,7 @@
         // the Map mode switch only decides which one colours it.
         function visible(p) {
           if (p.band !== "unk" && !S.on.has(p.band)) return false;
-          if (!S.typOn.has(p.ty)) return false;
+          if (p.ty == null ? S.typOn.size < TYP.length : !S.typOn.has(p.ty)) return false;
           return true;
         }
         function styleFor(p) {
@@ -2292,7 +2300,7 @@
           const v = visible(p);
           if (!v) return { stroke: false, fill: false };
           const light = S.state >= 2;
-          const col = S.colorBy === "typ" ? CT[p.ty] : CB[p.band];
+          const col = S.colorBy === "typ" ? (p.ty == null ? B.out : CT[p.ty]) : CB[p.band];
           let op = B.opacity;
           if (S.state === 3 && p !== S.blk)
             op = Math.min(
@@ -2683,7 +2691,7 @@
           const p = o; // a block
           return `
             <b>Blk ${p.b} ${tc(p.s)}</b>
-            <span class="m">${TYP[p.ty].name} · built ${p.y} · ${p.f} storeys<br>${vtxt(p)} · ${fmt(p.u)} flats${p.ec != null ? "<br>Embodied carbon " + fmt(p.ec) + " t CO₂e" : ""}</span>`;
+            <span class="m">${p.ty == null ? "Type unknown" : TYP[p.ty].name} · built ${p.y} · ${p.f} storeys<br>${vtxt(p)} · ${fmt(p.u)} flats${p.ec != null ? "<br>Embodied carbon " + fmt(p.ec) + " t CO₂e" : ""}</span>`;
         }
         const tip = document.getElementById("tip");
         function tipShow(ev, html) {
@@ -3269,7 +3277,7 @@
             <div class="bc-head">
               <div class="bc-id">
                 <h3>Blk ${p.b} ${tc(p.s)}</h3>
-                <p class="dek">${p.t} · Singapore ${p.pc} · ${TYP[p.ty].name}${when(p.era, " · era " + p.era)}${when(p.sers, " · <b>" + p.sers + "</b>")}</p>
+                <p class="dek">${p.t} · Singapore ${p.pc} · ${p.ty == null ? "Type unknown" : TYP[p.ty].name}${when(p.era, " · era " + p.era)}${when(p.sers, " · <b>" + p.sers + "</b>")}</p>
                 <div class="clock">${when(p.ls != null, `<i style="width:${leaseUsed}%;background:${CB[p.band]}"></i>`)}</div>
                 <p class="dek small">${leaseText}</p>
               </div>
@@ -3943,12 +3951,21 @@
             ST = merge(clone(SITE_STYLE), loadSaved());
             recolor();
           })
-          .then(() => fetch("map.json"))
+          .then(() => fetch("map.json", { cache: "no-cache" })) // always check for a newer map.json
           .then((r) => r.json())
           .then((d) => {
             D = d;
             VB = d.versBase;
             init();
+            // an out-of-date map.json (e.g. an old copy kept by the browser) has blocks without a type
+            const untyped = blocks.filter((p) => p.ty == null).length;
+            if (untyped) {
+              console.warn(untyped + " blocks have no block type — map.json is out of date");
+              const w = document.createElement("p");
+              w.className = "dataw";
+              w.innerHTML = `<b>Old map data loaded.</b> ${fmt(untyped)} blocks have no block type. Reload the page with <b>Ctrl + Shift + R</b> (Mac: <b>⌘ + Shift + R</b>).`;
+              document.getElementById("panel").prepend(w);
+            }
           })
           .catch((e) => {
             console.error(e);
