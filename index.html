@@ -151,6 +151,14 @@
         min-width: 0;
         border-right: 1px solid var(--border);
       }
+      .dataw {
+        margin: 0;
+        padding: 12px 16px;
+        background: var(--primary);
+        color: var(--on-primary);
+        font-size: 12px;
+        line-height: 16px;
+      }
       .panel-inner {
         padding: 32px 16px 40px;
         display: flex;
@@ -223,11 +231,82 @@
         font-size: 28px;
         line-height: 36px;
         letter-spacing: 0;
+        display: inline-flex;
+        font-variant-numeric: tabular-nums;
+      }
+      /* the carbon box: always light with dark text, day or night */
+      .cbox {
+        background: #f0eee9;
+        color: #1c1c1e;
+        padding: 16px;
+      }
+      .cbox .clbl,
+      .cbox .ct-u {
+        color: #5c5852;
+      }
+      /* odometer digits */
+      .ct-n .dg {
+        display: inline-block;
+        height: 36px;
+        overflow: hidden;
+      }
+      .ct-n .dg,
+      .ct-n .col {
+        font-size: 36px; /* 1em = one digit row (36px) */
+      }
+      .ct-n .col {
+        display: flex;
+        flex-direction: column;
+      }
+      .ct-n .col > span {
+        font-size: 28px;
+      }
+      .ct-n .col > span {
+        height: 36px;
+        line-height: 36px;
+      }
+      .ct-n .col {
+        --em: 36px;
+      }
+      .ct-n .col.go {
+        transition: transform 0.6s var(--ease);
       }
       .ct-u {
         font-size: 12px;
         letter-spacing: 0.32px;
         color: var(--muted);
+      }
+      /* folding list sections (VERS status, Block type) */
+      .foldbtn {
+        width: 100%;
+        background: none;
+        border: 0;
+        color: var(--text);
+        cursor: pointer;
+        text-align: left;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.07s var(--ease);
+      }
+      .foldbtn:hover {
+        background: var(--hover);
+      }
+      .foldbtn > span:first-child {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .foldbtn .ico {
+        transform: rotate(-90deg);
+        transition: transform 0.11s var(--ease);
+      }
+      .fold.open .foldbtn .ico {
+        transform: none;
+      }
+      .fold:not(.open) .legend,
+      .fold:not(.open) .foldnote {
+        display: none;
       }
       /* list headings with column labels over the numbers */
       .lghead {
@@ -236,6 +315,9 @@
         gap: 12px;
         align-items: baseline;
         padding: 0 8px 12px 0;
+      }
+      .lghead.foldbtn {
+        padding: 8px 8px 8px 0;
       }
       .lghead.typ {
         grid-template-columns: 1fr 52px;
@@ -931,8 +1013,49 @@
         font-size: 12px;
         line-height: 16px;
         letter-spacing: 0.32px;
-        max-width: 280px;
+        max-width: 300px;
+        min-width: 240px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.07s var(--ease), visibility 0.07s;
+      }
+      .tip.on {
+        opacity: 1;
+        visibility: visible;
+      }
+      .tip .tbar {
+        margin: 8px -12px -8px;
+        padding: 8px 12px 10px;
+        border-top: 1px solid color-mix(in srgb, var(--bg) 22%, var(--text));
+      }
+      .tip .tbar[hidden] {
         display: none;
+      }
+      .tip .th {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .tip .trow {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 10px;
+        align-items: center;
+      }
+      .tip .tk {
+        display: flex;
+        height: 8px;
+        background: color-mix(in srgb, var(--bg) 18%, var(--text));
+        overflow: hidden;
+      }
+      .tip .tk i {
+        display: block;
+        height: 100%;
+        width: 0;
+        transition: width 0.3s var(--ease);
+      }
+      .tip .tv {
+        font-family: var(--mono);
       }
       .tip b {
         font-size: 14px;
@@ -999,6 +1122,9 @@
         font-size: 12px;
         letter-spacing: 0.32px;
         color: var(--muted);
+      }
+      .rphead .scaleind {
+        padding: 12px 0;
       }
       .navbox {
         height: 196px;
@@ -1487,6 +1613,46 @@
          STYLE EDITOR
          The Style button and the editor panel on the left of the map.
          ============================================================ */
+      .modesw {
+        position: absolute;
+        top: 16px;
+        left: calc((100% - var(--rp-w)) / 2);
+        transform: translateX(-50%);
+        z-index: 950;
+        display: flex;
+        align-items: stretch;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        transition: left 0.24s var(--ease), top 0.24s var(--ease);
+      }
+      .modesw .ml {
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        font-size: 12px;
+        letter-spacing: 0.32px;
+        color: var(--muted);
+      }
+      .modesw .seg {
+        display: flex;
+        border: 0;
+        border-left: 1px solid var(--border);
+      }
+      .modesw .seg button {
+        height: 38px;
+        padding: 0 16px;
+        white-space: nowrap;
+      }
+      .modesw .seg button + button {
+        border-left: 1px solid var(--border);
+      }
+      /* drops under the breadcrumb when there isn't room beside it */
+      .mode-low .modesw {
+        top: 64px;
+      }
+      .mode-low.has-card .hint {
+        top: 120px;
+      }
       .mapctl {
         position: absolute;
         top: 16px;
@@ -1682,6 +1848,9 @@
         .rptab {
           display: none;
         }
+        .modesw .ml {
+          display: none;
+        }
         /* block card and form become full-width sheets from the bottom */
         .blkcard,
         .drawer,
@@ -1747,6 +1916,7 @@
         <div class="hint" id="hint"></div>                                <!-- hint bubble, bottom centre -->
         <div class="tip" id="tip"></div>                                  <!-- hover tooltip -->
 
+        <div class="modesw" id="modeSw" role="group" aria-label="Map mode"></div>  <!-- top centre: Map mode -->
         <div class="mapctl">                                              <!-- top right: Style + Day / Night -->
   <button class="stylebtn" id="styleBtn" aria-pressed="false" title="Edit map styling (S)"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>Style</button>
           <button class="themebtn" id="themeBtn" type="button" aria-pressed="false" title="Switch to night mode">
@@ -2078,6 +2248,7 @@
           colorBy: "vers",
           on: new Set([0, 1, 2, 3, 4, 5, 6]),
           typOn: new Set([0, 1, 2, 3, 4]),
+          open: { vers: false, typ: false }, // folded lists in the left panel (both start folded)
           fac: { t: true, s: true, c: true, h: false, p: true },
         };
 
@@ -2201,7 +2372,7 @@
               pc: a[8],
               sers: a[9],
               ro: a[10],
-              ty: a[11] == null ? 0 : a[11],
+              ty: a[11], // null = no block type in the data (not counted in any type)
               len: a[12],
               ec: a[13],
               gfa: a[14],
@@ -2282,7 +2453,7 @@
         // the Map mode switch only decides which one colours it.
         function visible(p) {
           if (p.band !== "unk" && !S.on.has(p.band)) return false;
-          if (!S.typOn.has(p.ty)) return false;
+          if (p.ty == null ? S.typOn.size < TYP.length : !S.typOn.has(p.ty)) return false;
           return true;
         }
         function styleFor(p) {
@@ -2292,7 +2463,7 @@
           const v = visible(p);
           if (!v) return { stroke: false, fill: false };
           const light = S.state >= 2;
-          const col = S.colorBy === "typ" ? CT[p.ty] : CB[p.band];
+          const col = S.colorBy === "typ" ? (p.ty == null ? B.out : CT[p.ty]) : CB[p.band];
           let op = B.opacity;
           if (S.state === 3 && p !== S.blk)
             op = Math.min(
@@ -2683,13 +2854,55 @@
           const p = o; // a block
           return `
             <b>Blk ${p.b} ${tc(p.s)}</b>
-            <span class="m">${TYP[p.ty].name} · built ${p.y} · ${p.f} storeys<br>${vtxt(p)} · ${fmt(p.u)} flats${p.ec != null ? "<br>Embodied carbon " + fmt(p.ec) + " t CO₂e" : ""}</span>`;
+            <span class="m">${p.ty == null ? "Type unknown" : TYP[p.ty].name} · built ${p.y} · ${p.f} storeys<br>${vtxt(p)} · ${fmt(p.u)} flats${p.ec != null ? "<br>Embodied carbon " + fmt(p.ec) + " t CO₂e" : ""}</span>`;
         }
+        // The popup keeps one bar between hovers, so its segments slide from the last
+        // place's values to the next one's. Towns / precincts: VERS-eligible within 20 yrs
+        // (split by VERS band). Blocks: lease used out of 70 years.
         const tip = document.getElementById("tip");
-        function tipShow(ev, html) {
+        tip.innerHTML = `<div class="tm"></div>
+          <div class="tbar">
+            <span class="th"></span>
+            <div class="trow"><span class="tn"></span><span class="tk">${BANDS.map(() => "<i></i>").join("")}</span><span class="tv"></span></div>
+          </div>`;
+        const tipText = tip.querySelector(".tm"), tipBar = tip.querySelector(".tbar");
+        function barFor(o) {
+          if (!o || !o.kind && o.b == null) return null;
+          const seg = [0, 0, 0, 0, 0, 0, 0];
+          if (o.kind === "town" || o.kind === "prec") {
+            const bl = o.blocks, n = bl.length || 1;
+            bl.forEach((p) => p.band !== "unk" && seg[p.band]++);
+            return {
+              head: "VERS-eligible within 20 yrs",
+              name: o.kind === "town" ? o.name : o.site ? o.name : tc(o.name),
+              seg: seg.map((x) => (x / n) * 100),
+              val: Math.round(shareSoon(bl) * 100) + "%",
+            };
+          }
+          if (o.ls == null) return null; // rental block: no lease, no bar
+          const used = NOW - o.ls;
+          seg[o.band] = Math.max(0, Math.min(100, (used / 70) * 100));
+          return {
+            head: "Lease used, of 70 years to VERS",
+            name: "Blk " + o.b,
+            seg,
+            val: used >= 70 ? "VERS-eligible now" : `${used} / 70 yrs`,
+          };
+        }
+        function tipShow(ev, html, bar) {
           const r = document.getElementById("mapwrap").getBoundingClientRect();
-          tip.innerHTML = html;
-          tip.style.display = "block";
+          tipText.innerHTML = html;
+          tipBar.hidden = !bar;
+          if (bar) {
+            tipBar.querySelector(".th").textContent = bar.head;
+            tipBar.querySelector(".tn").textContent = bar.name;
+            tipBar.querySelector(".tv").textContent = bar.val;
+            tipBar.querySelectorAll(".tk i").forEach((el, i) => {
+              el.style.background = CB[i];
+              el.style.width = bar.seg[i] + "%";
+            });
+          }
+          tip.classList.add("on");
           let x = ev.clientX - r.left + 14,
             y = ev.clientY - r.top + 14;
           if (x + 270 > r.width) x -= 290;
@@ -2698,7 +2911,7 @@
           tip.style.top = y + "px";
         }
         function tipHide() {
-          tip.style.display = "none";
+          tip.classList.remove("on");
         }
         function wire() {
           map.on("mousemove", (e) => {
@@ -2708,7 +2921,7 @@
               hoverObj = o;
               drawHighlights(o ? hoverFor(o, S.state >= 2) : null);
             }
-            o && !outside(o) ? tipShow(e.originalEvent, describe(o)) : tipHide();
+            o && !outside(o) ? tipShow(e.originalEvent, describe(o), barFor(o)) : tipHide();
           });
           map.on("mouseout", () => {
             tipHide();
@@ -2720,7 +2933,7 @@
             if (!o) return;
             if (matchMedia("(hover:none)").matches && lastTap !== o && !outside(o)) {
               lastTap = o;
-              tipShow(e.originalEvent, describe(o));
+              tipShow(e.originalEvent, describe(o), barFor(o));
               drawHighlights(hoverFor(o, S.state >= 2));
               return;
             }
@@ -2763,6 +2976,7 @@
             );
           });
           c.innerHTML = parts.join("");
+          if (typeof layoutTop === "function") requestAnimationFrame(layoutTop); // re-check the Map mode switch against the new breadcrumb
           c.querySelectorAll("button").forEach(
             (b) =>
               (b.onclick = () => {
@@ -2824,6 +3038,41 @@
         }
         const shareSoon = (bl) => (bl.length ? bl.filter(soon).length / bl.length : 0);
 
+        /* ---------- Map mode switch (top centre of the map) ---------- */
+        const MODE = document.getElementById("modeSw");
+        function renderMode() {
+          MODE.innerHTML = `
+            <span class="ml">Map mode</span>
+            <span class="seg">
+              <button data-c="vers" aria-pressed="${S.colorBy === "vers"}">VERS status</button>
+              <button data-c="typ" aria-pressed="${S.colorBy === "typ"}">Block type</button>
+            </span>`;
+          MODE.querySelectorAll("button").forEach((btn) => {
+            btn.onclick = () => {
+              S.colorBy = btn.dataset.c;
+              S.open[S.colorBy] = true; // unfold the matching list
+              restyle();
+              renderPanel();
+              // scroll the left panel down to that list, and flash it
+              const sec = P.querySelector(S.colorBy === "typ" ? "#sec-typ" : "#sec-vers");
+              sec.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+              sec.classList.add("flash");
+              setTimeout(() => sec.classList.remove("flash"), 900);
+            };
+          });
+          layoutTop();
+        }
+        // keep the switch clear of the breadcrumb: if they would overlap, it drops below it
+        function layoutTop() {
+          const mw = document.getElementById("mapwrap");
+          mw.classList.remove("mode-low");
+          const a = document.getElementById("crumbs").getBoundingClientRect();
+          const b = MODE.getBoundingClientRect();
+          const c = document.querySelector(".mapctl").getBoundingClientRect();
+          if (b.left < a.right + 12 || b.right > c.left - 12) mw.classList.add("mode-low");
+        }
+        addEventListener("resize", () => requestAnimationFrame(layoutTop));
+
         let lastState = -1;
         let rpOpen = true; // right panel open (× closes it, the "Details" tab reopens it)
         let cardMin = false; // block card collapsed
@@ -2833,6 +3082,7 @@
           panelLeft();
           panelRight();
           renderBlockCard();
+          renderMode();
           if (scaleChanged) {
             document.getElementById("panel").scrollTop = 0;
             document.getElementById("rpanel").scrollTop = 0;
@@ -2858,12 +3108,11 @@
           // what the map shows: "Showing …" and the carbon total follow both sets of checkboxes
           const shown = sc.filter((p) => visible(p));
           const showFlats = sum(shown, (p) => p.u);
-          const showCarbon = sum(shown, (p) => p.ec);
 
           // ranking list: always the next level down
           let rankHead = "", rankRows = "";
           if (S.state === 0) {
-            rankHead = "Towns by share VERS-eligible within 20 yrs";
+            rankHead = "VERS-eligible within 20 yrs by town";
             rankRows = list(
               towns.map((t) => ({ t, share: shareSoon(t.blocks) })).sort((a, b) => b.share - a.share).slice(0, 10),
               (r) => `
@@ -2873,7 +3122,7 @@
                   <span class="pct">${Math.round(r.share * 100)}%</span>
                 </button>`);
           } else if (S.state === 1) {
-            rankHead = "Precincts by share VERS-eligible within 20 yrs";
+            rankHead = "VERS-eligible within 20 yrs by precinct";
             rankRows = list(
               precs
                 .filter((p) => p && p.town === S.town.name)
@@ -2887,7 +3136,7 @@
                   <span class="pct">${Math.round(r.share * 100)}%</span>
                 </button>`);
           } else {
-            rankHead = "Blocks by VERS-eligible year";
+            rankHead = "VERS-eligible year by block";
             rankRows = list(
               precs[S.prec].blocks.slice().sort((a, b) => (a.v ?? 99) - (b.v ?? 99)),
               (p) => {
@@ -2901,41 +3150,21 @@
               });
           }
 
-          // scale indicator: one square per scale, largest = Singapore, current one orange
-          const scaleInd = `
-            <div class="scaleind">
-              <span class="sqs">
-                ${list(SCALES, (name, i) => `
-                  <button class="sq ${when(i === S.state, "on")}" data-scale="${i}" style="--s:${[16, 12, 9, 6][i]}px"
-                    ${when(i > S.state, "disabled")} aria-label="${name} scale" ${when(i === S.state, 'aria-current="true"')}></button>`)}
-              </span>
-              <span class="scname">${SCALES[S.state]} scale</span>
-            </div>`;
+          // block typology bar (moved here from the right panel): every block in the selection
+          const typeCount = TYP.map((t) => sc.filter((p) => p.ty === t.k).length);
 
           // --- HTML ---
           P.innerHTML = `
             <div class="scalehead">
               <h2 class="title">Retrofit-To-Order</h2>
-              ${scaleInd}
             </div>
             <p class="dek">Find blocks under threat of VERS demolition. Years till VERS-eligible = lease start + 70 − ${VB}.</p>
 
-            <section class="ctotal">
-              <p class="clbl">Total embodied carbon</p>
-              <div><span class="ct-n">${fmt(showCarbon)}</span> <span class="ct-u">t CO₂e</span></div>
-            </section>
-
-            <section>
-              <p class="lbl"><span>Map mode</span></p>
-              <div class="seg" id="modeSeg">
-                <button data-c="vers" aria-pressed="${S.colorBy === "vers"}">VERS status</button>
-                <button data-c="typ" aria-pressed="${S.colorBy === "typ"}">Block type</button>
-              </div>
-            </section>
-
-            <section id="sec-vers" class="${when(S.colorBy === "vers", "active")}">
-              <div class="lghead"><span>VERS status</span><span class="n">Blocks</span><span class="n">Flats</span></div>
-              <div class="legend">
+            <section id="sec-vers" class="fold ${when(S.open.vers, "open")} ${when(S.colorBy === "vers", "active")}">
+              <button class="lghead foldbtn" data-fold="vers" aria-expanded="${S.open.vers}" aria-controls="list-vers">
+                <span>${icon("chevdown", 16)}VERS status</span><span class="n">Blocks</span><span class="n">Flats</span>
+              </button>
+              <div class="legend" id="list-vers">
                 ${list(BANDS, (b) => `
                   <label class="lg">
                     <input type="checkbox" data-b="${b.k}" ${when(S.on.has(b.k), "checked")}>
@@ -2948,9 +3177,11 @@
               <div class="tot"><span>Showing</span><span>${fmt(shown.length)} blocks · ${fmt(showFlats)} flats</span></div>
             </section>
 
-            <section id="sec-typ" class="${when(S.colorBy === "typ", "active")}">
-              <div class="lghead typ"><span>Block type</span><span class="n">Blocks</span></div>
-              <div class="legend">
+            <section id="sec-typ" class="fold ${when(S.open.typ, "open")} ${when(S.colorBy === "typ", "active")}">
+              <button class="lghead typ foldbtn" data-fold="typ" aria-expanded="${S.open.typ}" aria-controls="list-typ">
+                <span>${icon("chevdown", 16)}Block type</span><span class="n">Blocks</span>
+              </button>
+              <div class="legend" id="list-typ">
                 ${list(TYP, (t) => `
                   <label class="lg typ">
                     <input type="checkbox" data-t="${t.k}" ${when(S.typOn.has(t.k), "checked")}>
@@ -2959,7 +3190,13 @@
                     <span class="n">${fmt(typBlocks[t.k])}</span>
                   </label>`)}
               </div>
-              <p class="dek note">Block type from the QGIS project 261118 RTO Interface, for every HDB block.</p>
+              <p class="dek note foldnote">Block type from the QGIS project 261118 RTO Interface, for every HDB block.</p>
+            </section>
+
+            <section>
+              <p class="lbl"><span>Block typology</span><span>${fmt(sc.length)} blocks</span></p>
+              <div class="typbar">${list(typeCount, (n, i) => when(n, `<i style="width:${(n / (sc.length || 1)) * 100}%;background:${CT[i]}"></i>`))}</div>
+              <div class="typkey">${list(TYP, (t) => when(typeCount[t.k], `<span style="--c:${CT[t.k]}">${t.name} ${fmt(typeCount[t.k])}</span>`))}</div>
             </section>
 
             <section>
@@ -2975,19 +3212,10 @@
             </details>`;
 
           // --- wire up ---
-          P.querySelectorAll("[data-scale]").forEach((btn) => {
-            btn.onclick = () => +btn.dataset.scale < S.state && go(+btn.dataset.scale);
-          });
-          P.querySelectorAll("#modeSeg button").forEach((btn) => {
+          P.querySelectorAll("[data-fold]").forEach((btn) => {
             btn.onclick = () => {
-              S.colorBy = btn.dataset.c;
-              restyle();
-              renderPanel();
-              // scroll the panel down to the list for this mode, and flash it
-              const sec = P.querySelector(S.colorBy === "typ" ? "#sec-typ" : "#sec-vers");
-              sec.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
-              sec.classList.add("flash");
-              setTimeout(() => sec.classList.remove("flash"), 900);
+              S.open[btn.dataset.fold] = !S.open[btn.dataset.fold];
+              panelLeft();
             };
           });
           P.querySelectorAll("input[data-b]").forEach((input) => {
@@ -3015,6 +3243,37 @@
           });
         }
 
+        /* ---------- rolling number (odometer) ----------
+           roll(el, from, to): each digit scrolls up when the value rises and
+           down when it falls. Reduced motion: the number just switches. */
+        let lastCarbon = null;
+        function roll(el, from, to) {
+          const str = fmt(to);
+          if (from == null || from === to || reduce) {
+            el.textContent = str;
+            return;
+          }
+          const up = to > from;
+          const oldDigits = String(Math.round(from)).split("").reverse(); // ones first
+          let k = (str.match(/\d/g) || []).length; // digit positions counted from the right
+          el.innerHTML = list(str.split(""), (ch) => {
+            if (!/\d/.test(ch)) return `<span class="sep">${ch}</span>`;
+            k--;
+            const o = +(oldDigits[k] ?? 0), n = +ch;
+            // column 0–9 three times; start on the middle copy, end above or below it
+            const start = 10 + o;
+            const end = o === n ? start : up ? (n > o ? 10 + n : 20 + n) : (n < o ? 10 + n : n);
+            return `<span class="dg"><span class="col" style="transform:translateY(${-start}em)" data-end="${end}" data-n="${n}">${list([...Array(30).keys()], (i) => `<span>${i % 10}</span>`)}</span></span>`;
+          });
+          el.getBoundingClientRect(); // apply the start position before animating
+          el.querySelectorAll(".col").forEach((c) => {
+            c.classList.add("go");
+            c.style.transform = `translateY(${-c.dataset.end}em)`;
+          });
+          clearTimeout(el._t);
+          el._t = setTimeout(() => (el.textContent = str), 700); // tidy up to plain text afterwards
+        }
+
         /* ---------- RIGHT PANEL ---------- */
         // colour + icon for each facility group (one palette for facilities only)
         const GROUP_ICON = { t: "mrt", s: "school", c: "hawker", h: "clinic", p: "park" };
@@ -3032,15 +3291,17 @@
           const sc = scope();
           const flats = sum(sc, (p) => p.u);
           const risk = sc.filter(soon);
+          const carbon = sum(sc.filter((p) => visible(p)), (p) => p.ec); // follows the checkboxes, like the map
+          const yrs = sc.map((p) => p.y).filter((y) => y).sort((a, b) => a - b);
+          const built = yrs.length
+            ? `${yrs[0]}${when(yrs.at(-1) !== yrs[0], "–" + yrs.at(-1))} · median ${yrs[Math.floor(yrs.length / 2)]}`
+            : "—";
 
           // summary card: the place, its parts, blocks · flats
           let parts = "";
           if (S.state === 0) parts = `<dt>Towns</dt><dd>${fmt(towns.length)}</dd>`;
           if (S.state === 1)
             parts = `<dt>Precincts</dt><dd>${precs.filter((p) => p && p.town === S.town.name).length} <span class="tag">derived</span></dd>`;
-
-          // block typology bar
-          const typeCount = TYP.map((t) => sc.filter((p) => p.ty === t.k).length);
 
           // precinct extras
           let extras = "";
@@ -3067,8 +3328,7 @@
                 <div class="ph"><b>Precinct photo</b> — ${pr.site ? "add an aerial or street photo of this site" : "add a photo for this precinct"}</div>
                 <div class="box" style="margin-top:2px">
                   <dl style="margin:0">
-                    <dt>Built</dt>             <dd>${years[0]}${when(years.at(-1) !== years[0], "–" + years.at(-1))} (median ${medianYear})</dd>
-                    <dt>Neighbourhood age</dt> <dd>${NOW - medianYear} years</dd>
+                    <dt>Neighbourhood age</dt> <dd>${NOW - medianYear} years <span class="muted">(median block built ${medianYear})</span></dd>
                   </dl>
                 </div>
                 <div class="ph" style="margin-top:2px"><b>Your text here</b> — the history of this neighbourhood, from your oral histories and textual research.</div>
@@ -3098,36 +3358,34 @@
           // --- HTML ---
           RP.innerHTML = `
             <div class="rphead">
-              <span>${SCALES[S.state]} scale</span>
+              <div class="scaleind">
+                <span class="sqs">
+                  ${list(SCALES, (name, i) => `
+                    <button class="sq ${when(i === S.state, "on")}" data-scale="${i}" style="--s:${[16, 12, 9, 6][i]}px"
+                      ${when(i > S.state, "disabled")} aria-label="${name} scale" ${when(i === S.state, 'aria-current="true"')}></button>`)}
+                </span>
+                <span class="scname">${SCALES[S.state]} scale</span>
+              </div>
               <button class="iconbtn" id="rpClose" aria-label="Close the details panel">${icon("close", 16)}</button>
             </div>
             <div class="navbox" title="Preview: the white box is what the map is showing"><canvas id="navCanvas"></canvas></div>
 
+            <div class="cbox">
+              <p class="clbl">Approximate total embodied carbon</p>
+              <div><span class="ct-n" id="carbonNum" aria-label="${fmt(carbon)} tonnes CO₂e"></span> <span class="ct-u">t CO₂e</span></div>
+            </div>
+
             <div class="box summary">
-              <h3>${scopeName()}</h3>
+              <h3 class="title">${scopeName()}</h3>
               <dl>
                 ${parts}
                 <dt>Blocks · Flats</dt><dd>${fmt(sc.length)} · ${fmt(flats)}</dd>
+                <dt>Year built</dt><dd>${built}</dd>
               </dl>
             </div>
 
             <section>
-              <p class="lbl"><span>Block typology</span><span>${fmt(sc.length)} blocks</span></p>
-              <div class="typbar">${list(typeCount, (n, i) => when(n, `<i style="width:${(n / (sc.length || 1)) * 100}%;background:${CT[i]}"></i>`))}</div>
-              <div class="typkey">${list(TYP, (t) => when(typeCount[t.k], `<span style="--c:${CT[t.k]}">${t.name} ${fmt(typeCount[t.k])}</span>`))}</div>
-            </section>
-
-            <section>
-              <p class="lbl"><span>Share VERS-eligible within 20 yrs</span></p>
-              <div class="tw static">
-                <span>${S.state >= 2 ? (precs[S.prec].site ? precs[S.prec].name : tc(precs[S.prec].name)) : scopeName()}</span>
-                <span class="bar">${bandBar(sc)}</span>
-                <span class="pct">${Math.round(shareSoon(sc) * 100)}%</span>
-              </div>
-            </section>
-
-            <section>
-              <p class="lbl"><span>At risk</span><span>VERS-eligible within 20 yrs</span></p>
+              <p class="lbl"><span>At demolition risk by VERS within the next 20 yrs</span></p>
               <div class="box">
                 <dl style="margin:0">
                   <dt>Blocks</dt>          <dd>${fmt(risk.length)}</dd>
@@ -3139,6 +3397,11 @@
             ${extras}`;
 
           // --- wire up ---
+          roll(RP.querySelector("#carbonNum"), lastCarbon, carbon);
+          lastCarbon = carbon;
+          RP.querySelectorAll("[data-scale]").forEach((btn) => {
+            btn.onclick = () => +btn.dataset.scale < S.state && go(+btn.dataset.scale);
+          });
           RP.querySelector("#rpClose").onclick = () => {
             rpOpen = false;
             renderPanel();
@@ -3269,7 +3532,7 @@
             <div class="bc-head">
               <div class="bc-id">
                 <h3>Blk ${p.b} ${tc(p.s)}</h3>
-                <p class="dek">${p.t} · Singapore ${p.pc} · ${TYP[p.ty].name}${when(p.era, " · era " + p.era)}${when(p.sers, " · <b>" + p.sers + "</b>")}</p>
+                <p class="dek">${p.t} · Singapore ${p.pc} · ${p.ty == null ? "Type unknown" : TYP[p.ty].name}${when(p.era, " · era " + p.era)}${when(p.sers, " · <b>" + p.sers + "</b>")}</p>
                 <div class="clock">${when(p.ls != null, `<i style="width:${leaseUsed}%;background:${CB[p.band]}"></i>`)}</div>
                 <p class="dek small">${leaseText}</p>
               </div>
@@ -3943,12 +4206,21 @@
             ST = merge(clone(SITE_STYLE), loadSaved());
             recolor();
           })
-          .then(() => fetch("map.json"))
+          .then(() => fetch("map.json", { cache: "no-cache" })) // always check for a newer map.json
           .then((r) => r.json())
           .then((d) => {
             D = d;
             VB = d.versBase;
             init();
+            // an out-of-date map.json (e.g. an old copy kept by the browser) has blocks without a type
+            const untyped = blocks.filter((p) => p.ty == null).length;
+            if (untyped) {
+              console.warn(untyped + " blocks have no block type — map.json is out of date");
+              const w = document.createElement("p");
+              w.className = "dataw";
+              w.innerHTML = `<b>Old map data loaded.</b> ${fmt(untyped)} blocks have no block type. Reload the page with <b>Ctrl + Shift + R</b> (Mac: <b>⌘ + Shift + R</b>).`;
+              document.getElementById("panel").prepend(w);
+            }
           })
           .catch((e) => {
             console.error(e);
