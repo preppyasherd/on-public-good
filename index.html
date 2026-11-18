@@ -235,40 +235,47 @@
         font-variant-numeric: tabular-nums;
       }
       /* the carbon box: always light with dark text, day or night */
-      .cbox {
+      .cbox,
+      .box.cbox {
         background: #f0eee9;
         color: #1c1c1e;
         padding: 16px;
       }
-      .cbox .clbl,
-      .cbox .ct-u {
+      .box.cbox .clbl,
+      .box.cbox .ct-u,
+      .box.cbox dt {
         color: #5c5852;
       }
-      /* odometer digits */
-      .ct-n .dg {
+      .box.cbox .title,
+      .box.cbox dd {
+        color: #1c1c1e;
+      }
+      .box.cbox .tag {
+        background: #1c1c1e;
+        color: #f0eee9;
+      }
+      .cbox .cnum {
+        margin-top: 2px;
+      }
+      /* odometer digits — any element with class "odo"; --lh is set from its line height */
+      .odo {
+        display: inline-flex;
+        font-variant-numeric: tabular-nums;
+      }
+      .odo .dg {
         display: inline-block;
-        height: 36px;
+        height: var(--lh);
         overflow: hidden;
       }
-      .ct-n .dg,
-      .ct-n .col {
-        font-size: 36px; /* 1em = one digit row (36px) */
-      }
-      .ct-n .col {
+      .odo .col {
         display: flex;
         flex-direction: column;
       }
-      .ct-n .col > span {
-        font-size: 28px;
+      .odo .col > span {
+        height: var(--lh);
+        line-height: var(--lh);
       }
-      .ct-n .col > span {
-        height: 36px;
-        line-height: 36px;
-      }
-      .ct-n .col {
-        --em: 36px;
-      }
-      .ct-n .col.go {
+      .odo .col.go {
         transition: transform 0.6s var(--ease);
       }
       .ct-u {
@@ -292,6 +299,13 @@
       .foldbtn:hover {
         background: var(--hover);
       }
+      .foldbtn {
+        padding-left: 8px !important;
+      }
+      /* the list that is colouring the map (Map mode) */
+      .fold.active .foldbtn {
+        box-shadow: inset 3px 0 0 var(--primary);
+      }
       .foldbtn > span:first-child {
         display: inline-flex;
         align-items: center;
@@ -305,6 +319,7 @@
         transform: none;
       }
       .fold:not(.open) .legend,
+      .fold:not(.open) .towns,
       .fold:not(.open) .foldnote {
         display: none;
       }
@@ -331,7 +346,7 @@
         color: var(--muted);
       }
       .lg.typ {
-        grid-template-columns: 16px 16px 1fr 52px;
+        grid-template-columns: 16px 16px 1fr;
       }
       .dek.note,
       .dek.small {
@@ -495,7 +510,7 @@
       }
       .lg {
         display: grid;
-        grid-template-columns: 16px 16px 1fr 52px 72px;
+        grid-template-columns: 16px 16px 1fr;
         gap: 12px;
         align-items: center;
         padding: 8px;
@@ -1615,15 +1630,22 @@
          ============================================================ */
       .modesw {
         position: absolute;
-        top: 16px;
-        left: calc((100% - var(--rp-w)) / 2);
-        transform: translateX(-50%);
+        left: 16px;
+        bottom: 16px;
         z-index: 950;
         display: flex;
         align-items: stretch;
         background: var(--bg);
         border: 1px solid var(--border);
-        transition: left 0.24s var(--ease), top 0.24s var(--ease);
+        transition: bottom 0.24s var(--ease);
+      }
+      /* at block scale it sits just above the block card */
+      /* the hint moves up when it would run into the Map mode switch */
+      .hint-up .hint {
+        bottom: 64px;
+      }
+      .has-card .modesw {
+        bottom: calc(var(--card-h, 0px) + 16px);
       }
       .modesw .ml {
         display: flex;
@@ -1645,13 +1667,6 @@
       }
       .modesw .seg button + button {
         border-left: 1px solid var(--border);
-      }
-      /* drops under the breadcrumb when there isn't room beside it */
-      .mode-low .modesw {
-        top: 64px;
-      }
-      .mode-low.has-card .hint {
-        top: 120px;
       }
       .mapctl {
         position: absolute;
@@ -2248,7 +2263,7 @@
           colorBy: "vers",
           on: new Set([0, 1, 2, 3, 4, 5, 6]),
           typOn: new Set([0, 1, 2, 3, 4]),
-          open: { vers: false, typ: false }, // folded lists in the left panel (both start folded)
+          open: { vers: false, typ: false, rank: false }, // folding sections in the left panel (all start folded)
           fac: { t: true, s: true, c: true, h: false, p: true },
         };
 
@@ -2919,6 +2934,8 @@
             document.getElementById("mapHome").style.cursor = o ? "pointer" : "";
             if (o !== hoverObj) {
               hoverObj = o;
+              // block scale: the right panel's carbon follows the hovered block, else the selected one
+              if (S.state === 3) setBlockCarbon(o && o.b != null && o.pid === S.prec ? o : S.blk);
               drawHighlights(o ? hoverFor(o, S.state >= 2) : null);
             }
             o && !outside(o) ? tipShow(e.originalEvent, describe(o), barFor(o)) : tipHide();
@@ -2927,6 +2944,16 @@
             tipHide();
             hoverObj = null;
             drawHighlights();
+          });
+          // leaving the map (onto a panel or the block card) puts the selected block's carbon back
+          document.getElementById("mapwrap").addEventListener("mouseleave", () => {
+            tipHide();
+            if (S.state === 3) setBlockCarbon(S.blk);
+          });
+          CARD.addEventListener("mouseenter", () => {
+            hoverObj = null;
+            tipHide();
+            if (S.state === 3) setBlockCarbon(S.blk);
           });
           map.on("click", (e) => {
             const o = hitTest(e.latlng);
@@ -3038,7 +3065,7 @@
         }
         const shareSoon = (bl) => (bl.length ? bl.filter(soon).length / bl.length : 0);
 
-        /* ---------- Map mode switch (top centre of the map) ---------- */
+        /* ---------- Map mode switch (bottom-left of the map) ---------- */
         const MODE = document.getElementById("modeSw");
         function renderMode() {
           MODE.innerHTML = `
@@ -3050,28 +3077,26 @@
           MODE.querySelectorAll("button").forEach((btn) => {
             btn.onclick = () => {
               S.colorBy = btn.dataset.c;
-              S.open[S.colorBy] = true; // unfold the matching list
               restyle();
               renderPanel();
-              // scroll the left panel down to that list, and flash it
+              // no scrolling and no unfolding: just highlight the matching list's heading
               const sec = P.querySelector(S.colorBy === "typ" ? "#sec-typ" : "#sec-vers");
-              sec.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
               sec.classList.add("flash");
               setTimeout(() => sec.classList.remove("flash"), 900);
             };
           });
           layoutTop();
         }
-        // keep the switch clear of the breadcrumb: if they would overlap, it drops below it
+        // the switch sits bottom-left; at block scale it lifts to just above the block card
         function layoutTop() {
           const mw = document.getElementById("mapwrap");
-          mw.classList.remove("mode-low");
-          const a = document.getElementById("crumbs").getBoundingClientRect();
-          const b = MODE.getBoundingClientRect();
-          const c = document.querySelector(".mapctl").getBoundingClientRect();
-          if (b.left < a.right + 12 || b.right > c.left - 12) mw.classList.add("mode-low");
+          mw.style.setProperty("--card-h", (S.state === 3 && CARD.classList.contains("open") ? CARD.offsetHeight : 0) + "px");
+          mw.classList.remove("hint-up");
+          const a = MODE.getBoundingClientRect(), h = document.getElementById("hint").getBoundingClientRect();
+          if (S.state !== 3 && h.width && a.right + 8 > h.left && a.top < h.bottom) mw.classList.add("hint-up");
         }
         addEventListener("resize", () => requestAnimationFrame(layoutTop));
+        new MutationObserver(() => requestAnimationFrame(layoutTop)).observe(document.getElementById("hint"), { childList: true });
 
         let lastState = -1;
         let rpOpen = true; // right panel open (× closes it, the "Details" tab reopens it)
@@ -3093,17 +3118,6 @@
         /* ---------- LEFT PANEL ---------- */
         function panelLeft() {
           const sc = scope();
-
-          // blocks and flats per VERS band (respecting the block-type checkboxes)
-          const bandBlocks = {}, bandFlats = {};
-          BANDS.forEach((b) => { bandBlocks[b.k] = 0; bandFlats[b.k] = 0; });
-          sc.forEach((p) => {
-            if (p.band === "unk" || !S.typOn.has(p.ty)) return;
-            bandBlocks[p.band]++;
-            bandFlats[p.band] += p.u;
-          });
-          // blocks per type (respecting the VERS checkboxes)
-          const typBlocks = TYP.map((t) => sc.filter((p) => p.ty === t.k && (p.band === "unk" || S.on.has(p.band))).length);
 
           // what the map shows: "Showing …" and the carbon total follow both sets of checkboxes
           const shown = sc.filter((p) => visible(p));
@@ -3150,9 +3164,6 @@
               });
           }
 
-          // block typology bar (moved here from the right panel): every block in the selection
-          const typeCount = TYP.map((t) => sc.filter((p) => p.ty === t.k).length);
-
           // --- HTML ---
           P.innerHTML = `
             <div class="scalehead">
@@ -3162,7 +3173,7 @@
 
             <section id="sec-vers" class="fold ${when(S.open.vers, "open")} ${when(S.colorBy === "vers", "active")}">
               <button class="lghead foldbtn" data-fold="vers" aria-expanded="${S.open.vers}" aria-controls="list-vers">
-                <span>${icon("chevdown", 16)}VERS status</span><span class="n">Blocks</span><span class="n">Flats</span>
+                <span>${icon("chevdown", 16)}VERS status</span>
               </button>
               <div class="legend" id="list-vers">
                 ${list(BANDS, (b) => `
@@ -3170,8 +3181,6 @@
                     <input type="checkbox" data-b="${b.k}" ${when(S.on.has(b.k), "checked")}>
                     <span class="sw" style="background:${CB[b.k]}"></span>
                     <span>${bandLabel(b)} <span class="muted">${bandYears(b)}</span></span>
-                    <span class="n">${fmt(bandBlocks[b.k])}</span>
-                    <span class="n u">${fmt(bandFlats[b.k])}</span>
                   </label>`)}
               </div>
               <div class="tot"><span>Showing</span><span>${fmt(shown.length)} blocks · ${fmt(showFlats)} flats</span></div>
@@ -3179,7 +3188,7 @@
 
             <section id="sec-typ" class="fold ${when(S.open.typ, "open")} ${when(S.colorBy === "typ", "active")}">
               <button class="lghead typ foldbtn" data-fold="typ" aria-expanded="${S.open.typ}" aria-controls="list-typ">
-                <span>${icon("chevdown", 16)}Block type</span><span class="n">Blocks</span>
+                <span>${icon("chevdown", 16)}Block type</span>
               </button>
               <div class="legend" id="list-typ">
                 ${list(TYP, (t) => `
@@ -3187,21 +3196,16 @@
                     <input type="checkbox" data-t="${t.k}" ${when(S.typOn.has(t.k), "checked")}>
                     <span class="sw" style="background:${CT[t.k]}"></span>
                     <span>${t.name}</span>
-                    <span class="n">${fmt(typBlocks[t.k])}</span>
                   </label>`)}
               </div>
               <p class="dek note foldnote">Block type from the QGIS project 261118 RTO Interface, for every HDB block.</p>
             </section>
 
-            <section>
-              <p class="lbl"><span>Block typology</span><span>${fmt(sc.length)} blocks</span></p>
-              <div class="typbar">${list(typeCount, (n, i) => when(n, `<i style="width:${(n / (sc.length || 1)) * 100}%;background:${CT[i]}"></i>`))}</div>
-              <div class="typkey">${list(TYP, (t) => when(typeCount[t.k], `<span style="--c:${CT[t.k]}">${t.name} ${fmt(typeCount[t.k])}</span>`))}</div>
-            </section>
-
-            <section>
-              <p class="lbl"><span>${rankHead}</span></p>
-              <div class="towns">${rankRows}</div>
+            <section id="sec-rank" class="fold ${when(S.open.rank, "open")}">
+              <button class="lghead foldbtn" data-fold="rank" aria-expanded="${S.open.rank}" aria-controls="list-rank">
+                <span>${icon("chevdown", 16)}${rankHead}</span>
+              </button>
+              <div class="towns" id="list-rank">${rankRows}</div>
             </section>
 
             <details class="method">
@@ -3246,13 +3250,21 @@
         /* ---------- rolling number (odometer) ----------
            roll(el, from, to): each digit scrolls up when the value rises and
            down when it falls. Reduced motion: the number just switches. */
-        let lastCarbon = null;
+        const LAST = {}; // last value shown per rolling figure (carbon, parts, blocks, flats)
+        function rollKey(key, el, to) {
+          if (!el) return;
+          roll(el, LAST[key], to);
+          LAST[key] = to;
+        }
         function roll(el, from, to) {
           const str = fmt(to);
+          el.classList.add("odo");
           if (from == null || from === to || reduce) {
             el.textContent = str;
             return;
           }
+          const lh = parseFloat(getComputedStyle(el).lineHeight) || el.offsetHeight || 20;
+          el.style.setProperty("--lh", lh + "px");
           const up = to > from;
           const oldDigits = String(Math.round(from)).split("").reverse(); // ones first
           let k = (str.match(/\d/g) || []).length; // digit positions counted from the right
@@ -3263,12 +3275,12 @@
             // column 0–9 three times; start on the middle copy, end above or below it
             const start = 10 + o;
             const end = o === n ? start : up ? (n > o ? 10 + n : 20 + n) : (n < o ? 10 + n : n);
-            return `<span class="dg"><span class="col" style="transform:translateY(${-start}em)" data-end="${end}" data-n="${n}">${list([...Array(30).keys()], (i) => `<span>${i % 10}</span>`)}</span></span>`;
+            return `<span class="dg"><span class="col" style="transform:translateY(${-start * lh}px)" data-end="${end}">${list([...Array(30).keys()], (i) => `<span>${i % 10}</span>`)}</span></span>`;
           });
           el.getBoundingClientRect(); // apply the start position before animating
           el.querySelectorAll(".col").forEach((c) => {
             c.classList.add("go");
-            c.style.transform = `translateY(${-c.dataset.end}em)`;
+            c.style.transform = `translateY(${-c.dataset.end * lh}px)`;
           });
           clearTimeout(el._t);
           el._t = setTimeout(() => (el.textContent = str), 700); // tidy up to plain text afterwards
@@ -3281,6 +3293,14 @@
         const famk = (g, k) =>
           `<span class="amk" style="background:${groupColour(g)}">${icon(k || GROUP_ICON[g], 14)}</span>`;
 
+        function setBlockCarbon(p) {
+          if (S.state !== 3 || !p || !rpOpen) return;
+          const el = RP.querySelector("#r-carbon"), lb = RP.querySelector("#r-clbl");
+          if (!el) return;
+          lb.textContent = "Approximate embodied carbon · Blk " + p.b;
+          rollKey("carbon", el, p.ec || 0);
+        }
+
         function panelRight() {
           const app = document.getElementById("app");
           app.classList.toggle("rp-open", rpOpen);
@@ -3289,19 +3309,20 @@
             return;
           }
           const sc = scope();
-          const flats = sum(sc, (p) => p.u);
-          const risk = sc.filter(soon);
-          const carbon = sum(sc.filter((p) => visible(p)), (p) => p.ec); // follows the checkboxes, like the map
+          const shown = sc.filter((p) => visible(p)); // carbon, blocks and flats follow the checkboxes, like the map
+          // at block scale the carbon line shows one block (the selected one; hovering another changes it)
+          const cBlk = S.state === 3 ? S.blk : null;
+          const carbon = cBlk ? cBlk.ec || 0 : sum(shown, (p) => p.ec);
           const yrs = sc.map((p) => p.y).filter((y) => y).sort((a, b) => a - b);
           const built = yrs.length
             ? `${yrs[0]}${when(yrs.at(-1) !== yrs[0], "–" + yrs.at(-1))} · median ${yrs[Math.floor(yrs.length / 2)]}`
             : "—";
 
-          // summary card: the place, its parts, blocks · flats
-          let parts = "";
-          if (S.state === 0) parts = `<dt>Towns</dt><dd>${fmt(towns.length)}</dd>`;
+          // the card: place → carbon → towns / precincts → blocks → flats → year built
+          let parts = null;
+          if (S.state === 0) parts = { label: "Towns", n: towns.length, tag: "" };
           if (S.state === 1)
-            parts = `<dt>Precincts</dt><dd>${precs.filter((p) => p && p.town === S.town.name).length} <span class="tag">derived</span></dd>`;
+            parts = { label: "Precincts", n: precs.filter((p) => p && p.town === S.town.name).length, tag: ' <span class="tag">derived</span>' };
 
           // precinct extras
           let extras = "";
@@ -3370,35 +3391,25 @@
             </div>
             <div class="navbox" title="Preview: the white box is what the map is showing"><canvas id="navCanvas"></canvas></div>
 
-            <div class="cbox">
-              <p class="clbl">Approximate total embodied carbon</p>
-              <div><span class="ct-n" id="carbonNum" aria-label="${fmt(carbon)} tonnes CO₂e"></span> <span class="ct-u">t CO₂e</span></div>
-            </div>
-
-            <div class="box summary">
+            <div class="box cbox summary">
               <h3 class="title">${scopeName()}</h3>
+              <p class="clbl" id="r-clbl" style="margin-top:16px">${cBlk ? "Approximate embodied carbon · Blk " + cBlk.b : "Approximate total embodied carbon"}</p>
+              <div class="cnum"><span class="ct-n" id="r-carbon"></span> <span class="ct-u">t CO₂e</span></div>
               <dl>
-                ${parts}
-                <dt>Blocks · Flats</dt><dd>${fmt(sc.length)} · ${fmt(flats)}</dd>
+                ${parts ? `<dt>${parts.label}</dt><dd><span id="r-parts"></span>${parts.tag}</dd>` : ""}
+                <dt>Blocks</dt><dd><span id="r-blocks"></span></dd>
+                <dt>Flats</dt><dd><span id="r-flats"></span></dd>
                 <dt>Year built</dt><dd>${built}</dd>
               </dl>
             </div>
-
-            <section>
-              <p class="lbl"><span>At demolition risk by VERS within the next 20 yrs</span></p>
-              <div class="box">
-                <dl style="margin:0">
-                  <dt>Blocks</dt>          <dd>${fmt(risk.length)}</dd>
-                  <dt>Flats</dt>           <dd>${fmt(sum(risk, (p) => p.u))}</dd>
-                  <dt>Embodied carbon</dt> <dd>${fmt(sum(risk, (p) => p.ec))} t CO₂e</dd>
-                </dl>
-              </div>
-            </section>
             ${extras}`;
 
           // --- wire up ---
-          roll(RP.querySelector("#carbonNum"), lastCarbon, carbon);
-          lastCarbon = carbon;
+          rollKey("carbon", RP.querySelector("#r-carbon"), carbon);
+          if (parts) rollKey("parts", RP.querySelector("#r-parts"), parts.n);
+          else delete LAST.parts;
+          rollKey("blocks", RP.querySelector("#r-blocks"), shown.length);
+          rollKey("flats", RP.querySelector("#r-flats"), sum(shown, (p) => p.u));
           RP.querySelectorAll("[data-scale]").forEach((btn) => {
             btn.onclick = () => +btn.dataset.scale < S.state && go(+btn.dataset.scale);
           });
@@ -3574,6 +3585,7 @@
           CARD.querySelector("#bcMin").onclick = () => {
             cardMin = !cardMin;
             renderBlockCard();
+            requestAnimationFrame(layoutTop);
           };
           CARD.querySelector("#flatType").onchange = (e) => {
             flatType = e.target.value;
