@@ -117,8 +117,8 @@
     }
   },
   "amenSize": {
-    "pin": 24,
-    "dot": 18
+    "pin": 22,
+    "dot": 22
   },
   "overlays": {
     "hint": true,
