@@ -257,6 +257,165 @@
       .cbox .cnum {
         margin-top: 2px;
       }
+      /* carbon figure: hover (or focus / tap) for how it is estimated */
+      .cnum {
+        position: relative;
+        display: inline-block;
+        cursor: help;
+        outline-offset: 2px;
+      }
+      .clbl .ii {
+        font-size: 12px;
+      }
+      .cinfo {
+        display: none;
+        position: absolute;
+        left: 0;
+        top: calc(100% + 6px);
+        z-index: 30;
+        width: 300px;
+        padding: 10px 12px;
+        background: #1c1c1e;
+        color: #f0eee9;
+        font-family: var(--sans);
+        font-size: 12px;
+        line-height: 16px;
+        letter-spacing: 0.32px;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .cinfo b {
+        font-size: 14px;
+        line-height: 18px;
+      }
+      .cinfo .ex {
+        font-family: var(--mono);
+      }
+      .cinfo .cv {
+        color: #a8a39a;
+      }
+      .cnum:hover .cinfo,
+      .cnum:focus .cinfo,
+      .cnum:focus-within .cinfo {
+        display: flex;
+      }
+      /* block card: precinct line and lease bar */
+      .box.cbox .cprec {
+        margin: 2px 0 0;
+        font-size: 12px;
+        letter-spacing: 0.32px;
+        color: #5c5852;
+      }
+      .clease {
+        margin: 16px 0;
+      }
+      .clease .clbl {
+        margin-bottom: 6px;
+      }
+      .clease .trow {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: center;
+      }
+      .clease .tk {
+        display: block;
+        height: 8px;
+        background: #d8d4cc;
+        overflow: hidden;
+      }
+      .clease .tk i {
+        display: block;
+        height: 100%;
+        transition: width 0.3s var(--ease);
+      }
+      .clease .tv {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: #1c1c1e;
+      }
+      .box.cbox .clbl {
+        margin-top: 16px;
+      }
+      .box.cbox .clease .clbl {
+        margin-top: 0;
+      }
+      .sw.sm {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin-right: 6px;
+        vertical-align: -1px;
+      }
+      /* breadcrumb list in the right panel */
+      .crumbl {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: -16px;
+      }
+      .crumbl .back {
+        align-self: flex-start;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        height: 32px;
+        padding: 0 14px 0 8px;
+        background: var(--text);
+        color: var(--bg);
+        border: 0;
+        cursor: pointer;
+      }
+      .crumbl ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .crumbl li {
+        position: relative;
+        padding: 3px 0 3px calc(var(--d) * 16px);
+        overflow: hidden;
+      }
+      .crumbl li + li::before {
+        content: "";
+        position: absolute;
+        left: calc(var(--d) * 16px - 11px);
+        top: 0;
+        width: 7px;
+        height: 13px;
+        border-left: 1px solid var(--strong);
+        border-bottom: 1px solid var(--strong);
+      }
+      .crumbl button:not(.back) {
+        background: none;
+        border: 0;
+        padding: 0;
+        color: var(--link);
+        cursor: pointer;
+        text-align: left;
+      }
+      .crumbl button:not(.back):hover {
+        text-decoration: underline;
+      }
+      .crumbl li.cur {
+        font-weight: 600;
+      }
+      @keyframes crumbIn {
+        from {
+          max-height: 0;
+          opacity: 0;
+        }
+        to {
+          max-height: 48px;
+          opacity: 1;
+        }
+      }
+      .crumbl li.new {
+        animation: crumbIn 0.24s var(--ease);
+      }
+      .crumbs.hide {
+        display: none !important;
+      }
       /* odometer digits — any element with class "odo"; --lh is set from its line height */
       .odo {
         display: inline-flex;
@@ -2094,7 +2253,7 @@
             clinic: { color: "#EE7191", show: true }, // clinics — pink
             park: { color: "#31746B", show: true }, // parks — green
           },
-          amenSize: { pin: 24, dot: 18 }, // circle sizes: main facilities, and bus stops / pre-schools / clinics
+          amenSize: { pin: 22, dot: 22 }, // one circle size for every facility ("dot" kept only for old style.json files)
           overlays: {
             legend: true,
             hint: true,
@@ -2447,6 +2606,14 @@
             pr.early = vs.length ? Math.min(...vs) : null;
           });
           sites = D.sites.map((id) => precs[id]);
+          // every precinct gets a short street name; the four RTO sites are named after their streets
+          // (Site 1 uses two streets: a stand-in precinct next to it is already "Bendemeer Rd")
+          const SITE_NAMES = { "Site 1": "Bendemeer Rd – Towner Rd", "Site 2": "Havelock Rd", "Site 3": "Circuit Rd", "Site 4": "Chin Swee Rd" };
+          precs.forEach((pr) => {
+            if (!pr) return;
+            if (pr.site) pr.name = SITE_NAMES[pr.name] || tc(pr.street);
+            pr.short = pr.site ? pr.name : tc(pr.name);
+          });
           hiLayer = L.layerGroup().addTo(map);
           amenLayer = L.layerGroup().addTo(map);
           overlayLayer = L.layerGroup().addTo(map);
@@ -2745,11 +2912,11 @@
           Object.entries(n).forEach(([k, list]) => {
             const m = AM[k];
             if (!S.fac[m.grp] || !T.amen[k].show) return;
-            const sz = m.dot ? T.amenSize.dot : T.amenSize.pin;
+            const sz = T.amenSize.pin; // every facility the same size
             list.forEach(({ a, d }) => {
               const ll = [a[1], a[0]];
               const mk = L.marker(ll, {
-                icon: L.divIcon({
+                icon: L.divIcon({ // same size for every type
                   className: "",
                   html: `<div class="pin" style="background:${m.bg};width:${sz}px;height:${sz}px">${icon(k, Math.round(sz * 0.6))}</div>`,
                   iconSize: [sz, sz],
@@ -2859,13 +3026,7 @@
               <b>${o.name}</b>
               <span class="m">${fmt(o.blocks.length)} blocks · ${fmt(n)} VERS-eligible within 20 yrs (${share}%)</span>`;
           }
-          if (o.kind === "prec") {
-            const title = o.site ? `${o.name} · ${tc(o.street)}` : `${tc(o.name)} precinct`;
-            const built = o.y1 !== o.y0 ? `${o.y0}–${o.y1}` : o.y0;
-            return `
-              <b>${title}</b>
-              <span class="m">${o.town} · ${o.n} blocks · built ${built} · first VERS ${o.early == null ? "—" : VB + o.early}</span>`;
-          }
+          if (o.kind === "prec") return `<b>${precTitle(o)}</b>`; // name only; the bar below gives the share
           const p = o; // a block
           return `
             <b>Blk ${p.b} ${tc(p.s)}</b>
@@ -2889,7 +3050,7 @@
             bl.forEach((p) => p.band !== "unk" && seg[p.band]++);
             return {
               head: "VERS-eligible within 20 yrs",
-              name: o.kind === "town" ? o.name : o.site ? o.name : tc(o.name),
+              name: o.kind === "town" ? o.name : o.short,
               seg: seg.map((x) => (x / n) * 100),
               val: Math.round(shareSoon(bl) * 100) + "%",
             };
@@ -2934,8 +3095,7 @@
             document.getElementById("mapHome").style.cursor = o ? "pointer" : "";
             if (o !== hoverObj) {
               hoverObj = o;
-              // block scale: the right panel's carbon follows the hovered block, else the selected one
-              if (S.state === 3) setBlockCarbon(o && o.b != null && o.pid === S.prec ? o : S.blk);
+              previewCard(o); // the right panel card shows what the pointer is on
               drawHighlights(o ? hoverFor(o, S.state >= 2) : null);
             }
             o && !outside(o) ? tipShow(e.originalEvent, describe(o), barFor(o)) : tipHide();
@@ -2948,12 +3108,13 @@
           // leaving the map (onto a panel or the block card) puts the selected block's carbon back
           document.getElementById("mapwrap").addEventListener("mouseleave", () => {
             tipHide();
-            if (S.state === 3) setBlockCarbon(S.blk);
+            hoverObj = null;
+            previewCard(null); // back to the current selection
           });
           CARD.addEventListener("mouseenter", () => {
             hoverObj = null;
             tipHide();
-            if (S.state === 3) setBlockCarbon(S.blk);
+            previewCard(null);
           });
           map.on("click", (e) => {
             const o = hitTest(e.latlng);
@@ -2985,13 +3146,20 @@
         /* ---------- crumbs ---------- */
         function renderCrumbs() {
           const c = document.getElementById("crumbs");
+          // the breadcrumb lives in the right panel; the map shows a Back button only when that panel is closed
+          const panelShown = rpOpen || getComputedStyle(document.getElementById("rpanel")).position !== "absolute";
+          c.classList.toggle("hide", panelShown || S.state === 0);
+          if (panelShown || S.state === 0) return;
+          c.innerHTML = `<button class="back" data-go="up">${icon("back", 15)}Back</button>`;
+          c.querySelector("button").onclick = goUp;
+          return;
           const parts = [];
           if (S.state > 0) parts.push(`<button class="back" data-go="up">${icon("back", 15)}Back</button>`);
           const items = [["Singapore", 0]];
           if (S.state >= 1) items.push([S.town.name, 1]);
           if (S.state >= 2) {
             const pr = precs[S.prec];
-            items.push([pr.site ? pr.name : tc(pr.name) + " precinct", 2]);
+            items.push([precTitle(pr), 2]);
           }
           if (S.state >= 3) items.push(["Blk " + S.blk.b, 3]);
           items.forEach(([t, s], i) => {
@@ -3036,7 +3204,7 @@
 
         const SCALES = ["Singapore", "Town", "Precinct", "Block"];
         const soon = (p) => p.v != null && p.v <= 20; // VERS-eligible within 20 yrs (by VB + 20)
-        const precTitle = (pr) => (pr.site ? `${pr.name} · ${tc(pr.street)}` : `${tc(pr.name)} precinct`);
+        const precTitle = (pr) => `${pr.short} precinct`;
         const sum = (arr, fn) => arr.reduce((s, x) => s + (fn(x) || 0), 0);
 
         // The blocks the panels count: whole island, one town, or one precinct
@@ -3145,7 +3313,7 @@
                 .slice(0, 12),
               (r) => `
                 <button class="tw" data-prec="${r.pr.id}">
-                  <span>${r.pr.site ? r.pr.name : tc(r.pr.name)}</span>
+                  <span>${r.pr.short}</span>
                   <span class="bar">${bandBar(r.pr.blocks)}</span>
                   <span class="pct">${Math.round(r.share * 100)}%</span>
                 </button>`);
@@ -3293,37 +3461,142 @@
         const famk = (g, k) =>
           `<span class="amk" style="background:${groupColour(g)}">${icon(k || GROUP_ICON[g], 14)}</span>`;
 
-        function setBlockCarbon(p) {
-          if (S.state !== 3 || !p || !rpOpen) return;
-          const el = RP.querySelector("#r-carbon"), lb = RP.querySelector("#r-clbl");
-          if (!el) return;
-          lb.textContent = "Approximate embodied carbon · Blk " + p.b;
-          rollKey("carbon", el, p.ec || 0);
+        /* ---------- the right panel card ----------
+           It describes the current selection, or (while hovering) what the pointer
+           is on: a town, a precinct or a block. Carbon, blocks, flats, floors and
+           towns / precincts roll to their new values; the lease bar slides. */
+        function selTarget() {
+          if (S.state === 0) return { kind: "island" };
+          if (S.state === 1) return { kind: "town", o: S.town };
+          if (S.state === 2) return { kind: "prec", o: precs[S.prec] };
+          return { kind: "blk", o: S.blk };
+        }
+        function hoverTarget(o) {
+          if (!o || outside(o)) return null;
+          if (o.kind === "town" || o.kind === "prec") return { kind: o.kind, o };
+          if (o.b != null) return { kind: "blk", o };
+          return null;
+        }
+        let cardKey = null;
+        function previewCard(o) {
+          if (!rpOpen || !RP.querySelector("#rcard")) return;
+          renderCard(hoverTarget(o) || selTarget());
+        }
+        const CO2_LINE = "Footprint area × floors × 1,300 kg CO₂e per m²";
+        const CO2_NOTE = "Upfront carbon only (A1–A5). Every floor counted as the full footprint; basements and foundations not included.";
+        function renderCard(t, force) {
+          const box = RP.querySelector("#rcard");
+          if (!box) return;
+          const key = t.kind + ":" + (t.o ? (t.o.i ?? t.o.id ?? t.o.name) : "sg");
+          if (key === cardKey && !force) return;
+          cardKey = key;
+          const info = (ex) => `
+            <div class="cinfo" id="cinfo" role="tooltip">
+              <b>How this is estimated</b>
+              <span>${CO2_LINE}</span>
+              <span class="ex">${ex}</span>
+              <span class="cv">${CO2_NOTE}</span>
+            </div>`;
+          const carbonRow = (label, ex) => `
+            <p class="clbl">${label} <span class="ii" aria-hidden="true">ⓘ</span></p>
+            <div class="cnum" tabindex="0" aria-describedby="cinfo"><span class="ct-n" id="r-carbon"></span> <span class="ct-u">t CO₂e</span>${info(ex)}</div>`;
+
+          if (t.kind === "blk") {
+            // ---- one block ----
+            const p = t.o, pr = precs[p.pid];
+            const used = p.ls == null ? null : NOW - p.ls;
+            const pct = used == null ? 0 : Math.max(0, Math.min(100, (used / 70) * 100));
+            const val = used == null ? "No lease (HDB rental)" : used >= 70 ? "VERS-eligible now" : `${used} / 70 yrs`;
+            const fp = p.gfa && p.f ? p.gfa / p.f : null;
+            const ex = p.ec != null && fp
+              ? `Blk ${p.b}: ${fmt(fp)} m² × ${p.f} floors = ${fmt(p.gfa)} m² GIA × 1.3 t/m² ≈ ${fmt(p.ec)} t CO₂e`
+              : "Not calculated for this block.";
+            box.innerHTML = `
+              <div class="box cbox summary">
+                <h3 class="title">Blk ${p.b}</h3>
+                <p class="cprec">Precinct: ${pr.short}</p>
+                <div class="clease">
+                  <p class="clbl">Lease used till VERS-eligible</p>
+                  <div class="trow"><span class="tk"><i id="r-lease" style="width:${LAST.lease ?? pct}%;background:${CB[p.band] || "#999"}"></i></span><span class="tv">${val}</span></div>
+                </div>
+                ${carbonRow("Approximate embodied carbon", ex)}
+                <dl>
+                  <dt>Block type</dt><dd><span class="sw sm" style="background:${p.ty == null ? "transparent" : CT[p.ty]}"></span>${p.ty == null ? "Type unknown" : TYP[p.ty].name}</dd>
+                  <dt>Floors</dt><dd><span id="r-floors"></span></dd>
+                  <dt>Flats</dt><dd><span id="r-flats"></span></dd>
+                  <dt>Year built</dt><dd>${p.y || "—"}</dd>
+                </dl>
+              </div>`;
+            rollKey("carbon", box.querySelector("#r-carbon"), p.ec || 0);
+            rollKey("floors", box.querySelector("#r-floors"), p.f || 0);
+            rollKey("flats", box.querySelector("#r-flats"), p.u || 0);
+            const bar = box.querySelector("#r-lease");
+            bar.getBoundingClientRect();
+            bar.style.width = pct + "%"; // slides from the last block's position
+            LAST.lease = pct;
+            return;
+          }
+
+          // ---- a place: Singapore, a town or a precinct ----
+          const bl = t.kind === "island" ? blocks : t.o.blocks;
+          const shown = bl.filter((p) => visible(p)); // follows the checkboxes, like the map
+          const yrs = bl.map((p) => p.y).filter((y) => y).sort((a, b) => a - b);
+          const built = yrs.length
+            ? `${yrs[0]}${when(yrs.at(-1) !== yrs[0], "–" + yrs.at(-1))} · median ${yrs[Math.floor(yrs.length / 2)]}`
+            : "—";
+          let parts = null;
+          if (t.kind === "island") parts = { label: "Towns", n: towns.length, tag: "" };
+          if (t.kind === "town")
+            parts = { label: "Precincts", n: precs.filter((p) => p && p.town === t.o.name).length, tag: ' <span class="tag">derived</span>' };
+          const name = t.kind === "island" ? "Singapore" : t.kind === "town" ? t.o.name : precTitle(t.o);
+          box.innerHTML = `
+            <div class="box cbox summary">
+              <h3 class="title">${name}</h3>
+              ${carbonRow("Approximate total embodied carbon", `Sum of the ${fmt(shown.length)} blocks shown on the map.`)}
+              <dl>
+                ${parts ? `<dt>${parts.label}</dt><dd><span id="r-parts"></span>${parts.tag}</dd>` : ""}
+                <dt>Blocks</dt><dd><span id="r-blocks"></span></dd>
+                <dt>Flats</dt><dd><span id="r-flats"></span></dd>
+                <dt>Year built</dt><dd>${built}</dd>
+              </dl>
+            </div>`;
+          rollKey("carbon", box.querySelector("#r-carbon"), sum(shown, (p) => p.ec));
+          if (parts) rollKey("parts", box.querySelector("#r-parts"), parts.n);
+          rollKey("blocks", box.querySelector("#r-blocks"), shown.length);
+          rollKey("flats", box.querySelector("#r-flats"), sum(shown, (p) => p.u));
+        }
+
+        /* ---------- breadcrumb list (right panel, under the navigator) ----------
+           One line per scale; each new scale opens below the one before. */
+        let lastCrumbDepth = 0;
+        function crumbList() {
+          const items = [["Singapore", 0]];
+          if (S.state >= 1) items.push([S.town.name, 1]);
+          if (S.state >= 2) items.push([precTitle(precs[S.prec]), 2]);
+          if (S.state >= 3) items.push(["Blk " + S.blk.b, 3]);
+          const html = `
+            <nav class="crumbl" aria-label="Map location">
+              ${when(S.state > 0, `<button class="back" data-go="up">${icon("back", 15)}Back</button>`)}
+              <ol>
+                ${list(items, ([t, sc], i) => `
+                  <li class="${when(i === items.length - 1, "cur")} ${when(i > lastCrumbDepth, "new")}" style="--d:${i}">
+                    ${i === items.length - 1 ? `<span aria-current="location">${t}</span>` : `<button data-go="${sc}">${t}</button>`}
+                  </li>`)}
+              </ol>
+            </nav>`;
+          lastCrumbDepth = items.length - 1;
+          return html;
         }
 
         function panelRight() {
           const app = document.getElementById("app");
           app.classList.toggle("rp-open", rpOpen);
+          renderCrumbs();
           if (!rpOpen) {
             RP.innerHTML = "";
+            cardKey = null;
             return;
           }
-          const sc = scope();
-          const shown = sc.filter((p) => visible(p)); // carbon, blocks and flats follow the checkboxes, like the map
-          // at block scale the carbon line shows one block (the selected one; hovering another changes it)
-          const cBlk = S.state === 3 ? S.blk : null;
-          const carbon = cBlk ? cBlk.ec || 0 : sum(shown, (p) => p.ec);
-          const yrs = sc.map((p) => p.y).filter((y) => y).sort((a, b) => a - b);
-          const built = yrs.length
-            ? `${yrs[0]}${when(yrs.at(-1) !== yrs[0], "–" + yrs.at(-1))} · median ${yrs[Math.floor(yrs.length / 2)]}`
-            : "—";
-
-          // the card: place → carbon → towns / precincts → blocks → flats → year built
-          let parts = null;
-          if (S.state === 0) parts = { label: "Towns", n: towns.length, tag: "" };
-          if (S.state === 1)
-            parts = { label: "Precincts", n: precs.filter((p) => p && p.town === S.town.name).length, tag: ' <span class="tag">derived</span>' };
-
           // precinct extras
           let extras = "";
           if (S.state === 2) {
@@ -3390,26 +3663,15 @@
               <button class="iconbtn" id="rpClose" aria-label="Close the details panel">${icon("close", 16)}</button>
             </div>
             <div class="navbox" title="Preview: the white box is what the map is showing"><canvas id="navCanvas"></canvas></div>
-
-            <div class="box cbox summary">
-              <h3 class="title">${scopeName()}</h3>
-              <p class="clbl" id="r-clbl" style="margin-top:16px">${cBlk ? "Approximate embodied carbon · Blk " + cBlk.b : "Approximate total embodied carbon"}</p>
-              <div class="cnum"><span class="ct-n" id="r-carbon"></span> <span class="ct-u">t CO₂e</span></div>
-              <dl>
-                ${parts ? `<dt>${parts.label}</dt><dd><span id="r-parts"></span>${parts.tag}</dd>` : ""}
-                <dt>Blocks</dt><dd><span id="r-blocks"></span></dd>
-                <dt>Flats</dt><dd><span id="r-flats"></span></dd>
-                <dt>Year built</dt><dd>${built}</dd>
-              </dl>
-            </div>
+            ${crumbList()}
+            <div id="rcard"></div>
             ${extras}`;
 
           // --- wire up ---
-          rollKey("carbon", RP.querySelector("#r-carbon"), carbon);
-          if (parts) rollKey("parts", RP.querySelector("#r-parts"), parts.n);
-          else delete LAST.parts;
-          rollKey("blocks", RP.querySelector("#r-blocks"), shown.length);
-          rollKey("flats", RP.querySelector("#r-flats"), sum(shown, (p) => p.u));
+          renderCard(hoverTarget(hoverObj) || selTarget(), true);
+          RP.querySelectorAll(".crumbl [data-go]").forEach((b) => {
+            b.onclick = () => (b.dataset.go === "up" ? goUp() : go(+b.dataset.go));
+          });
           RP.querySelectorAll("[data-scale]").forEach((btn) => {
             btn.onclick = () => +btn.dataset.scale < S.state && go(+btn.dataset.scale);
           });
@@ -3955,8 +4217,7 @@
                 [AMN[k], `amen.${k}.color`, "color"],
                 [`Show ${AMN[k].toLowerCase()}`, `amen.${k}.show`, "check"],
               ]),
-              ["Circle size — main facilities", "amenSize.pin", "range", [16, 40, 2]],
-              ["Circle size — bus stops, pre-schools, clinics", "amenSize.dot", "range", [12, 32, 2]],
+              ["Facility circle size", "amenSize.pin", "range", [14, 40, 2]],
             ],
           ],
           [
