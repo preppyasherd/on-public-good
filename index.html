@@ -351,8 +351,6 @@
       .crumbl {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        margin-top: -16px;
       }
       .crumbl .back {
         align-self: flex-start;
@@ -376,10 +374,13 @@
         padding: 3px 0 3px calc(var(--d) * 16px);
         overflow: hidden;
       }
+      .crumbl li + li {
+        padding-left: calc(var(--d) * 16px + 4px);
+      }
       .crumbl li + li::before {
         content: "";
         position: absolute;
-        left: calc(var(--d) * 16px - 11px);
+        left: calc(var(--d) * 16px - 10px);
         top: 0;
         width: 7px;
         height: 13px;
@@ -461,6 +462,17 @@
       .foldbtn {
         padding-left: 8px !important;
       }
+      /* VERS status and Block type headings: light, day or night */
+      #sec-vers .foldbtn,
+      #sec-typ .foldbtn {
+        background: #f0eee9;
+        color: #1c1c1e;
+        border-bottom-color: #d8d4cc;
+      }
+      #sec-vers .foldbtn:hover,
+      #sec-typ .foldbtn:hover {
+        background: #e6e3dc;
+      }
       /* the list that is colouring the map (Map mode) */
       .fold.active .foldbtn {
         box-shadow: inset 3px 0 0 var(--primary);
@@ -485,7 +497,7 @@
       /* list headings with column labels over the numbers */
       .lghead {
         display: grid;
-        grid-template-columns: 1fr 52px 72px;
+        grid-template-columns: 1fr;
         gap: 12px;
         align-items: baseline;
         padding: 0 8px 12px 0;
@@ -494,7 +506,7 @@
         padding: 8px 8px 8px 0;
       }
       .lghead.typ {
-        grid-template-columns: 1fr 52px;
+        grid-template-columns: 1fr;
       }
       .lghead > span:first-child {
         font-weight: 600;
@@ -779,6 +791,16 @@
         font-size: 12px;
         letter-spacing: 0.32px;
         text-align: right;
+      }
+      /* carbon ranking: neutral grey bars (reds are for VERS only) */
+      .tw.cw .bar i {
+        background: color-mix(in srgb, var(--text) 60%, transparent);
+      }
+      .tw.cw {
+        grid-template-columns: 104px 1fr 76px;
+      }
+      .tw .pct {
+        white-space: nowrap;
       }
       .tw.on {
         background: var(--surface);
@@ -1093,16 +1115,9 @@
         top: 16px;
         left: 16px;
         z-index: 900;
-        display: flex;
-        align-items: stretch;
-        min-height: 40px;
-        padding: 0 12px 0 0;
-        max-width: calc(100% - 140px);
-        flex-wrap: wrap;
-      }
-      .crumbs > * {
-        display: inline-flex;
-        align-items: center;
+        display: block;
+        padding: 10px 16px 10px 14px;
+        max-width: min(360px, calc(100% - var(--rp-w) - 360px));
       }
       .crumbs button {
         background: none;
@@ -1119,11 +1134,7 @@
         color: var(--muted);
         padding: 0 2px;
       }
-      .crumbs .cur {
-        color: var(--text);
-        font-weight: 600;
-        padding: 0 8px 0 12px;
-      }
+
       .crumbs .back + .sep {
         display: none;
       }
@@ -1789,23 +1800,76 @@
          ============================================================ */
       .modesw {
         position: absolute;
-        left: 16px;
-        bottom: 16px;
+        top: 64px; /* under the Style / Day buttons (40px + 8px gap) */
+        right: calc(var(--rp-w) + 16px);
         z-index: 950;
         display: flex;
         align-items: stretch;
         background: var(--bg);
         border: 1px solid var(--border);
-        transition: bottom 0.24s var(--ease);
+        transition: right 0.24s var(--ease);
       }
       /* at block scale it sits just above the block card */
+      /* Nearest pop-out: bottom right of the map */
+      .nearbox {
+        position: absolute;
+        right: calc(var(--rp-w) + 16px);
+        bottom: 32px;
+        z-index: 940;
+        width: 300px;
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--border);
+        display: none;
+        transition: right 0.24s var(--ease);
+      }
+      .nearbox.open {
+        display: block;
+      }
+      .nearbox .nb-head {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 8px 10px 12px;
+        background: none;
+        border: 0;
+        color: var(--text);
+        cursor: pointer;
+        font-size: 12px;
+        letter-spacing: 0.32px;
+        text-align: left;
+      }
+      .nearbox .nb-head b {
+        font-size: 14px;
+      }
+      .nearbox .near {
+        margin: 0;
+        padding: 0 12px 8px;
+      }
+      .nearbox.min .near {
+        display: none;
+      }
+      .nearbox .near div {
+        font-size: 12px;
+      }
+      /* a facility circle lit up from the Nearest list */
+      .leaflet-marker-icon.hl .pin {
+        transform: scale(1.5);
+        box-shadow: 0 0 0 3px var(--primary);
+      }
+      .pin {
+        transition: transform 0.11s var(--ease);
+      }
       /* the hint moves up when it would run into the Map mode switch */
       .hint-up .hint {
         bottom: 64px;
       }
-      .has-card .modesw {
-        bottom: calc(var(--card-h, 0px) + 16px);
+      /* at precinct scale the hint sits centred in the space left of the Nearest box */
+      .hint-left .hint {
+        left: calc((100% - var(--rp-w) - 332px) / 2);
       }
+
       .modesw .ml {
         display: flex;
         align-items: center;
@@ -2090,7 +2154,8 @@
         <div class="hint" id="hint"></div>                                <!-- hint bubble, bottom centre -->
         <div class="tip" id="tip"></div>                                  <!-- hover tooltip -->
 
-        <div class="modesw" id="modeSw" role="group" aria-label="Map mode"></div>  <!-- top centre: Map mode -->
+        <div class="modesw" id="modeSw" role="group" aria-label="Map mode"></div>
+        <aside class="nearbox" id="nearbox" aria-label="Nearest facilities"></aside>  <!-- precinct scale: bottom right -->  <!-- top centre: Map mode -->
         <div class="mapctl">                                              <!-- top right: Style + Day / Night -->
   <button class="stylebtn" id="styleBtn" aria-pressed="false" title="Edit map styling (S)"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>Style</button>
           <button class="themebtn" id="themeBtn" type="button" aria-pressed="false" title="Switch to night mode">
@@ -2239,7 +2304,7 @@
           },
           hover: { dark: "#1C1C1E", light: "#1C1C1E", weight: 2 },
           precinct: { outline: "#1C1C1E", outlineOpacity: 0.35, light: "#1C1C1E" },
-          rings: { show: true, spacing: 500, count: 3, color: "#8A857C" }, // walking bands every `spacing` metres
+          rings: { show: true, radii: [250, 500, 1000], color: "#8A857C" }, // walking-distance rings (m); 1,000 m is the maximum
           recovery: { color: "#1C1C1E", weight: 2 },
           sites: { outline: false, color: "#1C1C1E", weight: 1.5 },
           parks: { fill: "#9fd18b", opacity: 0.55, connector: "#4f9b3a", connectorWeight: 2 },
@@ -2422,7 +2487,7 @@
           colorBy: "vers",
           on: new Set([0, 1, 2, 3, 4, 5, 6]),
           typOn: new Set([0, 1, 2, 3, 4]),
-          open: { vers: false, typ: false, rank: false }, // folding sections in the left panel (all start folded)
+          open: { vers: false, typ: false, rank: false, carbon: false }, // folding sections in the left panel (all start folded)
           fac: { t: true, s: true, c: true, h: false, p: true },
         };
 
@@ -2744,6 +2809,9 @@
         }
         function go(state, opts = {}) {
           const prev = S.state;
+          // a new scale starts fresh: no stale popup or hover preview
+          hoverObj = null;
+          tipHide();
           S.state = state;
           if (state < 3) {
             S.blk = null;
@@ -2763,7 +2831,7 @@
             if (state === 2) {
               // show the whole precinct plus the first walking-distance band
               const pr = precs[S.prec];
-              const band = L.latLng(pr.c).toBounds(2 * ringRadii()[0] * 1.08);
+              const band = L.latLng(pr.c).toBounds(2 * ringRadii().at(-1) * 1.04); // the whole outer ring
               fly(L.latLngBounds(pr.bounds.getSouthWest(), pr.bounds.getNorthEast()).extend(band), [30, 30]);
             }
             if (state === 3) fly(S.blk.bounds.pad(2.2), [60, 60]);
@@ -2890,8 +2958,7 @@
         /* ---------- walking-distance bands ---------- */
         // Radii of the bands, e.g. spacing 500 × count 3 → [500, 1000, 1500]
         function ringRadii() {
-          const n = Math.max(1, Math.round(T.rings.count));
-          return Array.from({ length: n }, (_, i) => T.rings.spacing * (i + 1));
+          return T.rings.radii.map(Number).filter((r) => r > 0).sort((a, b) => a - b);
         }
         const walkMin = (m) => Math.max(1, Math.round(m / 80)); // walking at 80 m per minute
 
@@ -3020,17 +3087,11 @@
         // Tooltip text when hovering a town, precinct/site or block
         function describe(o) {
           if (o.kind === "town") {
-            const n = o.blocks.filter(soon).length;
-            const share = Math.round((n / o.blocks.length) * 100);
-            return `
-              <b>${o.name}</b>
-              <span class="m">${fmt(o.blocks.length)} blocks · ${fmt(n)} VERS-eligible within 20 yrs (${share}%)</span>`;
+            return `<b>${o.name}</b>`; // name only; the bar below gives the share
           }
           if (o.kind === "prec") return `<b>${precTitle(o)}</b>`; // name only; the bar below gives the share
           const p = o; // a block
-          return `
-            <b>Blk ${p.b} ${tc(p.s)}</b>
-            <span class="m">${p.ty == null ? "Type unknown" : TYP[p.ty].name} · built ${p.y} · ${p.f} storeys<br>${vtxt(p)} · ${fmt(p.u)} flats${p.ec != null ? "<br>Embodied carbon " + fmt(p.ec) + " t CO₂e" : ""}</span>`;
+          return `<b>Blk ${p.b} ${tc(p.s)}</b>`; // name only; details are on the right panel card
         }
         // The popup keeps one bar between hovers, so its segments slide from the last
         // place's values to the next one's. Towns / precincts: VERS-eligible within 20 yrs
@@ -3145,39 +3206,11 @@
 
         /* ---------- crumbs ---------- */
         function renderCrumbs() {
+          // stepped breadcrumb list, top left of the map: one line per scale, each below the one before
           const c = document.getElementById("crumbs");
-          // the breadcrumb lives in the right panel; the map shows a Back button only when that panel is closed
-          const panelShown = rpOpen || getComputedStyle(document.getElementById("rpanel")).position !== "absolute";
-          c.classList.toggle("hide", panelShown || S.state === 0);
-          if (panelShown || S.state === 0) return;
-          c.innerHTML = `<button class="back" data-go="up">${icon("back", 15)}Back</button>`;
-          c.querySelector("button").onclick = goUp;
-          return;
-          const parts = [];
-          if (S.state > 0) parts.push(`<button class="back" data-go="up">${icon("back", 15)}Back</button>`);
-          const items = [["Singapore", 0]];
-          if (S.state >= 1) items.push([S.town.name, 1]);
-          if (S.state >= 2) {
-            const pr = precs[S.prec];
-            items.push([precTitle(pr), 2]);
-          }
-          if (S.state >= 3) items.push(["Blk " + S.blk.b, 3]);
-          items.forEach(([t, s], i) => {
-            if (i) parts.push('<span class="sep">›</span>');
-            parts.push(
-              i === items.length - 1
-                ? `<span class="cur">${t}</span>`
-                : `<button data-go="${s}">${t}</button>`,
-            );
-          });
-          c.innerHTML = parts.join("");
-          if (typeof layoutTop === "function") requestAnimationFrame(layoutTop); // re-check the Map mode switch against the new breadcrumb
-          c.querySelectorAll("button").forEach(
-            (b) =>
-              (b.onclick = () => {
-                b.dataset.go === "up" ? goUp() : go(+b.dataset.go);
-              }),
-          );
+          c.classList.remove("hide");
+          c.innerHTML = crumbList();
+          c.querySelectorAll("[data-go]").forEach((b) => (b.onclick = () => go(+b.dataset.go)));
         }
         /* =========================================================
            SIDE PANELS
@@ -3260,6 +3293,7 @@
           const mw = document.getElementById("mapwrap");
           mw.style.setProperty("--card-h", (S.state === 3 && CARD.classList.contains("open") ? CARD.offsetHeight : 0) + "px");
           mw.classList.remove("hint-up");
+          mw.classList.toggle("hint-left", document.getElementById("nearbox").classList.contains("open"));
           const a = MODE.getBoundingClientRect(), h = document.getElementById("hint").getBoundingClientRect();
           if (S.state !== 3 && h.width && a.right + 8 > h.left && a.top < h.bottom) mw.classList.add("hint-up");
         }
@@ -3283,6 +3317,29 @@
           }
         }
 
+        // compact tonnes: 17.2 Mt · 542 kt · 18,122 t
+        const tonnes = (t) =>
+          t >= 1e6 ? (t / 1e6).toFixed(1) + " Mt" : t >= 1e5 ? Math.round(t / 1e3) + " kt" : fmt(t) + " t";
+        // "Rank by total embodied carbon": the next level down, highest first; counts the blocks
+        // shown on the map (follows the checkboxes); grey bars relative to the top row
+        function carbonRows() {
+          let rows;
+          if (S.state === 0) rows = towns.map((t) => ({ name: t.name, attr: `data-town="${t.name}"`, v: sum(t.blocks.filter((p) => visible(p)), (p) => p.ec) }));
+          else if (S.state === 1)
+            rows = precs.filter((p) => p && p.town === S.town.name).map((pr) => ({ name: pr.short, attr: `data-prec="${pr.id}"`, v: sum(pr.blocks.filter((p) => visible(p)), (p) => p.ec) }));
+          else rows = precs[S.prec].blocks.filter((p) => visible(p)).map((p) => ({ name: "Blk " + p.b, attr: `data-i="${p.i}"`, v: p.ec || 0, on: S.blk === p }));
+          rows.sort((a, b) => b.v - a.v);
+          if (S.state === 0) rows = rows.slice(0, 10);
+          if (S.state === 1) rows = rows.slice(0, 12);
+          const max = rows.length ? rows[0].v || 1 : 1;
+          return list(rows, (r) => `
+            <button class="tw cw ${when(r.on, "on")}" ${r.attr}>
+              <span>${r.name}</span>
+              <span class="bar"><i style="width:${Math.max(2, (r.v / max) * 100)}%"></i></span>
+              <span class="pct">${tonnes(r.v)}</span>
+            </button>`);
+        }
+
         /* ---------- LEFT PANEL ---------- */
         function panelLeft() {
           const sc = scope();
@@ -3294,7 +3351,7 @@
           // ranking list: always the next level down
           let rankHead = "", rankRows = "";
           if (S.state === 0) {
-            rankHead = "VERS-eligible within 20 yrs by town";
+            rankHead = "Rank by VERS eligibility";
             rankRows = list(
               towns.map((t) => ({ t, share: shareSoon(t.blocks) })).sort((a, b) => b.share - a.share).slice(0, 10),
               (r) => `
@@ -3304,7 +3361,7 @@
                   <span class="pct">${Math.round(r.share * 100)}%</span>
                 </button>`);
           } else if (S.state === 1) {
-            rankHead = "VERS-eligible within 20 yrs by precinct";
+            rankHead = "Rank by VERS eligibility";
             rankRows = list(
               precs
                 .filter((p) => p && p.town === S.town.name)
@@ -3318,7 +3375,7 @@
                   <span class="pct">${Math.round(r.share * 100)}%</span>
                 </button>`);
           } else {
-            rankHead = "VERS-eligible year by block";
+            rankHead = "Rank by VERS eligibility";
             rankRows = list(
               precs[S.prec].blocks.slice().sort((a, b) => (a.v ?? 99) - (b.v ?? 99)),
               (p) => {
@@ -3374,6 +3431,13 @@
                 <span>${icon("chevdown", 16)}${rankHead}</span>
               </button>
               <div class="towns" id="list-rank">${rankRows}</div>
+            </section>
+
+            <section id="sec-carbon" class="fold ${when(S.open.carbon, "open")}">
+              <button class="lghead foldbtn" data-fold="carbon" aria-expanded="${S.open.carbon}" aria-controls="list-carbon">
+                <span>${icon("chevdown", 16)}Rank by total embodied carbon</span>
+              </button>
+              <div class="towns" id="list-carbon">${carbonRows()}</div>
             </section>
 
             <details class="method">
@@ -3575,17 +3639,39 @@
           if (S.state >= 2) items.push([precTitle(precs[S.prec]), 2]);
           if (S.state >= 3) items.push(["Blk " + S.blk.b, 3]);
           const html = `
-            <nav class="crumbl" aria-label="Map location">
-              ${when(S.state > 0, `<button class="back" data-go="up">${icon("back", 15)}Back</button>`)}
+            <div class="crumbl">
               <ol>
                 ${list(items, ([t, sc], i) => `
                   <li class="${when(i === items.length - 1, "cur")} ${when(i > lastCrumbDepth, "new")}" style="--d:${i}">
                     ${i === items.length - 1 ? `<span aria-current="location">${t}</span>` : `<button data-go="${sc}">${t}</button>`}
                   </li>`)}
               </ol>
-            </nav>`;
+            </div>`;
           lastCrumbDepth = items.length - 1;
           return html;
+        }
+
+        /* ---------- Nearest pop-out (bottom right of the map, precinct scale) ---------- */
+        let nearMin = false;
+        function renderNearest(html) {
+          const box = document.getElementById("nearbox");
+          box.classList.toggle("open", !!html);
+          box.classList.toggle("min", nearMin);
+          box.innerHTML = html || "";
+          if (!html) return;
+          box.querySelector("#nbToggle").onclick = () => {
+            nearMin = !nearMin;
+            renderPanel();
+          };
+          // hovering a row highlights that facility on the map
+          box.querySelectorAll("[data-ll]").forEach((row) => {
+            const key = row.dataset.ll;
+            row.onmouseenter = () => amenLayer.eachLayer((m) => {
+              const ll = m.getLatLng && m.getLatLng();
+              if (ll && `${ll.lat},${ll.lng}` === key) m.getElement()?.classList.add("hl");
+            });
+            row.onmouseleave = () => amenLayer.eachLayer((m) => m.getElement()?.classList.remove("hl"));
+          });
         }
 
         function panelRight() {
@@ -3595,10 +3681,11 @@
           if (!rpOpen) {
             RP.innerHTML = "";
             cardKey = null;
+            renderNearest("");
             return;
           }
           // precinct extras
-          let extras = "";
+          let extras = "", nearestHTML = "";
           if (S.state === 2) {
             const pr = precs[S.prec];
             const years = pr.blocks.map((p) => p.y).sort((a, b) => a - b);
@@ -3612,7 +3699,7 @@
             const nearestRow = (k, label) => {
               const x = nearOuter[k][0];
               return x
-                ? `<div><span>${famk(AM[k].grp, k)}${x.a[2] || label}</span><span>${Math.round(x.d)} m · ${walkMin(x.d)} min</span></div>`
+                ? `<div data-ll="${x.a[1]},${x.a[0]}"><span>${famk(AM[k].grp, k)}${x.a[2] || label}</span><span>${Math.round(x.d)} m · ${walkMin(x.d)} min</span></div>`
                 : `<div><span>${famk(AM[k].grp, k)}${label}</span><span>none within ${fmt(R2)} m</span></div>`;
             };
             const cols = `grid-template-columns:1fr repeat(${radii.length}, 56px)`;
@@ -3638,15 +3725,18 @@
                       ${list(nearEach, (found) => `<span class="fc">${countGroup(group, found)}</span>`)}
                     </button>`)}
                 </div>
-                <p class="lbl" style="margin-top:16px"><span>Nearest</span><span>walk at 80 m/min</span></p>
-                <div class="near">
-                  ${nearestRow("mrt", "MRT / LRT")}
-                  ${nearestRow("hawker", "Hawker centre")}
-                  ${nearestRow("school", "School")}
-                  ${nearestRow("clinic", "Clinic")}
-                  ${nearestRow("park", "Park")}
-                </div>
               </section>`;
+            nearestHTML = `
+              <button class="nb-head" id="nbToggle" aria-expanded="${!nearMin}">
+                <span><b>Nearest</b> · walk at 80 m/min</span>${icon(nearMin ? "chevup" : "chevdown", 16)}
+              </button>
+              <div class="near">
+                ${nearestRow("mrt", "MRT / LRT")}
+                ${nearestRow("hawker", "Hawker centre")}
+                ${nearestRow("school", "School")}
+                ${nearestRow("clinic", "Clinic")}
+                ${nearestRow("park", "Park")}
+              </div>`;
           }
 
           // --- HTML ---
@@ -3663,15 +3753,12 @@
               <button class="iconbtn" id="rpClose" aria-label="Close the details panel">${icon("close", 16)}</button>
             </div>
             <div class="navbox" title="Preview: the white box is what the map is showing"><canvas id="navCanvas"></canvas></div>
-            ${crumbList()}
             <div id="rcard"></div>
             ${extras}`;
 
           // --- wire up ---
           renderCard(hoverTarget(hoverObj) || selTarget(), true);
-          RP.querySelectorAll(".crumbl [data-go]").forEach((b) => {
-            b.onclick = () => (b.dataset.go === "up" ? goUp() : go(+b.dataset.go));
-          });
+          renderNearest(nearestHTML);
           RP.querySelectorAll("[data-scale]").forEach((btn) => {
             btn.onclick = () => +btn.dataset.scale < S.state && go(+btn.dataset.scale);
           });
@@ -4189,8 +4276,9 @@
             "Walking distance bands",
             [
               ["Show rings", "rings.show", "check"],
-              ["Band spacing (m)", "rings.spacing", "range", [100, 1000, 50]],
-              ["Number of bands", "rings.count", "range", [1, 6, 1]],
+              ["Ring 1 (m)", "rings.radii.0", "range", [50, 2000, 50]],
+              ["Ring 2 (m)", "rings.radii.1", "range", [50, 2000, 50]],
+              ["Ring 3 (m)", "rings.radii.2", "range", [50, 2000, 50]],
               ["Ring colour", "rings.color", "color"],
             ],
           ],

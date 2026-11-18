@@ -67,8 +67,11 @@
   },
   "rings": {
     "show": true,
-    "spacing": 500,
-    "count": 3,
+    "radii": [
+      250,
+      500,
+      1000
+    ],
     "color": "#8A857C"
   },
   "recovery": {
