@@ -135,7 +135,8 @@
         overflow: hidden;
       }
       .app.rp-open {
-        --rp-w: 384px;
+        /* the panel is zoomed by the text-size setting, so its real width is 384px × that scale */
+        --rp-w: calc(384px * var(--ui-scale, 1));
       }
 
       /* ============================================================
@@ -760,7 +761,7 @@
       }
       .tw {
         display: grid;
-        grid-template-columns: 120px 1fr 44px;
+        grid-template-columns: minmax(0, 1fr) 88px 44px;
         gap: 12px;
         align-items: center;
         cursor: pointer;
@@ -796,8 +797,14 @@
       .tw.cw .bar i {
         background: color-mix(in srgb, var(--text) 60%, transparent);
       }
+      /* names get the room; the bar is a fixed short length. Both lists line up. */
       .tw.cw {
-        grid-template-columns: 104px 1fr 76px;
+        grid-template-columns: minmax(0, 1fr) 88px 64px;
+      }
+      /* the place under the pointer on the map lights up its row (R7-G-02.1) */
+      .tw.hv {
+        background: var(--hover);
+        box-shadow: inset 3px 0 0 var(--primary);
       }
       .tw .pct {
         white-space: nowrap;
@@ -1236,8 +1243,17 @@
         padding: 8px 12px 10px;
         border-top: 1px solid color-mix(in srgb, var(--bg) 22%, var(--text));
       }
-      .tip .tbar[hidden] {
+      .tip .tbar[hidden],
+      .tip .tvers[hidden],
+      .tip .tcar[hidden] {
         display: none;
+      }
+      .tip .tvers:not([hidden]) + .tcar {
+        margin-top: 10px;
+      }
+      /* carbon: neutral grey, like the carbon ranking (reds are for VERS only) */
+      .tip .tcar .tk i {
+        background: color-mix(in srgb, var(--bg) 70%, transparent);
       }
       .tip .th {
         font-weight: 600;
@@ -2345,7 +2361,7 @@
             styleButton: true,
           },
         };
-        const STYLE_KEY = "opg-style-v5"; // bump the number to make every browser forget old saved edits
+        const STYLE_KEY = "opg-style-v6"; // bump the number to make every browser forget old saved edits
         const clone = (o) => JSON.parse(JSON.stringify(o));
         function merge(a, b) {
           if (!b || typeof b !== "object") return a;
@@ -2476,6 +2492,41 @@
           s.replace(/\w\S*/g, (w) =>
             w === "C'WEALTH" ? "C'wealth" : w[0] + w.slice(1).toLowerCase(),
           );
+        /* Stand-in precincts that share a name in the same town get a second street,
+           e.g. "Ang Mo Kio Ave 3 – Ave 1" (the words both streets share are dropped).
+           Where that can't separate them (one street only, or the same second street),
+           the block-number range is used: "Ang Mo Kio Ave 3 · Blk 311–348". (R7-G-02.2) */
+        function nameRepeats() {
+          const groups = {};
+          precs.forEach((pr) => {
+            if (pr && !pr.site) (groups[pr.town + "|" + pr.name] ||= []).push(pr);
+          });
+          Object.values(groups).forEach((g) => {
+            if (g.length < 2) return;
+            const second = g.map((pr) => {
+              const n = {};
+              pr.blocks.forEach((b) => b.s && b.s !== pr.name && (n[b.s] = (n[b.s] || 0) + 1));
+              const best = Object.entries(n).sort((x, y) => y[1] - x[1])[0];
+              return best ? best[0] : null;
+            });
+            const count = {};
+            second.forEach((st) => st && (count[st] = (count[st] || 0) + 1));
+            g.forEach((pr, k) => {
+              const st = second[k];
+              if (st && count[st] === 1) {
+                const a = pr.name.split(" "), w = st.split(" ");
+                let j = 0;
+                while (j < a.length && j < w.length - 1 && a[j] === w[j]) j++;
+                if (j > 0 && /^\d/.test(w[j])) j--; // keep "Ave" in "Ave 1"
+                pr.short = `${tc(pr.name)} – ${tc(w.slice(j).join(" "))}`;
+              } else {
+                const ns = pr.blocks.map((b) => parseInt(b.b, 10)).filter((x) => !isNaN(x)).sort((x, y) => x - y);
+                const lo = ns[0], hi = ns[ns.length - 1];
+                pr.short = `${tc(pr.name)} · Blk ${lo === hi ? lo : lo + "–" + hi}`;
+              }
+            });
+          });
+        }
         const slug = (s) =>
           s
             .toLowerCase()
@@ -2697,6 +2748,7 @@
             if (pr.site) pr.name = SITE_NAMES[pr.name] || tc(pr.street);
             pr.short = pr.site ? pr.name : tc(pr.name);
           });
+          nameRepeats();
           hiLayer = L.layerGroup().addTo(map);
           amenLayer = L.layerGroup().addTo(map);
           overlayLayer = L.layerGroup().addTo(map);
@@ -3117,10 +3169,39 @@
         const tip = document.getElementById("tip");
         tip.innerHTML = `<div class="tm"></div>
           <div class="tbar">
-            <div class="trow"><span class="th"></span><span class="tv"></span></div>
-            <span class="tk">${BANDS.map(() => "<i></i>").join("")}</span>
+            <div class="tvers">
+              <div class="trow"><span class="th"></span><span class="tv"></span></div>
+              <span class="tk">${BANDS.map(() => "<i></i>").join("")}</span>
+            </div>
+            <div class="tcar">
+              <div class="trow"><span class="th">Embodied carbon</span><span class="tv"></span></div>
+              <span class="tk"><i></i></span>
+            </div>
           </div>`;
         const tipText = tip.querySelector(".tm"), tipBar = tip.querySelector(".tbar");
+        const tipVers = tip.querySelector(".tvers"), tipCar = tip.querySelector(".tcar");
+
+        /* Popup carbon bar (R7-G-04.1): the place's embodied carbon (shown blocks only,
+           like the carbon ranking), against the largest place at the same scale.
+           Singapore: towns · Town: its precincts · Precinct / Block: the precinct's blocks. */
+        let carbonMaxKey = "", carbonMax = 1;
+        const carbonOf = (o) =>
+          o.kind === "town" || o.kind === "prec" ? sum(o.blocks.filter((p) => visible(p)), (p) => p.ec) : o.ec || 0;
+        function carbonPeers() {
+          if (S.state === 0) return towns;
+          if (S.state === 1) return precs.filter((p) => p && p.town === S.town.name);
+          return precs[S.prec].blocks.filter((p) => visible(p));
+        }
+        function carbonFor(o) {
+          if (!o || (!o.kind && o.b == null)) return null;
+          const key = [S.state, S.town && S.town.name, S.prec, JSON.stringify(S.on), JSON.stringify(S.typOn)].join("|");
+          if (key !== carbonMaxKey) {
+            carbonMaxKey = key;
+            carbonMax = Math.max(1, ...carbonPeers().map(carbonOf));
+          }
+          const v = carbonOf(o);
+          return { val: tonnes(v), w: Math.min(100, (v / carbonMax) * 100) };
+        }
         function barFor(o) {
           if (!o || !o.kind && o.b == null) return null;
           const seg = [0, 0, 0, 0, 0, 0, 0];
@@ -3144,17 +3225,25 @@
             val: used >= 70 ? "VERS-eligible now" : `${used} / 70 yrs`,
           };
         }
-        function tipShow(ev, html, bar) {
+        function tipShow(ev, html, bar, o) {
           const r = document.getElementById("mapwrap").getBoundingClientRect();
           tipText.innerHTML = html;
-          tipBar.hidden = !bar;
+          // bar = the VERS bar; the carbon bar comes with it for any town, precinct or block
+          const car = o ? carbonFor(o) : null;
+          tipBar.hidden = !bar && !car;
+          tipVers.hidden = !bar;
+          tipCar.hidden = !car;
           if (bar) {
-            tipBar.querySelector(".th").textContent = bar.head;
-            tipBar.querySelector(".tv").textContent = bar.val;
-            tipBar.querySelectorAll(".tk i").forEach((el, i) => {
+            tipVers.querySelector(".th").textContent = bar.head;
+            tipVers.querySelector(".tv").textContent = bar.val;
+            tipVers.querySelectorAll(".tk i").forEach((el, i) => {
               el.style.background = CB[i];
               el.style.width = bar.seg[i] + "%";
             });
+          }
+          if (car) {
+            tipCar.querySelector(".tv").textContent = car.val;
+            tipCar.querySelector(".tk i").style.width = car.w + "%";
           }
           tip.classList.add("on");
           let x = ev.clientX - r.left + 14,
@@ -3167,6 +3256,16 @@
         function tipHide() {
           tip.classList.remove("on");
         }
+        // light up the ranking rows (both lists) for the place under the pointer; no scrolling
+        function markRows(o) {
+          document.querySelectorAll(".towns .tw.hv").forEach((r) => r.classList.remove("hv"));
+          if (!o) return;
+          const sel =
+            o.kind === "town" ? `[data-town="${o.name}"]`
+            : o.kind === "prec" ? `[data-prec="${o.id}"]`
+            : o.i != null ? `[data-i="${o.i}"]` : null;
+          if (sel) document.querySelectorAll(`.towns .tw${sel}`).forEach((r) => r.classList.add("hv"));
+        }
         function wire() {
           map.on("mousemove", (e) => {
             const o = hitTest(e.latlng);
@@ -3175,17 +3274,20 @@
               hoverObj = o;
               previewCard(o); // the right panel card shows what the pointer is on
               drawHighlights(o ? hoverFor(o, S.state >= 2) : null);
+              markRows(o && !outside(o) ? o : null);
             }
-            o && !outside(o) ? tipShow(e.originalEvent, describe(o), barFor(o)) : tipHide();
+            o && !outside(o) ? tipShow(e.originalEvent, describe(o), barFor(o), o) : tipHide();
           });
           map.on("mouseout", () => {
             tipHide();
+            markRows(null);
             hoverObj = null;
             drawHighlights();
           });
           // leaving the map (onto a panel or the block card) puts the selected block's carbon back
           document.getElementById("mapwrap").addEventListener("mouseleave", () => {
             tipHide();
+            markRows(null);
             hoverObj = null;
             previewCard(null); // back to the current selection
           });
@@ -3199,7 +3301,7 @@
             if (!o) return;
             if (matchMedia("(hover:none)").matches && lastTap !== o && !outside(o)) {
               lastTap = o;
-              tipShow(e.originalEvent, describe(o), barFor(o));
+              tipShow(e.originalEvent, describe(o), barFor(o), o);
               drawHighlights(hoverFor(o, S.state >= 2));
               return;
             }
@@ -3348,8 +3450,6 @@
             rows = precs.filter((p) => p && p.town === S.town.name).map((pr) => ({ name: pr.short, attr: `data-prec="${pr.id}"`, v: sum(pr.blocks.filter((p) => visible(p)), (p) => p.ec) }));
           else rows = precs[S.prec].blocks.filter((p) => visible(p)).map((p) => ({ name: "Blk " + p.b, attr: `data-i="${p.i}"`, v: p.ec || 0, on: S.blk === p }));
           rows.sort((a, b) => b.v - a.v);
-          if (S.state === 0) rows = rows.slice(0, 10);
-          if (S.state === 1) rows = rows.slice(0, 12);
           const max = rows.length ? rows[0].v || 1 : 1;
           return list(rows, (r) => `
             <button class="tw cw ${when(r.on, "on")}" ${r.attr}>
@@ -3372,7 +3472,7 @@
           if (S.state === 0) {
             rankHead = "Rank by VERS eligibility";
             rankRows = list(
-              towns.map((t) => ({ t, share: shareSoon(t.blocks) })).sort((a, b) => b.share - a.share).slice(0, 10),
+              towns.map((t) => ({ t, share: shareSoon(t.blocks) })).sort((a, b) => b.share - a.share),
               (r) => `
                 <button class="tw" data-town="${r.t.name}">
                   <span>${r.t.name}</span>
@@ -3385,8 +3485,7 @@
               precs
                 .filter((p) => p && p.town === S.town.name)
                 .map((pr) => ({ pr, share: shareSoon(pr.blocks) }))
-                .sort((a, b) => b.share - a.share || (a.pr.early ?? 99) - (b.pr.early ?? 99))
-                .slice(0, 12),
+                .sort((a, b) => b.share - a.share || (a.pr.early ?? 99) - (b.pr.early ?? 99)),
               (r) => `
                 <button class="tw" data-prec="${r.pr.id}">
                   <span>${r.pr.short}</span>
@@ -3512,7 +3611,7 @@
               const size = map.getSize();
               if (c.x > 0 && c.y > 0 && c.x < size.x - rpWidth() && c.y < size.y) {
                 const r = document.getElementById("mapwrap").getBoundingClientRect();
-                tipShow({ clientX: r.left + c.x, clientY: r.top + c.y }, describe(o), barFor(o));
+                tipShow({ clientX: r.left + c.x, clientY: r.top + c.y }, describe(o), barFor(o), o);
               } else tipHide();
             };
             row.onmouseleave = () => {
