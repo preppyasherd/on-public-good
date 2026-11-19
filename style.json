@@ -126,6 +126,6 @@
   "overlays": {
     "hint": true,
     "crumbs": true,
-    "styleButton": true
+    "styleButton": false
   }
 }

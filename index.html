@@ -866,6 +866,29 @@
         text-align: left;
         transition: background 0.07s var(--ease);
       }
+      /* facility rows: checkbox rows, same plain background whether on or off */
+      .facgrid .fac,
+      .facgrid .fac:hover {
+        background: transparent;
+        color: var(--text);
+        border-bottom: 1px solid var(--border);
+      }
+      .facgrid .fac:hover {
+        background: var(--hover);
+      }
+      .facgrid {
+        gap: 0;
+      }
+      .fac .fn input {
+        width: 16px;
+        height: 16px;
+        margin: 0 12px 0 0;
+        accent-color: var(--text);
+        flex: none;
+      }
+      .fac input:not(:checked) ~ .amk {
+        opacity: 0.45;
+      }
       .fac[aria-pressed="false"] .amk {
         opacity: 0.45;
       }
@@ -1113,11 +1136,12 @@
       .crumbs {
         position: absolute;
         top: 16px;
-        left: 16px;
+        right: calc(var(--rp-w) + 16px);
+        transition: right 0.24s var(--ease);
         z-index: 900;
         display: block;
         padding: 10px 16px 10px 14px;
-        max-width: min(360px, calc(100% - var(--rp-w) - 360px));
+        max-width: min(380px, calc(100% - var(--rp-w) - 460px));
       }
       .crumbs button {
         background: none;
@@ -1166,7 +1190,7 @@
       .hint {
         position: absolute;
         left: calc((100% - var(--rp-w)) / 2);
-        bottom: 24px;
+        bottom: 32px; /* 8px above the data-sources line */
         transform: translateX(-50%);
         z-index: 900;
         padding: 10px 16px;
@@ -1181,10 +1205,9 @@
         color: var(--primary);
         font-weight: 600;
       }
-      /* at block scale the hint sits at the top, clear of the block card */
+      /* at block scale the hint sits 8px above the block card */
       .has-card .hint {
-        bottom: auto;
-        top: 72px;
+        bottom: calc(var(--card-h, 0px) + 40px);
       }
 
       /* hover tooltip — ink box */
@@ -1217,18 +1240,19 @@
         display: none;
       }
       .tip .th {
-        display: block;
         font-weight: 600;
-        margin-bottom: 6px;
       }
+      /* heading left, figure right; the bar underneath runs the full width */
       .tip .trow {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 10px;
-        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: baseline;
+        margin-bottom: 6px;
       }
       .tip .tk {
         display: flex;
+        width: 100%;
         height: 8px;
         background: color-mix(in srgb, var(--bg) 18%, var(--text));
         overflow: hidden;
@@ -1351,18 +1375,15 @@
         position: absolute;
         left: 16px;
         right: calc(var(--rp-w) + 16px);
-        bottom: 0;
-        max-width: 720px;
+        bottom: 32px; /* 8px above the data-sources line */
         max-height: 45%;
-        margin: 0 auto;
         z-index: 960;
         background: var(--bg);
         color: var(--text);
         border: 1px solid var(--border);
-        border-bottom: 0;
         display: flex;
         flex-direction: column;
-        transform: translateY(102%);
+        transform: translateY(calc(100% + 40px));
         transition: transform 0.24s var(--ease), right 0.24s var(--ease);
       }
       .blkcard.open {
@@ -1439,19 +1460,16 @@
         position: absolute;
         left: 16px;
         right: calc(var(--rp-w) + 16px);
-        bottom: 0;
-        height: 80%;
-        max-width: 720px;
-        margin: 0 auto;
+        bottom: 32px;
+        height: calc(80% - 32px);
         background: var(--bg);
         color: var(--text);
         z-index: 1010;
-        transform: translateY(102%);
+        transform: translateY(calc(100% + 40px));
         transition: transform 0.24s var(--ease);
         display: flex;
         flex-direction: column;
         border: 1px solid var(--border);
-        border-bottom: 0;
         box-shadow: 0 -8px 24px rgba(28, 28, 30, 0.14);
       }
       .scrim {
@@ -1798,18 +1816,22 @@
          STYLE EDITOR
          The Style button and the editor panel on the left of the map.
          ============================================================ */
+      /* one spacing rule on the map: 16px from the edges, 8px between boxes */
       .modesw {
         position: absolute;
-        top: 64px; /* under the Style / Day buttons (40px + 8px gap) */
-        right: calc(var(--rp-w) + 16px);
+        top: 16px;
+        left: 16px;
         z-index: 950;
         display: flex;
         align-items: stretch;
         background: var(--bg);
         border: 1px solid var(--border);
-        transition: right 0.24s var(--ease);
       }
-      /* at block scale it sits just above the block card */
+      .modesw .themebtn {
+        border: 0;
+        border-left: 1px solid var(--border);
+        height: 38px;
+      }
       /* Nearest pop-out: bottom right of the map */
       .nearbox {
         position: absolute;
@@ -1861,10 +1883,6 @@
       .pin {
         transition: transform 0.11s var(--ease);
       }
-      /* the hint moves up when it would run into the Map mode switch */
-      .hint-up .hint {
-        bottom: 64px;
-      }
       /* at precinct scale the hint sits centred in the space left of the Nearest box */
       .hint-left .hint {
         left: calc((100% - var(--rp-w) - 332px) / 2);
@@ -1902,6 +1920,9 @@
       }
       .themebtn[aria-pressed="true"] {
         box-shadow: inset 0 -2px 0 var(--primary);
+      }
+      #styleBtn {
+        display: none !important; /* Style editor hidden — see STYLE_EDITOR */
       }
       .stylebtn,
       .themebtn {
@@ -2099,6 +2120,7 @@
         .drawer {
           left: 0;
           right: 0;
+          bottom: 0;
           max-width: none;
         }
         .blkcard {
@@ -2155,13 +2177,9 @@
         <div class="tip" id="tip"></div>                                  <!-- hover tooltip -->
 
         <div class="modesw" id="modeSw" role="group" aria-label="Map mode"></div>
-        <aside class="nearbox" id="nearbox" aria-label="Nearest facilities"></aside>  <!-- precinct scale: bottom right -->  <!-- top centre: Map mode -->
-        <div class="mapctl">                                              <!-- top right: Style + Day / Night -->
+        <aside class="nearbox" id="nearbox" aria-label="Nearest facilities"></aside>  <!-- precinct scale: bottom right -->
+        <div class="mapctl">                                              <!-- Style button (hidden) -->
   <button class="stylebtn" id="styleBtn" aria-pressed="false" title="Edit map styling (S)"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>Style</button>
-          <button class="themebtn" id="themeBtn" type="button" aria-pressed="false" title="Switch to night mode">
-            <svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-            <span class="lbl-t">Night</span>
-          </button>
         </div>
 
         <aside class="styleed" id="styleEd" aria-label="Style editor" aria-hidden="true"></aside>       <!-- style editor -->
@@ -3099,8 +3117,8 @@
         const tip = document.getElementById("tip");
         tip.innerHTML = `<div class="tm"></div>
           <div class="tbar">
-            <span class="th"></span>
-            <div class="trow"><span class="tn"></span><span class="tk">${BANDS.map(() => "<i></i>").join("")}</span><span class="tv"></span></div>
+            <div class="trow"><span class="th"></span><span class="tv"></span></div>
+            <span class="tk">${BANDS.map(() => "<i></i>").join("")}</span>
           </div>`;
         const tipText = tip.querySelector(".tm"), tipBar = tip.querySelector(".tbar");
         function barFor(o) {
@@ -3132,7 +3150,6 @@
           tipBar.hidden = !bar;
           if (bar) {
             tipBar.querySelector(".th").textContent = bar.head;
-            tipBar.querySelector(".tn").textContent = bar.name;
             tipBar.querySelector(".tv").textContent = bar.val;
             tipBar.querySelectorAll(".tk i").forEach((el, i) => {
               el.style.background = CB[i];
@@ -3274,8 +3291,13 @@
             <span class="seg">
               <button data-c="vers" aria-pressed="${S.colorBy === "vers"}">VERS status</button>
               <button data-c="typ" aria-pressed="${S.colorBy === "typ"}">Block type</button>
-            </span>`;
-          MODE.querySelectorAll("button").forEach((btn) => {
+            </span>
+            <button class="themebtn" id="themeBtn" type="button" aria-pressed="${NIGHT_ON}" title="${NIGHT_ON ? "Switch to day mode" : "Switch to night mode"}">
+              <svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+              <span class="lbl-t">${NIGHT_ON ? "Day" : "Night"}</span>
+            </button>`;
+          MODE.querySelector("#themeBtn").onclick = toggleTheme;
+          MODE.querySelectorAll("button[data-c]").forEach((btn) => {
             btn.onclick = () => {
               S.colorBy = btn.dataset.c;
               restyle();
@@ -3288,14 +3310,11 @@
           });
           layoutTop();
         }
-        // the switch sits bottom-left; at block scale it lifts to just above the block card
+        // the block card's height, so the hint can sit 8px above it
         function layoutTop() {
           const mw = document.getElementById("mapwrap");
           mw.style.setProperty("--card-h", (S.state === 3 && CARD.classList.contains("open") ? CARD.offsetHeight : 0) + "px");
-          mw.classList.remove("hint-up");
           mw.classList.toggle("hint-left", document.getElementById("nearbox").classList.contains("open"));
-          const a = MODE.getBoundingClientRect(), h = document.getElementById("hint").getBoundingClientRect();
-          if (S.state !== 3 && h.width && a.right + 8 > h.left && a.top < h.bottom) mw.classList.add("hint-up");
         }
         addEventListener("resize", () => requestAnimationFrame(layoutTop));
         new MutationObserver(() => requestAnimationFrame(layoutTop)).observe(document.getElementById("hint"), { childList: true });
@@ -3476,6 +3495,32 @@
           });
           P.querySelectorAll(".tw[data-i]").forEach((btn) => {
             btn.onclick = () => openBlk(blocks[+btn.dataset.i]);
+          });
+          // hovering a ranking row acts like hovering that place on the map (no panning)
+          P.querySelectorAll(".towns .tw").forEach((row) => {
+            const obj = () =>
+              row.dataset.town ? towns.find((t) => t.name === row.dataset.town)
+                : row.dataset.prec != null ? precs[+row.dataset.prec]
+                : row.dataset.i != null ? blocks[+row.dataset.i] : null;
+            row.onmouseenter = () => {
+              const o = obj();
+              if (!o) return;
+              hoverObj = o;
+              previewCard(o);
+              drawHighlights(hoverFor(o, S.state >= 2));
+              const c = map.latLngToContainerPoint((o.bounds || L.latLngBounds(o.ll)).getCenter());
+              const size = map.getSize();
+              if (c.x > 0 && c.y > 0 && c.x < size.x - rpWidth() && c.y < size.y) {
+                const r = document.getElementById("mapwrap").getBoundingClientRect();
+                tipShow({ clientX: r.left + c.x, clientY: r.top + c.y }, describe(o), barFor(o));
+              } else tipHide();
+            };
+            row.onmouseleave = () => {
+              hoverObj = null;
+              tipHide();
+              drawHighlights();
+              previewCard(null);
+            };
           });
         }
 
@@ -3720,10 +3765,10 @@
                 <div class="fachead" style="${cols}"><span></span>${list(radii, (r) => `<span>${fmt(r)} m</span>`)}</div>
                 <div class="facgrid">
                   ${list(GROUPS, ([group, name]) => `
-                    <button class="fac" data-f="${group}" aria-pressed="${S.fac[group]}" style="${cols}">
-                      <span class="fn">${famk(group)}${name}</span>
+                    <label class="fac" style="${cols}">
+                      <span class="fn"><input type="checkbox" data-f="${group}" ${when(S.fac[group], "checked")}>${famk(group)}${name}</span>
                       ${list(nearEach, (found) => `<span class="fc">${countGroup(group, found)}</span>`)}
-                    </button>`)}
+                    </label>`)}
                 </div>
               </section>`;
             nearestHTML = `
@@ -3767,9 +3812,9 @@
             renderPanel();
             drawNav();
           };
-          RP.querySelectorAll(".fac").forEach((btn) => {
-            btn.onclick = () => {
-              S.fac[btn.dataset.f] = !S.fac[btn.dataset.f];
+          RP.querySelectorAll(".fac input[data-f]").forEach((btn) => {
+            btn.onchange = () => {
+              S.fac[btn.dataset.f] = btn.checked;
               drawHighlights();
               renderPanel();
             };
@@ -4332,13 +4377,13 @@
         } catch (e) {
           framed = true;
         }
-        document.getElementById("themeBtn").onclick = () => {
+        function toggleTheme() {
           NIGHT_ON = !NIGHT_ON;
           try {
             localStorage.setItem(THEME_KEY, NIGHT_ON ? "night" : "day");
           } catch (e) {}
           applyStyle();
-        };
+        }
         function applyStyle() {
           if (pend) return;
           pend = true;
@@ -4513,8 +4558,11 @@
         }
 
         document.getElementById("styleBtn").onclick = toggleEditor;
+        // The Style editor is hidden: no button and no S shortcut. Set to true to bring it back.
+        const STYLE_EDITOR = false;
         addEventListener("keydown", (e) => {
           if (
+            STYLE_EDITOR &&
             (e.key === "s" || e.key === "S") &&
             !e.ctrlKey &&
             !e.metaKey &&
